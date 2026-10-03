@@ -194,10 +194,10 @@ export default function Dashboard() {
   const handleManualSave = useCallback(async (
     values: Parameters<typeof createListing>[0],
   ) => {
-    await createListing(values);
+    const key = await createListing(values);
     // نمایش به دادهٔ سرور برمی‌گردد تا آگهی تازه بلافاصله دیده شود
     setLocalTouched(false);
-    toast.success("آگهی دستی ثبت شد");
+    return key;
   }, [createListing]);
 
   const parseText = useCallback(async (text: string, name: string) => {
