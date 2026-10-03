@@ -300,6 +300,20 @@ export const listListings = query({
   },
 });
 
+export const listPendingPublications = query({
+  args: {},
+  handler: async (ctx) => {
+    const r = await resolve(ctx);
+    if (!r || r.role !== OFFICE_ROLES.ADMIN) return [];
+    const rows = await ctx.db
+      .query("listings")
+      .withIndex("by_publication_status", (q) => q.eq("publicationStatus", "pending"))
+      .order("desc")
+      .take(100);
+    return rows.map((row) => toListing(row, row.phone ?? ""));
+  },
+});
+
 export const listPublicPaged = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
