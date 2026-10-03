@@ -6,6 +6,8 @@ type SeoConfig = {
   keywords?: string[];
   canonical?: string;
   image?: string;
+  ogTitle?: string;
+  ogDescription?: string;
   noIndex?: boolean;
   type?: "website" | "article";
   jsonLd?: Record<string, unknown>;
@@ -28,6 +30,8 @@ export function useSeo(config: SeoConfig) {
     keywords = [],
     canonical,
     image,
+    ogTitle,
+    ogDescription,
     noIndex = false,
     type = "website",
     jsonLd,
@@ -54,10 +58,10 @@ export function useSeo(config: SeoConfig) {
       });
     }
 
-    ensureMeta('meta[property="og:title"]', { property: "og:title", content: title });
+    ensureMeta('meta[property="og:title"]', { property: "og:title", content: ogTitle || title });
     ensureMeta('meta[property="og:description"]', {
       property: "og:description",
-      content: description,
+      content: ogDescription || description,
     });
     ensureMeta('meta[property="og:type"]', { property: "og:type", content: type });
     ensureMeta('meta[property="og:url"]', { property: "og:url", content: canonicalUrl });
@@ -65,10 +69,10 @@ export function useSeo(config: SeoConfig) {
       name: "twitter:card",
       content: image ? "summary_large_image" : "summary",
     });
-    ensureMeta('meta[name="twitter:title"]', { name: "twitter:title", content: title });
+    ensureMeta('meta[name="twitter:title"]', { name: "twitter:title", content: ogTitle || title });
     ensureMeta('meta[name="twitter:description"]', {
       name: "twitter:description",
-      content: description,
+      content: ogDescription || description,
     });
 
     if (image) {
@@ -103,6 +107,8 @@ export function useSeo(config: SeoConfig) {
     description,
     canonical,
     image,
+    ogTitle,
+    ogDescription,
     noIndex,
     type,
     keywords.join("|"),
