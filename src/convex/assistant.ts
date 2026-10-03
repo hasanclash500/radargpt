@@ -315,8 +315,20 @@ export const ask = action({
       { question },
     );
 
-    const apiKey = (process.env.OPENROUTER_API_KEY ?? "").trim();
-    const model = (process.env.OPENROUTER_MODEL ?? "openrouter/free").trim();
+    const secrets = await ctx.runQuery(
+      internal.integrations.getSecretsInternal,
+      {},
+    );
+    const apiKey = (
+      secrets?.openRouterApiKey ||
+      process.env.OPENROUTER_API_KEY ||
+      ""
+    ).trim();
+    const model = (
+      secrets?.openRouterModel ||
+      process.env.OPENROUTER_MODEL ||
+      "openrouter/free"
+    ).trim();
 
     if (!apiKey) {
       return {
