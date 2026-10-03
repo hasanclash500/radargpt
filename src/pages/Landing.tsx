@@ -19,6 +19,8 @@ import {
   ShieldCheck,
   Sparkles,
   Warehouse,
+  LogIn,
+  UserPlus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router";
@@ -345,26 +347,39 @@ export default function Landing() {
             <BrandMark compact />
           </a>
 
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
             <Link
               to="/listings"
-              className="rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="hidden rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xs:block sm:block"
             >
               آگهی‌ها
             </Link>
             <Link
               to="/blog"
-              className="rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="hidden rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:block"
             >
               وبلاگ
             </Link>
             <ThemeToggle />
-            <button
-              onClick={() => navigate("/auth?returnTo=/dashboard")}
-              className="hidden rounded-xl border border-border/70 bg-card/70 px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground sm:block"
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-9 gap-1 rounded-xl px-2.5 text-[11px] font-extrabold sm:px-3 sm:text-xs"
+              onClick={() => navigate("/auth?mode=signIn&returnTo=/dashboard")}
             >
-              ورود مشاوران
-            </button>
+              <LogIn className="size-3.5" />
+              ورود
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="h-9 gap-1 rounded-xl px-2.5 text-[11px] font-extrabold sm:px-3 sm:text-xs"
+              onClick={() => navigate("/auth?mode=signUp&returnTo=/dashboard")}
+            >
+              <UserPlus className="size-3.5" />
+              ثبت‌نام
+            </Button>
           </div>
         </div>
       </header>
@@ -532,10 +547,62 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      <footer className="border-t border-border/60">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-7 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <BrandMark compact />
-          <p>مکا · املاک صنعتی و اداری شهریار</p>
+      <footer className="border-t border-border/60 bg-card/35">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+          <div className="grid gap-8 md:grid-cols-[1.4fr_.8fr_.8fr]">
+            <div>
+              <BrandMark compact />
+              <h2 className="mt-5 text-lg font-extrabold">
+                مکا؛ املاک صنعتی و اداری شهریار
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-8 text-muted-foreground">
+                مکا مرجع تخصصی بررسی فایل‌های خرید، فروش، رهن و اجاره سوله، کارخانه،
+                کارگاه، انبار، زمین صنعتی، دفتر و واحد اداری در شهریار و محدوده غرب
+                استان تهران است. هدف ما ارائه اطلاعات شفاف، مشخصات فنی کاربردی و
+                ارتباط مستقیم برای انتخاب بهتر فضای کسب‌وکار است.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                {["اجاره سوله شهریار", "فروش کارخانه", "دفتر اداری شهریار", "املاک صنعتی"].map((item) => (
+                  <span key={item} className="rounded-full border border-border/70 bg-background/60 px-3 py-1.5 text-muted-foreground">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <nav aria-label="لینک‌های مهم">
+              <h3 className="text-sm font-extrabold">دسترسی سریع</h3>
+              <div className="mt-4 flex flex-col gap-3 text-sm text-muted-foreground">
+                <Link to="/listings" className="hover:text-primary">آگهی‌های صنعتی و اداری</Link>
+                <Link to="/blog" className="hover:text-primary">مقالات و راهنمای معاملات</Link>
+                <Link to="/auth?mode=signIn&returnTo=/dashboard" className="hover:text-primary">ورود مشاوران</Link>
+                <a href="#services" className="hover:text-primary">خدمات مکا</a>
+              </div>
+            </nav>
+
+            <div>
+              <h3 className="text-sm font-extrabold">تماس و مراجعه</h3>
+              <div className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
+                <a href={`tel:${PHONE}`} className="flex items-center gap-2 hover:text-primary">
+                  <PhoneCall className="size-4 text-primary" />
+                  <span dir="ltr">{PHONE}</span>
+                </a>
+                <p className="flex items-start gap-2">
+                  <MapPin className="mt-1 size-4 shrink-0 text-primary" />
+                  {ADDRESS}
+                </p>
+                <a href={MAPS_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-bold text-primary">
+                  <Navigation className="size-4" />
+                  مسیریابی دفتر مکا
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-9 flex flex-col gap-3 border-t border-border/60 pt-5 text-[11px] leading-6 text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <p>© مکا · مشاور تخصصی املاک صنعتی و اداری شهریار</p>
+            <p>اطلاعات هر فایل پیش از معامله باید توسط طرفین بررسی و احراز شود.</p>
+          </div>
         </div>
       </footer>
 
