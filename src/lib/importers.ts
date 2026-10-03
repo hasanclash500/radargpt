@@ -8,6 +8,7 @@
 
 import * as XLSX from "xlsx";
 import { CSV_HEADERS } from "./exporters";
+import { neshanSearchUrl } from "./neshan";
 import { parsePriceMillion, toEnglishDigits, type Listing } from "./parser";
 import type { DealType, PropertyType } from "./parser";
 
@@ -231,9 +232,7 @@ function rowToListing(row: Record<string, unknown>): Listing | null {
     divarUrl,
     mapsUrl:
       str(mapped.mapsUrl) ||
-      (city
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(city)}`
-        : ""),
+      (city ? neshanSearchUrl(city) : ""),
     date,
     dateRaw,
     poster: str(mapped.poster),
