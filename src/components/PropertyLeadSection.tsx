@@ -142,7 +142,7 @@ export default function PropertyLeadSection() {
   };
 
   return (
-    <section className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+    <section id="property-leads" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
       <div className="mb-7">
         <span className="text-xs font-extrabold text-primary">درخواست مستقیم</span>
         <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
