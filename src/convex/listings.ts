@@ -183,10 +183,13 @@ async function resolveListingImages(ctx: Ctx, row: Doc<"listings">) {
       featured: image.featured,
     })),
   );
-  return resolved.filter((image) => Boolean(image.url));
+  return resolved.filter(
+    (image): image is typeof image & { url: string } =>
+      typeof image.url === "string" && image.url.length > 0,
+  );
 }
 
-async async function toPublicListing(
+async function toPublicListing(
   ctx: Ctx,
   row: Doc<"listings">,
   context: Awaited<ReturnType<typeof publicContext>>,
