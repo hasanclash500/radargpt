@@ -71,6 +71,15 @@ export interface Listing {
   folderIds?: string[];
   /** شماره‌ای که باید در متن اشتراک‌گذاری بیاید (آگهی یا دفتر). */
   contactPhone?: string;
+  /** اطلاعات مدیریت انتشار عمومی؛ فقط در داشبورد استفاده می‌شوند. */
+  createdByUserId?: string;
+  isPublic?: boolean;
+  featuredOnHome?: boolean;
+  publicSlug?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string[];
+  noIndex?: boolean;
 }
 
 /** فیلدهای عددی/اختیاری پیش‌فرض برای ساخت آگهی. */
