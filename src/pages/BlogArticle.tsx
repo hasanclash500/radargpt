@@ -48,6 +48,8 @@ export default function BlogArticle() {
     keywords: post?.keywords || (post?.focusKeyword ? [post.focusKeyword] : []),
     canonical,
     image,
+    ogTitle: post?.ogTitle || undefined,
+    ogDescription: post?.ogDescription || undefined,
     noIndex: post?.noIndex ?? false,
     type: "article",
     jsonLd: post
