@@ -1,4 +1,5 @@
 import MapPicker, { type MapPoint } from "@/components/listings/MapPicker";
+import { neshanAppLocationUrl } from "@/lib/neshan";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ interface EditPanelProps {
 }
 
 function mapsUrl(point: MapPoint) {
-  return `https://www.google.com/maps?q=${point.lat},${point.lng}`;
+  return neshanAppLocationUrl(point.lat, point.lng);
 }
 
 export default function EditPanel({
