@@ -27,7 +27,12 @@ export const myRole = query({
     const prof = await myProfile(ctx, userId);
     if (!prof) return null;
     const role = (prof.officeRole ?? OFFICE_ROLES.GUEST) as OfficeRole;
-    return { role, isPrivileged: isPrivileged(role) };
+    return {
+      role,
+      isPrivileged: isPrivileged(role),
+      displayName: prof.displayName ?? "",
+      publicPhone: prof.publicPhone ?? "",
+    };
   },
 });
 
@@ -44,7 +49,12 @@ export const ensureProfile = mutation({
     const existing = await myProfile(ctx, userId);
     if (existing) {
       const role = (existing.officeRole ?? OFFICE_ROLES.GUEST) as OfficeRole;
-      return { role, isPrivileged: isPrivileged(role) };
+      return {
+        role,
+        isPrivileged: isPrivileged(role),
+        displayName: existing.displayName ?? "",
+        publicPhone: existing.publicPhone ?? "",
+      };
     }
 
     const any = await ctx.db.query("userProfiles").take(1);
@@ -55,7 +65,32 @@ export const ensureProfile = mutation({
       officeRole: role,
       createdAt: Date.now(),
     });
-    return { role, isPrivileged: isPrivileged(role) };
+    return { role, isPrivileged: isPrivileged(role), displayName: "", publicPhone: "" };
+  },
+});
+
+export const updateMyPublicContact = mutation({
+  args: {
+    displayName: v.string(),
+    publicPhone: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) throw new Error("ورود لازم است.");
+    const existing = await myProfile(ctx, userId);
+    if (!existing) throw new Error("پروفایل کاربر ساخته نشده است.");
+
+    const displayName = args.displayName.trim();
+    const publicPhone = args.publicPhone.replace(/\D/g, "");
+    if (publicPhone && !/^09\d{9}$/.test(publicPhone)) {
+      throw new Error("شماره تماس عمومی باید ۱۱ رقم و با 09 شروع شود.");
+    }
+
+    await ctx.db.patch(existing._id, {
+      displayName: displayName || undefined,
+      publicPhone: publicPhone || undefined,
+    });
+    return { displayName, publicPhone };
   },
 });
 
