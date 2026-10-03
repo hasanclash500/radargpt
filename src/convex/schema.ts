@@ -68,6 +68,8 @@ const schema = defineSchema(
       userId: v.string(),
       officeRole: v.optional(officeRoleValidator),
       displayName: v.optional(v.string()),
+      /** شماره‌ای که خود مشاور اجازه داده در آگهی‌های عمومی نمایش داده شود */
+      publicPhone: v.optional(v.string()),
       createdAt: v.optional(v.number()),
     })
       .index("by_user", ["userId"])
@@ -108,6 +110,18 @@ const schema = defineSchema(
       folderIds: v.optional(v.array(v.string())),
       /** عکس‌ها: شناسهٔ فایل در Convex Storage */
       images: v.optional(v.array(v.string())),
+      /** کاربری که اولین بار این آگهی را در سیستم ثبت کرده است */
+      createdByUserId: v.optional(v.string()),
+      /** کنترل انتشار عمومی */
+      isPublic: v.optional(v.boolean()),
+      featuredOnHome: v.optional(v.boolean()),
+      publicSlug: v.optional(v.string()),
+      publishedAt: v.optional(v.number()),
+      /** SEO عمومی آگهی؛ در صورت خالی بودن، مقدار مناسب به‌صورت خودکار ساخته می‌شود */
+      seoTitle: v.optional(v.string()),
+      seoDescription: v.optional(v.string()),
+      seoKeywords: v.optional(v.array(v.string())),
+      noIndex: v.optional(v.boolean()),
       /** تعداد دفعات ارسال‌شده در شبکه‌های اجتماعی */
       sentCount: v.optional(v.number()),
       lastSharedAt: v.optional(v.number()),
@@ -116,7 +130,9 @@ const schema = defineSchema(
     })
       .index("by_key", ["key"])
       .index("by_date", ["date"])
-      .index("by_city", ["city"]),
+      .index("by_city", ["city"])
+      .index("by_public_slug", ["publicSlug"])
+      .index("by_public_published", ["isPublic", "publishedAt"]),
 
     /** مقالات وبلاگ و تنظیمات SEO هر مقاله */
     posts: defineTable({
