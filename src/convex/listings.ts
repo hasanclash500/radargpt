@@ -183,9 +183,10 @@ async function resolveListingImages(ctx: Ctx, row: Doc<"listings">) {
       featured: image.featured,
     })),
   );
-  return resolved.filter(
-    (image): image is typeof image & { url: string } =>
-      typeof image.url === "string" && image.url.length > 0,
+  return resolved.flatMap((image) =>
+    typeof image.url === "string" && image.url.length > 0
+      ? [{ ...image, url: image.url }]
+      : [],
   );
 }
 
