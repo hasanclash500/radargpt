@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { api } from "@/convex/_generated/api";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { Bot, CheckCircle2, Loader2, Send } from "lucide-react";
+import { Bot, BrainCircuit, CheckCircle2, Loader2, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +18,8 @@ export default function IntegrationSettings() {
   const [telegramChatId, setTelegramChatId] = useState("");
   const [baleToken, setBaleToken] = useState("");
   const [baleChatId, setBaleChatId] = useState("");
+  const [openRouterKey, setOpenRouterKey] = useState("");
+  const [aiModel, setAiModel] = useState("openrouter/free");
   const [notifyLeads, setNotifyLeads] = useState(true);
   const [notifyPublicationRequests, setNotifyPublicationRequests] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -27,6 +29,7 @@ export default function IntegrationSettings() {
     if (!status?.allowed) return;
     setTelegramChatId(status.telegramChatId || "");
     setBaleChatId(status.baleChatId || "");
+    setAiModel(status.aiModel || "openrouter/free");
     setNotifyLeads(status.notifyLeads);
     setNotifyPublicationRequests(status.notifyPublicationRequests);
   }, [status]);
@@ -43,12 +46,16 @@ export default function IntegrationSettings() {
         baleBotToken: baleToken.trim() || undefined,
         baleChatId,
         clearBaleToken: false,
+        openRouterApiKey: openRouterKey.trim() || undefined,
+        openRouterModel: aiModel.trim() || "openrouter/free",
+        clearOpenRouterApiKey: false,
         notifyLeads,
         notifyPublicationRequests,
       });
       setTelegramToken("");
       setBaleToken("");
-      toast.success("تنظیمات پیام‌رسان ذخیره شد");
+      setOpenRouterKey("");
+      toast.success("تنظیمات اتصال‌ها و دستیار هوشمند ذخیره شد");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ذخیره تنظیمات ناموفق بود");
     } finally {
@@ -75,13 +82,45 @@ export default function IntegrationSettings() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Bot className="size-5" />
-          تلگرام و بله
+          اتصال‌ها و دستیار هوشمند
         </CardTitle>
         <CardDescription>
-          توکن‌ها فقط سمت سرور نگهداری می‌شوند. برای هر پیام‌رسان Bot Token و Chat ID مدیر را وارد کنید.
+          توکن‌ها فقط سمت سرور نگهداری می‌شوند. OpenRouter برای پاسخ مولد دستیار مکا و تلگرام/بله برای اعلان‌ها استفاده می‌شوند.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
+        <div className="rounded-2xl border border-primary/20 bg-primary/[0.035] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <BrainCircuit className="size-5 text-primary" />
+              <strong className="text-sm">هوش مصنوعی دستیار مکا</strong>
+            </div>
+            {status.aiConfigured && <CheckCircle2 className="size-4 text-emerald-500" />}
+          </div>
+          <p className="mt-2 text-[10px] leading-5 text-muted-foreground">
+            کلید OpenRouter سمت سرور ذخیره می‌شود. می‌توانید از مدل/Router رایگان استفاده کنید؛
+            جستجو و کارت‌های ملک مستقل از مدل هستند و فقط از آگهی‌های خود مکا می‌آیند.
+          </p>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <Input
+              dir="ltr"
+              type="password"
+              value={openRouterKey}
+              onChange={(e) => setOpenRouterKey(e.target.value)}
+              placeholder={status.aiConfigured ? "کلید قبلاً ثبت شده؛ برای تغییر، کلید جدید وارد کنید" : "OpenRouter API Key"}
+            />
+            <Input
+              dir="ltr"
+              value={aiModel}
+              onChange={(e) => setAiModel(e.target.value)}
+              placeholder="openrouter/free"
+            />
+          </div>
+          <p className="mt-2 text-[10px] leading-5 text-muted-foreground">
+            مدل پیشنهادی پیش‌فرض: <span dir="ltr">openrouter/free</span>. در صورت داشتن نام یک مدل رایگان DeepSeek می‌توانید همان شناسه را وارد کنید.
+          </p>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-3 rounded-2xl border border-border/70 p-4">
             <div className="flex items-center justify-between">
@@ -147,7 +186,7 @@ export default function IntegrationSettings() {
 
         <Button type="button" onClick={() => void save()} disabled={saving}>
           {saving && <Loader2 className="size-4 animate-spin" />}
-          ذخیره تنظیمات پیام‌رسان
+          ذخیره تنظیمات اتصال‌ها
         </Button>
       </CardContent>
     </Card>
