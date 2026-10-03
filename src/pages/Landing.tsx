@@ -219,6 +219,17 @@ function FeaturedPublicListings() {
             {...fadeUp}
             className="group flex flex-col rounded-[1.7rem] border border-border/70 bg-card/70 p-5 transition-all hover:-translate-y-1 hover:border-primary/35 hover:shadow-lg"
           >
+            {item.ogImage ? (
+              <div className="-mx-5 -mt-5 mb-4 aspect-[16/9] overflow-hidden rounded-t-[1.7rem] bg-muted">
+                <img
+                  src={item.ogImage}
+                  alt={item.images?.find((image: any) => image.featured)?.alt || item.title}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  loading="lazy"
+                />
+              </div>
+            ) : null}
+
             <div className="flex items-center justify-between gap-2 text-xs">
               <span className="rounded-full bg-primary/10 px-2.5 py-1 font-bold text-primary">
                 {item.dealType}
