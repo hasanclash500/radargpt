@@ -11,17 +11,14 @@ import {
 } from "./_generated/server";
 import { v } from "convex/values";
 import { OFFICE_ROLES } from "./schema";
+import { roleForUser } from "./permissions";
 
 type ReadCtx = Pick<QueryCtx, "db" | "auth">;
 
 async function currentRole(ctx: ReadCtx) {
   const userId = await getAuthUserId(ctx);
   if (userId === null) return null;
-  const rows = await ctx.db
-    .query("userProfiles")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .take(2);
-  return rows[0]?.officeRole ?? null;
+  return await roleForUser(ctx, String(userId));
 }
 
 async function getSecrets(ctx: { db: QueryCtx["db"] }) {
@@ -36,7 +33,7 @@ export const getIntegrationStatus = query({
   args: {},
   handler: async (ctx) => {
     const role = await currentRole(ctx);
-    if (role !== OFFICE_ROLES.ADMIN) {
+    if (role !== OFFICE_ROLES.MANAGER) {
       return {
         allowed: false,
         telegramConfigured: false,
@@ -78,8 +75,8 @@ export const saveIntegrationSettings = mutation({
   },
   handler: async (ctx, args) => {
     const role = await currentRole(ctx);
-    if (role !== OFFICE_ROLES.ADMIN) {
-      throw new Error("فقط مدیر اجازهٔ تغییر تنظیمات پیام‌رسان را دارد.");
+    if (role !== OFFICE_ROLES.MANAGER) {
+      throw new Error("فقط مدیر اصلی اجازهٔ تغییر تنظیمات پیام‌رسان را دارد.");
     }
 
     const existing = await getSecrets(ctx);
@@ -337,7 +334,7 @@ export const testIntegrations = action({
   args: { channel: v.union(v.literal("telegram"), v.literal("bale"), v.literal("all")) },
   handler: async (ctx, args) => {
     const role = await ctx.runQuery(internal.integrations.actionRole, {});
-    if (role !== OFFICE_ROLES.ADMIN) {
+    if (role !== OFFICE_ROLES.MANAGER) {
       throw new Error("فقط مدیر می‌تواند اتصال پیام‌رسان را آزمایش کند.");
     }
     return await sendConfigured(
@@ -355,8 +352,8 @@ export const discoverChatId = action({
   },
   handler: async (ctx, args) => {
     const role = await ctx.runQuery(internal.integrations.actionRole, {});
-    if (role !== OFFICE_ROLES.ADMIN) {
-      throw new Error("فقط مدیر می‌تواند Chat ID را دریافت کند.");
+    if (role !== OFFICE_ROLES.MANAGER) {
+      throw new Error("فقط مدیر اصلی می‌تواند Chat ID را دریافت کند.");
     }
 
     const config = await ctx.runQuery(internal.integrations.getSecretsInternal, {});
