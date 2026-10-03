@@ -84,10 +84,10 @@ export default function ListingImageManager({ listing }: { listing: Listing }) {
     }
 
     const invalid = selected.find(
-      (file) => !file.type.startsWith("image/") || file.size > 12 * 1024 * 1024,
+      (file) => !file.type.startsWith("image/") || file.size > 25 * 1024 * 1024,
     );
     if (invalid) {
-      toast.error("هر فایل باید تصویر و حداکثر ۱۲ مگابایت باشد.");
+      toast.error("هر فایل باید تصویر و حداکثر ۲۵ مگابایت باشد؛ قبل از آپلود خودکار کوچک می‌شود.");
       return;
     }
 
