@@ -40,6 +40,8 @@ export const getIntegrationStatus = query({
         telegramChatId: "",
         baleConfigured: false,
         baleChatId: "",
+        aiConfigured: false,
+        aiModel: "openrouter/free",
         notifyLeads: true,
         notifyPublicationRequests: true,
       };
@@ -56,6 +58,8 @@ export const getIntegrationStatus = query({
         config?.baleBotToken?.trim() && config?.baleChatId?.trim(),
       ),
       baleChatId: config?.baleChatId ?? "",
+      aiConfigured: Boolean(config?.openRouterApiKey?.trim()),
+      aiModel: config?.openRouterModel?.trim() || "openrouter/free",
       notifyLeads: config?.notifyLeads ?? true,
       notifyPublicationRequests: config?.notifyPublicationRequests ?? true,
     };
@@ -70,6 +74,9 @@ export const saveIntegrationSettings = mutation({
     baleBotToken: v.optional(v.string()),
     baleChatId: v.string(),
     clearBaleToken: v.boolean(),
+    openRouterApiKey: v.optional(v.string()),
+    openRouterModel: v.string(),
+    clearOpenRouterApiKey: v.boolean(),
     notifyLeads: v.boolean(),
     notifyPublicationRequests: v.boolean(),
   },
@@ -86,6 +93,9 @@ export const saveIntegrationSettings = mutation({
     const baleToken = args.clearBaleToken
       ? undefined
       : args.baleBotToken?.trim() || existing?.baleBotToken;
+    const openRouterApiKey = args.clearOpenRouterApiKey
+      ? undefined
+      : args.openRouterApiKey?.trim() || existing?.openRouterApiKey;
 
     const payload = {
       key: "global",
@@ -93,6 +103,8 @@ export const saveIntegrationSettings = mutation({
       telegramChatId: args.telegramChatId.trim() || undefined,
       baleBotToken: baleToken,
       baleChatId: args.baleChatId.trim() || undefined,
+      openRouterApiKey,
+      openRouterModel: args.openRouterModel.trim() || "openrouter/free",
       notifyLeads: args.notifyLeads,
       notifyPublicationRequests: args.notifyPublicationRequests,
       updatedAt: Date.now(),
@@ -134,6 +146,8 @@ export const getSecretsInternal = internalQuery({
       telegramChatId: config.telegramChatId ?? "",
       baleBotToken: config.baleBotToken ?? "",
       baleChatId: config.baleChatId ?? "",
+      openRouterApiKey: config.openRouterApiKey ?? "",
+      openRouterModel: config.openRouterModel ?? "openrouter/free",
       notifyLeads: config.notifyLeads ?? true,
       notifyPublicationRequests: config.notifyPublicationRequests ?? true,
     };
