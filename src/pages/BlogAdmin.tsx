@@ -28,7 +28,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
@@ -157,7 +157,7 @@ function FieldLabel({
   children,
   hint,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   hint?: string;
 }) {
   return (
