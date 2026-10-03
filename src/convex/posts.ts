@@ -2,24 +2,16 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { OFFICE_ROLES } from "./schema";
+import { roleForUser } from "./permissions";
 
-const editorRoles = new Set<string>([
-  OFFICE_ROLES.ADMIN,
-  OFFICE_ROLES.CONSULTANT,
-]);
+const editorRoles = new Set<string>([OFFICE_ROLES.MANAGER]);
 
 async function getEditor(ctx: any) {
   const userId = await getAuthUserId(ctx);
   if (!userId) return null;
 
-  const profiles = await ctx.db
-    .query("userProfiles")
-    .withIndex("by_user", (q: any) => q.eq("userId", userId))
-    .take(1);
-  const profile = profiles[0];
-  if (!profile || !editorRoles.has(profile.officeRole ?? OFFICE_ROLES.GUEST)) {
-    return null;
-  }
+  const role = await roleForUser(ctx, String(userId));
+  if (!editorRoles.has(role)) return null;
 
   const user = await ctx.db.get(userId);
   return {
