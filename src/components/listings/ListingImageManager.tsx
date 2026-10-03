@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import type { Listing } from "@/lib/parser";
+import { resizeImageFile } from "@/lib/image-resize";
 import { useMutation, useQuery } from "convex/react";
 import {
   ArrowDown,
@@ -94,7 +95,11 @@ export default function ListingImageManager({ listing }: { listing: Listing }) {
     try {
       const uploaded: typeof normalized = [];
       for (let i = 0; i < selected.length; i++) {
-        const file = selected[i];
+        const file = await resizeImageFile(selected[i], {
+          maxWidth: 1600,
+          maxHeight: 1600,
+          quality: 0.84,
+        });
         const uploadUrl = await generateUploadUrl();
         const response = await fetch(uploadUrl, {
           method: "POST",
@@ -260,7 +265,7 @@ export default function ListingImageManager({ listing }: { listing: Listing }) {
                   <img
                     src={image.url}
                     alt={image.alt}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain p-1"
                   />
                 ) : null}
                 {image.featured && (
