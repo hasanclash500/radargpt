@@ -38,7 +38,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     redirectAfterAuth,
   );
 
-  const [mode, setMode] = useState<"signIn" | "signUp">("signUp");
+  const requestedMode = searchParams.get("mode") === "signIn" ? "signIn" : "signUp";
+  const [mode, setMode] = useState<"signIn" | "signUp">(requestedMode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
