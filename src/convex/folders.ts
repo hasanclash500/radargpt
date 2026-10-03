@@ -84,6 +84,10 @@ export const getSettings = query({
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .take(2);
     const settings = rows[0] ?? null;
+    const current = await currentRole(ctx);
+    const canSeeImportSettings =
+      current !== null && canManageListings(current.role);
+
     return {
       key: "global",
       officeName: settings?.officeName ?? "مکا",
@@ -94,11 +98,11 @@ export const getSettings = query({
       customPropertyTypes: settings?.customPropertyTypes ?? [],
       listingFieldConfigs:
         settings?.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS,
-      sourceUrl: settings?.sourceUrl ?? "",
-      lastImportAt: settings?.lastImportAt,
-      lastImportAdded: settings?.lastImportAdded,
-      lastImportUpdated: settings?.lastImportUpdated,
-      lastImportError: settings?.lastImportError,
+      sourceUrl: canSeeImportSettings ? (settings?.sourceUrl ?? "") : "",
+      lastImportAt: canSeeImportSettings ? settings?.lastImportAt : undefined,
+      lastImportAdded: canSeeImportSettings ? settings?.lastImportAdded : undefined,
+      lastImportUpdated: canSeeImportSettings ? settings?.lastImportUpdated : undefined,
+      lastImportError: canSeeImportSettings ? settings?.lastImportError : undefined,
       updatedAt: settings?.updatedAt,
     };
   },
