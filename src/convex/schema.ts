@@ -168,7 +168,8 @@ const schema = defineSchema(
       .index("by_date", ["date"])
       .index("by_city", ["city"])
       .index("by_public_slug", ["publicSlug"])
-      .index("by_public_published", ["isPublic", "publishedAt"]),
+      .index("by_public_published", ["isPublic", "publishedAt"])
+      .index("by_publication_status", ["publicationStatus"]),
 
     /** درخواست‌های ثبت‌شده از لندینگ: می‌خرم/اجاره می‌کنم/می‌فروشم/اجاره می‌دهم */
     propertyLeads: defineTable({
