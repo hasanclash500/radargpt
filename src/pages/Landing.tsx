@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
+import { useSeo } from "@/hooks/use-seo";
 import { useQuery } from "convex/react";
 import {
   ArrowLeft,
@@ -284,6 +285,38 @@ function FeaturedPublicListings() {
 
 export default function Landing() {
   const navigate = useNavigate();
+
+  useSeo({
+    title: "مکا | املاک صنعتی و اداری شهریار",
+    description:
+      "مکا؛ مشاور تخصصی خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار. فایل‌های سوله، کارخانه، کارگاه و دفتر اداری با تماس مستقیم.",
+    keywords: [
+      "املاک صنعتی شهریار",
+      "املاک اداری شهریار",
+      "اجاره سوله شهریار",
+      "اجاره دفتر اداری شهریار",
+      "مکا",
+    ],
+    type: "website",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "RealEstateAgent",
+      name: "مکا",
+      alternateName: "MEKA",
+      telephone: PHONE,
+      description: "مشاور تخصصی املاک صنعتی و اداری شهریار",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "شهریار",
+        streetAddress: "روبروی شهرک اداری تجربه",
+        addressCountry: "IR",
+      },
+      areaServed: {
+        "@type": "City",
+        name: "شهریار",
+      },
+    },
+  });
 
   return (
     <main dir="rtl" className="relative min-h-screen overflow-x-clip bg-background pb-24 md:pb-0">
