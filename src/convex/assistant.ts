@@ -143,6 +143,17 @@ async function collectMatches(ctx: any, question: string): Promise<AssistantMatc
     .order("desc")
     .collect();
 
+  const requestedCities = Array.from(
+    new Set(
+      rows
+        .map((row: any) => row.city?.trim())
+        .filter(
+          (city: string | undefined): city is string =>
+            Boolean(city && q.includes(normalize(city))),
+        ),
+    ),
+  );
+
   const scored = rows.map((row: any) => {
     const haystack = normalize(
       [
@@ -170,7 +181,10 @@ async function collectMatches(ctx: any, question: string): Promise<AssistantMatc
       else score -= 10;
     }
 
-    if (row.city && q.includes(normalize(row.city))) score += 28;
+    if (requestedCities.length > 0) {
+      if (row.city && requestedCities.includes(row.city.trim())) score += 32;
+      else score -= 45;
+    }
 
     const queryTokens = q
       .split(" ")
@@ -202,20 +216,26 @@ async function collectMatches(ctx: any, question: string): Promise<AssistantMatc
   });
 
   const meaningful = scored
-    .filter((item: any) => item.score > 0)
+    .filter((item: any) => item.score > 5)
     .sort((a: any, b: any) => b.score - a.score)
     .slice(0, MAX_RESULTS);
+
+  const hasStructuredConstraint =
+    Boolean(property || deal || area != null || prices.length > 0) ||
+    requestedCities.length > 0;
 
   const selected =
     meaningful.length > 0
       ? meaningful
-      : scored
-          .sort(
-            (a: any, b: any) =>
-              (b.row.publishedAt ?? b.row.createdAt ?? 0) -
-              (a.row.publishedAt ?? a.row.createdAt ?? 0),
-          )
-          .slice(0, Math.min(4, MAX_RESULTS));
+      : hasStructuredConstraint
+        ? []
+        : scored
+            .sort(
+              (a: any, b: any) =>
+                (b.row.publishedAt ?? b.row.createdAt ?? 0) -
+                (a.row.publishedAt ?? a.row.createdAt ?? 0),
+            )
+            .slice(0, Math.min(4, MAX_RESULTS));
 
   return await Promise.all(
     selected.map(async ({ row, score }: any, index: number) => {
