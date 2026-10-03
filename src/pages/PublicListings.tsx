@@ -19,7 +19,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 type SortKey =
   | "newest"
@@ -63,6 +63,7 @@ function rangeLabel(min: string, max: string, unit: string) {
 }
 
 export default function PublicListings() {
+  const [searchParams] = useSearchParams();
   const { results: listings, status, loadMore } = usePaginatedQuery(
     api.listings.listPublicPaged,
     {},
@@ -70,9 +71,9 @@ export default function PublicListings() {
   );
 
   const [search, setSearch] = useState("");
-  const [propertyType, setPropertyType] = useState("همه");
-  const [dealType, setDealType] = useState("همه");
-  const [city, setCity] = useState("همه");
+  const [propertyType, setPropertyType] = useState(() => searchParams.get("property") || "همه");
+  const [dealType, setDealType] = useState(() => searchParams.get("deal") || "همه");
+  const [city, setCity] = useState(() => searchParams.get("city") || "همه");
   const [rooms, setRooms] = useState("همه");
   const [areaMin, setAreaMin] = useState("");
   const [areaMax, setAreaMax] = useState("");
