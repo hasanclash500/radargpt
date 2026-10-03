@@ -584,6 +584,10 @@ export default function Landing() {
         </div>
       </section>
 
+      <MarketIntentHub />
+
+      <FeaturedPublicListings />
+
       <section id="services" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <motion.div {...fadeUp} className="mb-7">
           <span className="text-xs font-extrabold text-primary">حوزه تخصصی مکا</span>
@@ -618,11 +622,9 @@ export default function Landing() {
         </div>
       </section>
 
-      <PublicListingSubmission />
-
       <PropertyLeadSection />
 
-      <FeaturedPublicListings />
+      <PublicListingSubmission />
 
       <section className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <motion.div
