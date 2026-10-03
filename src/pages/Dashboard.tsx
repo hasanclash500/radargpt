@@ -118,6 +118,14 @@ export default function Dashboard() {
     return () => observer.disconnect();
   }, [loadMore, localTouched, status]);
 
+  // بعد از Refresh فقط صفحه اول ۶۰تایی نماند: صفحات سرور را در پس‌زمینه
+  // تا پایان دریافت می‌کنیم، در حالی که رندر کارت‌ها همچنان مرحله‌ای می‌ماند.
+  useEffect(() => {
+    if (localTouched || status !== "CanLoadMore") return;
+    const timer = window.setTimeout(() => loadMore(240), 80);
+    return () => window.clearTimeout(timer);
+  }, [localTouched, status, loadMore, serverItems.length]);
+
   const deferredFilters = useDeferredValue(filters);
 
   // منبع نمایش: دادهٔ محلی تازه‌وارد، وگرنه آگهی‌های ذخیره‌شدهٔ سرور
@@ -156,7 +164,7 @@ export default function Dashboard() {
     if (!canSeePhone || items.length === 0) return;
     setSyncing(true);
     try {
-      const BATCH = 400;
+      const BATCH = 100;
       let added = 0; let updated = 0;
       for (let i = 0; i < items.length; i += BATCH) {
         const batch = items.slice(i, i + BATCH).map((l) => ({
@@ -186,7 +194,10 @@ export default function Dashboard() {
       }
     } catch (e) {
       console.error(e);
-      if (!options.silent) toast.error("ذخیره روی سرور ناموفق بود");
+      toast.error("ذخیره کامل آگهی‌ها روی سرور ناموفق بود", {
+        description: "بخشی از آگهی‌ها ممکن است ذخیره نشده باشند؛ دوباره تلاش کنید.",
+      });
+      throw e;
     } finally {
       setSyncing(false); setSyncProgress(null);
     }
@@ -222,10 +233,11 @@ export default function Dashboard() {
       if (result.listings.length === 0) {
         setError("هیچ آگهی معتبری با شماره تلفن پیدا نشد.");
       } else {
-        toast.success(`${faNum(result.listings.length)} آگهی استخراج شد`, {
+        setBusyLabel("در حال ذخیره همه آگهی‌ها روی سرور…");
+        await persist(result.listings);
+        toast.success(`${faNum(result.listings.length)} آگهی استخراج و کامل ذخیره شد`, {
           description: result.skipped > 0 ? `${faNum(result.skipped)} آگهی بدون شماره تلفن نادیده گرفته شد` : undefined,
         });
-        void persist(result.listings);
       }
     } catch (e) {
       console.error(e);
@@ -248,8 +260,9 @@ export default function Dashboard() {
         setListings(result.listings); setSkipped(result.skipped); setFileName(file.name);
         setLocalTouched(true);
         afterLoad();
-        toast.success(`${faNum(result.listings.length)} آگهی وارد شد`);
-        void persist(result.listings);
+        setBusyLabel("در حال ذخیره همه آگهی‌ها روی سرور…");
+        await persist(result.listings);
+        toast.success(`${faNum(result.listings.length)} آگهی وارد و کامل ذخیره شد`);
       } else {
         const text = await file.text();
         await parseText(text, file.name);
@@ -501,6 +514,11 @@ export default function Dashboard() {
                 <span className="font-extrabold text-foreground">{faNum(filtered.length)}</span> آگهی از {faNum(displayListings.length)} مورد
                 {filtersActive && " (با اعمال فیلترها)"}
               </p>
+              {syncing && syncProgress && (
+                <p className="text-xs font-bold text-primary">
+                  در حال ذخیره روی سرور: {faNum(syncProgress.done)} از {faNum(syncProgress.total)}
+                </p>
+              )}
               <div className="flex flex-wrap items-center gap-2">
                 {selected.size > 0 && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/12 px-2.5 py-1 text-xs font-bold text-primary">
