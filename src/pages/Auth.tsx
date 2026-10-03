@@ -134,7 +134,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                       onClick={() => navigate("/")}
                     />
                   </div>
-                <CardTitle className="text-xl">ورود به ملک‌رادار</CardTitle>
+                <CardTitle className="text-xl">ورود به مکا</CardTitle>
                 <CardDescription>
                   برای ورود یا ثبت‌نام، ایمیل خود را وارد کنید
                 </CardDescription>
