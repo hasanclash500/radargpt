@@ -16,7 +16,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const PHONE = "09120858095";
 const ADDRESS = "شهریار، روبروی شهرک اداری تجربه";
