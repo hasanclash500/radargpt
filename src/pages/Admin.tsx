@@ -27,6 +27,7 @@ import {
   ArrowRight,
   CheckCircle2,
   CloudDownload,
+  BrainCircuit,
   Loader2,
   ShieldCheck,
   TriangleAlert,
@@ -395,6 +396,27 @@ export default function Admin() {
             await updateSettings({ listingFieldConfigs: configs });
           }}
         />
+
+        <Card className="border-primary/20 bg-primary/[0.035]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <BrainCircuit className="size-5 text-primary" />
+              مچ هوشمند متقاضی و آگهی
+            </CardTitle>
+            <CardDescription>
+              تطبیق خودکار درخواست‌های خرید و اجاره با فایل‌های موجود در دیتابیس مکا؛
+              بر اساس شهر، نوع ملک، متراژ و بودجه.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="gap-2">
+              <Link to="/admin/matches">
+                باز کردن مچ هوشمند
+                <ArrowRight className="size-4 rotate-180" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
 
         <LeadInbox />
 
