@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import ListingImageManager from "@/components/listings/ListingImageManager";
 import {
   Dialog,
   DialogContent,
@@ -113,7 +114,7 @@ export default function PublicListingDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>انتشار عمومی و SEO آگهی</DialogTitle>
           <DialogDescription>
@@ -146,6 +147,8 @@ export default function PublicListingDialog({
               />
             </div>
           </div>
+
+          <ListingImageManager listing={listing} />
 
           <div className="space-y-4 rounded-2xl border border-border/70 p-4">
             <div className="flex items-center gap-2">
