@@ -199,6 +199,130 @@ function IsometricScene() {
   );
 }
 
+const QUICK_PROPERTY_TYPES = [
+  "سوله",
+  "کارخانه",
+  "کارگاه",
+  "انبار",
+  "زمین صنعتی",
+  "دفتر اداری",
+];
+
+type LandingIntent = "buy" | "rent" | "sell" | "lease_out";
+
+const LANDING_INTENTS: Array<{
+  id: LandingIntent;
+  label: string;
+  icon: typeof Search;
+}> = [
+  { id: "buy", label: "می‌خرم", icon: Search },
+  { id: "rent", label: "اجاره می‌کنم", icon: KeyRound },
+  { id: "lease_out", label: "اجاره می‌دهم", icon: HomeIcon },
+  { id: "sell", label: "می‌فروشم", icon: HandCoins },
+];
+
+function MarketIntentHub() {
+  const [intent, setIntent] = useState<LandingIntent>("rent");
+  const browseMode = intent === "buy" || intent === "rent";
+  const deal = intent === "buy" ? "فروش" : "رهن و اجاره";
+
+  return (
+    <section className="relative mx-auto max-w-6xl px-4 pb-4 sm:px-6 sm:pb-8">
+      <div className="overflow-hidden rounded-[2rem] border border-primary/20 bg-card shadow-sm">
+        <div className="grid grid-cols-4 border-b border-border/70 bg-muted/35">
+          {LANDING_INTENTS.map((item) => {
+            const Icon = item.icon;
+            const active = intent === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setIntent(item.id)}
+                className={
+                  "flex min-h-16 flex-col items-center justify-center gap-1 border-e border-border/50 px-2 text-xs font-extrabold transition-colors last:border-e-0 sm:min-h-20 sm:text-sm " +
+                  (active
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-foreground hover:bg-muted")
+                }
+              >
+                <Icon className="size-4 sm:size-5" />
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-extrabold text-primary">
+                {browseMode ? "انتخاب نوع ملک" : "ثبت سریع ملک"}
+              </p>
+              <h2 className="mt-1 text-lg font-black sm:text-xl">
+                {browseMode
+                  ? "چه نوع ملکی می‌خواهید؟"
+                  : "نوع ملک را انتخاب کنید و آگهی را ثبت کنید"}
+              </h2>
+            </div>
+            <Grid3X3 className="size-6 text-primary/55" />
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            {QUICK_PROPERTY_TYPES.map((property) =>
+              browseMode ? (
+                <Link
+                  key={property}
+                  to={
+                    "/listings?deal=" +
+                    encodeURIComponent(deal) +
+                    "&property=" +
+                    encodeURIComponent(property)
+                  }
+                  className="rounded-2xl border border-primary/20 bg-primary/[0.035] px-3 py-4 text-center text-sm font-extrabold transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/8"
+                >
+                  {property}
+                </Link>
+              ) : (
+                <a
+                  key={property}
+                  href="#submit-listing"
+                  className="rounded-2xl border border-primary/20 bg-primary/[0.035] px-3 py-4 text-center text-sm font-extrabold transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/8"
+                >
+                  {property}
+                </a>
+              ),
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2.5">
+        <Link
+          to="/listings"
+          className="rounded-2xl border border-border/70 bg-card p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
+        >
+          <Search className="mx-auto size-6 text-primary" />
+          <p className="mt-2 text-xs font-extrabold sm:text-sm">جستجوی پیشرفته</p>
+        </Link>
+        <a
+          href="#submit-listing"
+          className="rounded-2xl border border-border/70 bg-card p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
+        >
+          <Building2 className="mx-auto size-6 text-primary" />
+          <p className="mt-2 text-xs font-extrabold sm:text-sm">ثبت آگهی ملک</p>
+        </a>
+        <a
+          href="#property-leads"
+          className="rounded-2xl border border-border/70 bg-card p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
+        >
+          <ClipboardList className="mx-auto size-6 text-primary" />
+          <p className="mt-2 text-xs font-extrabold sm:text-sm">ثبت تقاضای ملک</p>
+        </a>
+      </div>
+    </section>
+  );
+}
+
 function FeaturedPublicListings() {
   const listings = useQuery(api.listings.listFeaturedPublic);
 
