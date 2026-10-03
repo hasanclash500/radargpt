@@ -30,7 +30,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 60;
 
 const HINTS = [
   { icon: FileCode2, title: "استخراج خودکار",
@@ -85,11 +85,14 @@ export default function Dashboard() {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) loadMore(60);
-    }, { rootMargin: "500px" });
+      if (!entries[0]?.isIntersecting) return;
+      // افزایش تعداد کارت‌های واقعاً قابل نمایش؛ برای فایل محلی و سرور.
+      setVisibleCount((current) => current + PAGE_SIZE);
+      if (!localTouched && status === "CanLoadMore") loadMore(PAGE_SIZE);
+    }, { rootMargin: "700px" });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [loadMore, localTouched, status]);
 
   const role = roleData?.role ?? "guest";
   const canSeePhone = roleData?.isPrivileged ?? false;
@@ -560,8 +563,8 @@ export default function Dashboard() {
                 {status === "CanLoadMore" && (
                   <div className="flex justify-center pt-1">
                     <Button type="button" variant="outline" size="sm"
-                      onClick={() => loadMore(60)}>
-                      نمایش آگهی‌های بیشتر از سرور
+                      onClick={() => loadMore(PAGE_SIZE)}>
+                      دریافت آگهی‌های بیشتر از سرور
                     </Button>
                   </div>
                 )}
@@ -569,7 +572,7 @@ export default function Dashboard() {
                   <div className="flex justify-center pt-1">
                     <Button type="button" variant="outline" size="sm" className="gap-1.5"
                       onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}>
-                      نمایش آگهی‌های بیشتر ({faNum(Math.min(PAGE_SIZE, filtered.length - visibleCount))} مورد دیگر)
+                      نمایش ۶۰ آگهی دیگر ({faNum(Math.min(PAGE_SIZE, filtered.length - visibleCount))} باقی‌مانده در این مرحله)
                     </Button>
                   </div>
                 )}
