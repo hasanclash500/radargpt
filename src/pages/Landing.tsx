@@ -4,6 +4,7 @@ import PropertyLeadSection from "@/components/PropertyLeadSection";
 import PublicListingSubmission from "@/components/PublicListingSubmission";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
+import { neshanSearchUrl } from "@/lib/neshan";
 import { useSeo } from "@/hooks/use-seo";
 import { useQuery } from "convex/react";
 import {
@@ -22,13 +23,20 @@ import {
   Warehouse,
   LogIn,
   UserPlus,
+  Search,
+  KeyRound,
+  HandCoins,
+  HomeIcon,
+  Grid3X3,
+  ClipboardList,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router";
+import { useState } from "react";
 
 const PHONE = "09120858095";
 const ADDRESS = "شهریار، روبروی شهرک اداری تجربه";
-const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ADDRESS)}`;
+const MAPS_URL = neshanSearchUrl(ADDRESS);
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
