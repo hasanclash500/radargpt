@@ -73,7 +73,14 @@ export const saveIngested = internalMutation({
         await ctx.db.patch(existing._id, { ...item, updatedAt: now });
         updated++;
       } else {
-        await ctx.db.insert("listings", { ...item, createdAt: now, updatedAt: now });
+        await ctx.db.insert("listings", {
+          ...item,
+          isPublic: false,
+          featuredOnHome: false,
+          publicationStatus: "private",
+          createdAt: now,
+          updatedAt: now,
+        });
         added++;
       }
     }
