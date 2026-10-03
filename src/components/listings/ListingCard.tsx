@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import EditPanel, { type Folder } from "@/components/listings/EditPanel";
+import PublicListingDialog from "@/components/listings/PublicListingDialog";
 import { faDigits, formatArea, formatPrice, formatRooms } from "@/lib/format";
 import type { DealType, Listing } from "@/lib/parser";
 import { cn } from "@/lib/utils";import {
@@ -41,12 +42,20 @@ interface ListingCardProps {
   onSaveNotes?: (notes: string) => Promise<void>;
   onToggleFolder?: (folderId: string) => Promise<void>;
   onSaveLocation?: (patch: { address: string; divarUrl: string; mapsUrl: string }) => Promise<void>;
+  onSavePublic?: (settings: {
+    isPublic: boolean;
+    featuredOnHome: boolean;
+    seoTitle?: string;
+    seoDescription?: string;
+    seoKeywords?: string[];
+    noIndex: boolean;
+  }) => Promise<void>;
 }
 
 /** کارت نمایش یک آگهی با اکشن‌های کپی تلفن، تماس، دیوار، نقشه و ارسال. */
 export default function ListingCard({
   listing: l, canSeePhone, managerPhone, selected, onToggleSelect,
-  onShare, folders = [], onSaveNotes, onToggleFolder, onSaveLocation,
+  onShare, folders = [], onSaveNotes, onToggleFolder, onSaveLocation, onSavePublic,
 }: ListingCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -164,6 +173,29 @@ export default function ListingCard({
           currentAddress={l.address ?? ""} currentDivarUrl={l.divarUrl ?? ""}
           currentMapsUrl={l.mapsUrl ?? ""} onSaveLocation={onSaveLocation}
           canEdit={canSeePhone} />
+      )}
+
+      {canSeePhone && onSavePublic && (
+        <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
+          <div className="flex items-center gap-2">
+            <PublicListingDialog listing={l} onSave={onSavePublic} />
+            {l.featuredOnHome && (
+              <span className="rounded-full bg-gold/10 px-2 py-1 text-[10px] font-bold text-gold">
+                منتخب صفحه اصلی
+              </span>
+            )}
+          </div>
+          {l.isPublic && l.publicSlug && (
+            <a
+              href={`/listings/${l.publicSlug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] font-bold text-primary"
+            >
+              مشاهده عمومی
+            </a>
+          )}
+        </div>
       )}
 
       {/* اکشن‌ها */}
