@@ -6,37 +6,39 @@ import { v } from "convex/values";
 import { toEnglishDigits, type Listing as ListingRow } from "../lib/parser";
 import { OFFICE_ROLES, PRIVILEGED_ROLES, type OfficeRole } from "./schema";
 
-/**
- * کمکی‌های زیر هم در query و هم در mutation استفاده می‌شوند؛ پس فقط به
- * خواندن نیاز دارند و ساخت پروفایل در mutation به نام ensureProfile انجام می‌گیرد.
- */
 type Ctx = { db: QueryCtx["db"]; auth: QueryCtx["auth"] };
 
-/** نقش کاربر جاری؛ اگر پروفایلی نباشد، مهمان در نظر گرفته می‌شود. */
 async function resolve(ctx: Ctx): Promise<{
   role: OfficeRole;
   privileged: boolean;
+  userId: string;
 } | null> {
   const userId = await getAuthUserId(ctx);
   if (userId === null) return null;
 
-  // take به‌جای unique: رکورد پروفایل تکراری نباید همهٔ کوئری‌ها را بترکاند
   const profs = await ctx.db
     .query("userProfiles")
     .withIndex("by_user", (q) => q.eq("userId", userId))
     .take(2);
   const prof = profs[0];
-  // پروفایل ندارد ⇒ هنوز ensureProfile صدا زده نشده ⇒ فعلاً غیرمجاز
   const role = (prof?.officeRole ?? OFFICE_ROLES.GUEST) as OfficeRole;
-  return { role, privileged: PRIVILEGED_ROLES.includes(role) };
+  return {
+    role,
+    privileged: PRIVILEGED_ROLES.includes(role),
+    userId: String(userId),
+  };
 }
 
-async function managerPhone(ctx: Ctx): Promise<string> {
+async function globalSettings(ctx: Ctx) {
   const rows = await ctx.db
     .query("appSettings")
     .withIndex("by_key", (q) => q.eq("key", "global"))
     .take(2);
-  return rows[0]?.managerPhone ?? "";
+  return rows[0] ?? null;
+}
+
+async function managerPhone(ctx: Ctx): Promise<string> {
+  return (await globalSettings(ctx))?.managerPhone ?? "09120858095";
 }
 
 async function byKey(ctx: Ctx, key: string): Promise<Doc<"listings"> | null> {
@@ -47,7 +49,63 @@ async function byKey(ctx: Ctx, key: string): Promise<Doc<"listings"> | null> {
   return rows[0] ?? null;
 }
 
-/** یک سند آگهی را به شکل قابل استفاده در UI (نوع Listing) تبدیل می‌کند. */
+function cleanSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9\u0600-\u06ff-]+/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 95);
+}
+
+function shortHash(value: string) {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return Math.abs(hash >>> 0).toString(36).slice(0, 7);
+}
+
+function makePublicSlug(row: Doc<"listings">) {
+  const parts = [
+    row.dealType,
+    row.propertyType,
+    row.area ? `${row.area}-متر` : "",
+    row.city,
+  ].filter(Boolean);
+  const base = cleanSlug(parts.join(" ")) || "melk";
+  return `${base}-${shortHash(row.key)}`;
+}
+
+function autoSeoTitle(row: Doc<"listings">) {
+  const type = row.propertyType || "ملک";
+  const deal = row.dealType || "آگهی";
+  const area = row.area ? ` ${row.area} متری` : "";
+  const city = row.city || "شهریار";
+  return `${deal} ${type}${area} در ${city} | مکا`.slice(0, 65);
+}
+
+function autoSeoDescription(row: Doc<"listings">) {
+  const details = [
+    row.dealType,
+    row.propertyType,
+    row.area ? `${row.area} متر` : "",
+    row.city ? `در ${row.city}` : "",
+    row.depositMillion != null ? `ودیعه ${row.depositMillion} میلیون` : "",
+    row.rentMillion != null ? `اجاره ${row.rentMillion} میلیون` : "",
+    row.priceMillion ? `قیمت ${row.priceMillion} میلیون تومان` : "",
+  ]
+    .filter(Boolean)
+    .join("، ");
+  const excerpt = (row.description ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
+  return `${details}. ${excerpt} برای اطلاعات و هماهنگی بازدید با مکا تماس بگیرید.`
+    .replace(/\s+/g, " ")
+    .slice(0, 160);
+}
+
 function toListing(row: Doc<"listings">, contactPhone: string): ListingRow {
   return {
     id: row.key,
@@ -76,16 +134,91 @@ function toListing(row: Doc<"listings">, contactPhone: string): ListingRow {
     notes: row.notes,
     folderIds: row.folderIds,
     contactPhone,
+    createdByUserId: row.createdByUserId,
+    isPublic: row.isPublic ?? false,
+    featuredOnHome: row.featuredOnHome ?? false,
+    publicSlug: row.publicSlug,
+    seoTitle: row.seoTitle,
+    seoDescription: row.seoDescription,
+    seoKeywords: row.seoKeywords,
+    noIndex: row.noIndex ?? false,
   };
 }
 
-/**
- * خواندن آگهی‌ها از سرور.
- *
- * نکتهٔ امنیتی: برای نقش‌های غیرمجاز، فیلد `phone` اصلاً در پاسخ قرار نمی‌گیرد
- * و به‌جای آن شمارهٔ تماس دفتر برگردانده می‌شود — یعنی شمارهٔ آگهی هرگز به
- * مرورگر کاربر عادی یا مهمان نمی‌رسد.
- */
+async function publicContext(ctx: Ctx) {
+  const settings = await globalSettings(ctx);
+  const profiles = await ctx.db.query("userProfiles").collect();
+  return {
+    officeName: settings?.officeName || "مکا",
+    managerPhone: settings?.managerPhone || "09120858095",
+    profiles,
+  };
+}
+
+function toPublicListing(
+  row: Doc<"listings">,
+  context: Awaited<ReturnType<typeof publicContext>>,
+) {
+  const contacts: { name: string; phone: string; role: string }[] = [];
+  if (context.managerPhone) {
+    contacts.push({
+      name: context.officeName || "مکا",
+      phone: context.managerPhone,
+      role: "مدیر",
+    });
+  }
+
+  if (row.createdByUserId) {
+    const creator = context.profiles.find(
+      (profile) => profile.userId === row.createdByUserId,
+    );
+    const phone = creator?.publicPhone ?? "";
+    if (phone && !contacts.some((item) => item.phone === phone)) {
+      contacts.push({
+        name: creator?.displayName || "مشاور مکا",
+        phone,
+        role: "مشاور ثبت‌کننده",
+      });
+    }
+  }
+
+  return {
+    slug: row.publicSlug || makePublicSlug(row),
+    title:
+      row.title ||
+      `${row.dealType || "آگهی"} ${row.propertyType || "ملک"}${row.area ? ` ${row.area} متری` : ""} در ${row.city || "شهریار"}`,
+    description: row.description ?? "",
+    city: row.city ?? "شهریار",
+    area: row.area ?? null,
+    rooms: row.rooms ?? null,
+    priceMillion: row.priceMillion ?? 0,
+    depositMillion: row.depositMillion ?? null,
+    rentMillion: row.rentMillion ?? null,
+    pricePerMeter: row.pricePerMeter ?? null,
+    dealType: row.dealType ?? "سایر",
+    propertyType: row.propertyType ?? "سایر",
+    date: row.date ?? "",
+    dateRaw: row.dateRaw ?? "",
+    publishedAt: row.publishedAt ?? row.createdAt ?? Date.now(),
+    updatedAt: row.updatedAt ?? row.createdAt ?? Date.now(),
+    featuredOnHome: row.featuredOnHome ?? false,
+    seoTitle: row.seoTitle || autoSeoTitle(row),
+    seoDescription: row.seoDescription || autoSeoDescription(row),
+    seoKeywords:
+      row.seoKeywords ??
+      [
+        row.dealType,
+        row.propertyType,
+        row.city,
+        row.area ? `${row.area} متر` : "",
+        "املاک صنعتی و اداری",
+        "مکا",
+      ].filter((value): value is string => Boolean(value)),
+    noIndex: row.noIndex ?? false,
+    contacts,
+  };
+}
+
 export const listListings = query({
   args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
@@ -98,7 +231,6 @@ export const listListings = query({
       .query("listings")
       .order("desc")
       .paginate(args.paginationOpts);
-    // شمارهٔ آگهی فقط برای نقش‌های مجاز؛ بقیه شمارهٔ دفتر را می‌بینند
     const fallback = r.privileged ? "" : await managerPhone(ctx);
     return {
       ...page,
@@ -106,6 +238,49 @@ export const listListings = query({
         toListing(row, r.privileged ? (row.phone ?? "") : fallback),
       ),
     };
+  },
+});
+
+export const listPublic = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db
+      .query("listings")
+      .withIndex("by_public_published", (q) => q.eq("isPublic", true))
+      .order("desc")
+      .take(200);
+    const context = await publicContext(ctx);
+    return rows.map((row) => toPublicListing(row, context));
+  },
+});
+
+export const listFeaturedPublic = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db
+      .query("listings")
+      .withIndex("by_public_published", (q) => q.eq("isPublic", true))
+      .order("desc")
+      .take(60);
+    const context = await publicContext(ctx);
+    return rows
+      .filter((row) => row.featuredOnHome)
+      .slice(0, 6)
+      .map((row) => toPublicListing(row, context));
+  },
+});
+
+export const getPublicBySlug = query({
+  args: { slug: v.string() },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db
+      .query("listings")
+      .withIndex("by_public_slug", (q) => q.eq("publicSlug", args.slug))
+      .take(2);
+    const row = rows[0];
+    if (!row || !row.isPublic) return null;
+    const context = await publicContext(ctx);
+    return toPublicListing(row, context);
   },
 });
 
@@ -132,10 +307,6 @@ const listingFields = {
   phone: v.optional(v.string()),
 };
 
-/**
- * ذخیرهٔ آگهی‌ها روی سرور — برای افزودن روزانهٔ آگهی‌های تازه.
- * فقط مدیر و مشاور اجازهٔ نوشتن دارند. آگهی تکراری (همان key) بروزرسانی می‌شود.
- */
 export const upsertListings = mutation({
   args: { items: v.array(v.object({ key: v.string(), ...listingFields })) },
   handler: async (ctx, args) => {
@@ -149,11 +320,18 @@ export const upsertListings = mutation({
     for (const item of args.items) {
       const existing = await byKey(ctx, item.key);
       if (existing) {
-        await ctx.db.patch(existing._id, { ...item, updatedAt: Date.now() });
+        await ctx.db.patch(existing._id, {
+          ...item,
+          createdByUserId: existing.createdByUserId ?? r.userId,
+          updatedAt: Date.now(),
+        });
         updated++;
       } else {
         await ctx.db.insert("listings", {
           ...item,
+          createdByUserId: r.userId,
+          isPublic: false,
+          featuredOnHome: false,
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
@@ -164,7 +342,6 @@ export const upsertListings = mutation({
   },
 });
 
-/** ذخیرهٔ یادداشت روی پروندهٔ آگهی. */
 export const saveNotes = mutation({
   args: { key: v.string(), notes: v.string() },
   handler: async (ctx, args) => {
@@ -179,7 +356,6 @@ export const saveNotes = mutation({
   },
 });
 
-/** افزودن یا برداشتن آگهی از یک زونکن. */
 export const toggleFolder = mutation({
   args: { key: v.string(), folderId: v.string() },
   handler: async (ctx, args) => {
@@ -198,7 +374,6 @@ export const toggleFolder = mutation({
   },
 });
 
-/** ثبت ارسال آگهی برای شمارش در داشبورد. */
 export const markShared = mutation({
   args: { keys: v.array(v.string()) },
   handler: async (ctx, args) => {
@@ -217,7 +392,6 @@ export const markShared = mutation({
   },
 });
 
-/** ویرایش آدرس، لینک دیوار، لینک نقشه و عنوان آگهی. */
 export const updateListing = mutation({
   args: {
     key: v.string(),
@@ -226,6 +400,7 @@ export const updateListing = mutation({
       mapsUrl: v.optional(v.string()),
       divarUrl: v.optional(v.string()),
       title: v.optional(v.string()),
+      description: v.optional(v.string()),
       priceMillion: v.optional(v.number()),
     }),
   },
@@ -241,7 +416,47 @@ export const updateListing = mutation({
   },
 });
 
-/** شمارش کل آگهی‌های ذخیره‌شده روی سرور. */
+export const updatePublicSettings = mutation({
+  args: {
+    key: v.string(),
+    isPublic: v.boolean(),
+    featuredOnHome: v.boolean(),
+    seoTitle: v.optional(v.string()),
+    seoDescription: v.optional(v.string()),
+    seoKeywords: v.optional(v.array(v.string())),
+    noIndex: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !r.privileged) {
+      throw new Error("فقط مدیر یا مشاور اجازهٔ انتشار عمومی را دارد.");
+    }
+    const row = await byKey(ctx, args.key);
+    if (!row) throw new Error("آگهی یافت نشد.");
+
+    const now = Date.now();
+    const publicSlug = row.publicSlug || makePublicSlug(row);
+    await ctx.db.patch(row._id, {
+      isPublic: args.isPublic,
+      featuredOnHome: args.isPublic ? args.featuredOnHome : false,
+      publicSlug,
+      publishedAt:
+        args.isPublic ? row.publishedAt ?? now : row.publishedAt,
+      seoTitle: args.seoTitle?.trim() || undefined,
+      seoDescription: args.seoDescription?.trim() || undefined,
+      seoKeywords: args.seoKeywords?.map((x) => x.trim()).filter(Boolean),
+      noIndex: args.noIndex,
+      updatedAt: now,
+    });
+
+    return {
+      isPublic: args.isPublic,
+      featuredOnHome: args.isPublic ? args.featuredOnHome : false,
+      publicSlug,
+    };
+  },
+});
+
 export const countListings = query({
   args: {},
   handler: async (ctx) => {
@@ -250,10 +465,6 @@ export const countListings = query({
   },
 });
 
-/**
- * افزودن دستی یک آگهی توسط مدیر یا مشاور — بدون نیاز به فایل.
- * مثل قانون واردکردن فایل، شمارهٔ تلفن اجباری است.
- */
 export const createListing = mutation({
   args: {
     key: v.optional(v.string()),
@@ -288,7 +499,7 @@ export const createListing = mutation({
     }
     const { key, ...rest } = args;
     delete (rest as { phone?: string }).phone;
-    const stableKey = (key ?? "").trim() || rest.divarUrl || rest.radarCode || phone;
+    const stableKey = (key ?? "").trim() || rest.divarUrl || rest.radarCode || `${phone}-${Date.now()}`;
     if (await byKey(ctx, stableKey)) {
       throw new Error("آگهی با این لینک یا کد رادار قبلاً ثبت شده است.");
     }
@@ -297,6 +508,9 @@ export const createListing = mutation({
       ...rest,
       key: stableKey,
       phone,
+      createdByUserId: r.userId,
+      isPublic: false,
+      featuredOnHome: false,
       createdAt: now,
       updatedAt: now,
     });
