@@ -41,7 +41,7 @@ function toInputDate(value?: number) {
 
 function toTimestamp(value: string) {
   if (!value) return undefined;
-  const timestamp = new Date(`${value}T12:00:00+03:30`).getTime();
+  const timestamp = new Date(`${value}T00:00:00+03:30`).getTime();
   return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
