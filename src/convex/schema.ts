@@ -191,6 +191,20 @@ const schema = defineSchema(
       .index("by_public_published", ["isPublic", "publishedAt"])
       .index("by_publication_status", ["publicationStatus"]),
 
+    /** یادآوری پیگیری آگهی؛ برای هر آگهی حداکثر دو تاریخ قابل تنظیم است. */
+    listingReminders: defineTable({
+      listingId: v.id("listings"),
+      listingKey: v.string(),
+      slot: v.union(v.literal(1), v.literal(2)),
+      remindAt: v.number(),
+      createdByUserId: v.string(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_listing_slot", ["listingId", "slot"])
+      .index("by_remind_at", ["remindAt"])
+      .index("by_creator_remind_at", ["createdByUserId", "remindAt"]),
+
     /** درخواست‌های ثبت‌شده از لندینگ: می‌خرم/اجاره می‌کنم/می‌فروشم/اجاره می‌دهم */
     propertyLeads: defineTable({
       intent: v.union(
@@ -276,6 +290,10 @@ const schema = defineSchema(
       customCities: v.optional(v.array(v.string())),
       customDeals: v.optional(v.array(v.string())),
       customPropertyTypes: v.optional(v.array(v.string())),
+      /** سن آگهی برای ورود به صف پیگیری، بر حسب ماه؛ پیش‌فرض ۱۱ ماه */
+      reminderAgeMonths: v.optional(v.number()),
+      /** مدت نمایش یادآوریِ سررسیدشده؛ پیش‌فرض ۱۰ روز */
+      reminderVisibleDays: v.optional(v.number()),
       /** فرم مرحله‌ای و فیلدهای قابل‌ویرایش برای هر گروه ملک */
       listingFieldConfigs: v.optional(
         v.array(
