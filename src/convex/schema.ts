@@ -108,8 +108,19 @@ const schema = defineSchema(
       notes: v.optional(v.string()),
       /** شناسهٔ زونکن‌هایی که آگهی در آن‌ها بایگانی شده است */
       folderIds: v.optional(v.array(v.string())),
-      /** عکس‌ها: شناسهٔ فایل در Convex Storage */
+      /** عکس‌های قدیمی؛ برای سازگاری نگه داشته شده است */
       images: v.optional(v.array(v.string())),
+      /** گالری حرفه‌ای آگهی: ترتیب، عکس شاخص و Alt Text برای SEO */
+      listingImages: v.optional(
+        v.array(
+          v.object({
+            storageId: v.id("_storage"),
+            alt: v.string(),
+            order: v.number(),
+            featured: v.boolean(),
+          }),
+        ),
+      ),
       /** کاربری که اولین بار این آگهی را در سیستم ثبت کرده است */
       createdByUserId: v.optional(v.string()),
       /** کنترل انتشار عمومی */
