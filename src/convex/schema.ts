@@ -18,13 +18,15 @@ export type Role = Infer<typeof roleValidator>;
 
 /** نقش‌های دفتر املاک: فقط مدیر و مشاور به شمارهٔ آگهی دسترسی دارند. */
 export const OFFICE_ROLES = {
-  /** مدیر دفتر: دسترسی کامل */
+  /** مدیر اصلی: دسترسی کامل به سایت، تنظیمات و کاربران */
+  MANAGER: "manager",
+  /** ادمین آگهی: مدیریت کامل آگهی‌ها و بخش‌های مرتبط */
   ADMIN: "admin",
-  /** مشاور: دسترسی کامل */
+  /** مشاور: فقط فایل‌های متعلق به خودش */
   CONSULTANT: "consultant",
-  /** کاربر عادی: فقط شمارهٔ مدیر */
+  /** حساب عادی قدیمی؛ دسترسی داخلی ندارد */
   USER: "user",
-  /** مهمان: فقط شمارهٔ مدیر */
+  /** مهمان/بدون حساب */
   GUEST: "guest",
 } as const;
 
@@ -32,6 +34,7 @@ export type OfficeRole =
   (typeof OFFICE_ROLES)[keyof typeof OFFICE_ROLES];
 
 export const officeRoleValidator = v.union(
+  v.literal(OFFICE_ROLES.MANAGER),
   v.literal(OFFICE_ROLES.ADMIN),
   v.literal(OFFICE_ROLES.CONSULTANT),
   v.literal(OFFICE_ROLES.USER),
@@ -40,8 +43,14 @@ export const officeRoleValidator = v.union(
 
 /** نقش‌هایی که شمارهٔ تلفن آگهی را می‌بینند. */
 export const PRIVILEGED_ROLES: OfficeRole[] = [
+  OFFICE_ROLES.MANAGER,
   OFFICE_ROLES.ADMIN,
   OFFICE_ROLES.CONSULTANT,
+];
+
+export const LISTING_ADMIN_ROLES: OfficeRole[] = [
+  OFFICE_ROLES.MANAGER,
+  OFFICE_ROLES.ADMIN,
 ];
 
 const schema = defineSchema(
@@ -138,6 +147,9 @@ const schema = defineSchema(
       ),
       /** کاربری که اولین بار این آگهی را در سیستم ثبت کرده است */
       createdByUserId: v.optional(v.string()),
+      /** ثبت مستقیم عمومی بدون حساب */
+      submissionSource: v.optional(v.string()),
+      submittedByPhone: v.optional(v.string()),
       /** کنترل انتشار عمومی */
       isPublic: v.optional(v.boolean()),
       featuredOnHome: v.optional(v.boolean()),
@@ -169,6 +181,7 @@ const schema = defineSchema(
       .index("by_key", ["key"])
       .index("by_date", ["date"])
       .index("by_city", ["city"])
+      .index("by_created_by", ["createdByUserId"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"])
       .index("by_publication_status", ["publicationStatus"]),
