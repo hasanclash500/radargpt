@@ -139,7 +139,24 @@ export default function PublicListings() {
           .toLowerCase()
           .includes(q)
       ) return false;
-      if (propertyType !== "همه" && item.propertyType !== propertyType) return false;
+      if (propertyType !== "همه") {
+        const propertyHaystack = [item.propertyType, item.title, item.description]
+          .join(" ")
+          .toLowerCase();
+        const selected = propertyType.toLowerCase();
+        const industrialAliases: Record<string, string[]> = {
+          "سوله": ["سوله", "صنعتی"],
+          "کارخانه": ["کارخانه", "صنعتی"],
+          "کارگاه": ["کارگاه", "صنعتی"],
+          "انبار": ["انبار", "صنعتی"],
+          "زمین صنعتی": ["زمین صنعتی", "صنعتی"],
+          "دفتر اداری": ["دفتر اداری", "اداری", "دفتر کار"],
+        };
+        const aliases = industrialAliases[propertyType] ?? [selected];
+        if (!aliases.some((alias) => propertyHaystack.includes(alias.toLowerCase()))) {
+          return false;
+        }
+      }
       if (dealType !== "همه" && item.dealType !== dealType) return false;
       if (city !== "همه" && item.city !== city) return false;
       if (rooms !== "همه") {
