@@ -859,6 +859,15 @@ export const deleteListing = mutation({
         // فایل ممکن است قبلاً حذف شده باشد.
       }
     }
+
+    const reminders = await ctx.db
+      .query("listingReminders")
+      .withIndex("by_listing_slot", (q) => q.eq("listingId", row._id))
+      .collect();
+    for (const reminder of reminders) {
+      await ctx.db.delete(reminder._id);
+    }
+
     await ctx.db.delete(row._id);
     return true;
   },
