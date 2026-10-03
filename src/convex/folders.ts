@@ -1,22 +1,14 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { OFFICE_ROLES, PRIVILEGED_ROLES } from "./schema";
+import { OFFICE_ROLES } from "./schema";
+import {
+  canManageListings,
+  canManageSite,
+  canWorkListings,
+  currentRole,
+} from "./permissions";
 import { DEFAULT_LISTING_FIELD_CONFIGS } from "../lib/listing-field-config";
-
-/** نقش کاربر جاری؛ اگر وارد نشده باشد null. */
-async function resolveRole(ctx: {
-  db: import("./_generated/server").QueryCtx["db"];
-  auth: import("./_generated/server").QueryCtx["auth"];
-}): Promise<string | null> {
-  const userId = await getAuthUserId(ctx);
-  if (userId === null) return null;
-  const prof = await ctx.db
-    .query("userProfiles")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .take(2);
-  return prof[0]?.officeRole ?? null;
-}
 
 const fieldDefinitionValidator = v.object({
   id: v.string(),
@@ -55,8 +47,8 @@ export const listFolders = query({
 export const createFolder = mutation({
   args: { name: v.string(), color: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    const role = await resolveRole(ctx);
-    if (!role || !PRIVILEGED_ROLES.includes(role as never)) {
+    const current = await currentRole(ctx);
+    if (!current || !canWorkListings(current.role)) {
       throw new Error("فقط مدیر یا مشاور اجازهٔ ساخت زونکن را دارد.");
     }
     const count = await ctx.db.query("folders").take(500);
@@ -73,8 +65,8 @@ export const createFolder = mutation({
 export const deleteFolder = mutation({
   args: { folderId: v.id("folders") },
   handler: async (ctx, args) => {
-    const role = await resolveRole(ctx);
-    if (!role || !PRIVILEGED_ROLES.includes(role as never)) {
+    const current = await currentRole(ctx);
+    if (!current || !canWorkListings(current.role)) {
       throw new Error("فقط مدیر یا مشاور اجازهٔ حذف زونکن را دارد.");
     }
     await ctx.db.delete(args.folderId);
@@ -125,9 +117,20 @@ export const updateSettings = mutation({
     sourceUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const role = await resolveRole(ctx);
-    if (role !== OFFICE_ROLES.ADMIN) {
-      throw new Error("فقط مدیر اجازهٔ تغییر تنظیمات دفتر را دارد.");
+    const current = await currentRole(ctx);
+    if (!current) throw new Error("ورود لازم است.");
+    const manager = canManageSite(current.role);
+    const listingAdmin = canManageListings(current.role);
+    if (!manager && !listingAdmin) {
+      throw new Error("دسترسی تغییر تنظیمات را ندارید.");
+    }
+    if (
+      !manager &&
+      (args.officeName !== undefined ||
+        args.managerPhone !== undefined ||
+        args.shareFooter !== undefined)
+    ) {
+      throw new Error("فقط مدیر اصلی می‌تواند اطلاعات دفتر را تغییر دهد.");
     }
     const rows = await ctx.db
       .query("appSettings")
