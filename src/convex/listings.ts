@@ -875,15 +875,25 @@ export const submitPublicListing = mutation({
     rentMillion: v.optional(v.number()),
     title: v.string(),
     description: v.string(),
+    latitude: v.optional(v.number()),
+    longitude: v.optional(v.number()),
     website: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (args.website?.trim()) return { ok: true, trackingCode: "" };
+    if (args.website?.trim()) {
+      return {
+        ok: true,
+        trackingCode: "",
+        key: "",
+        uploadToken: "",
+      };
+    }
 
     const phone = toEnglishDigits(args.phone).replace(/\D/g, "");
     if (!/^09\d{9}$/.test(phone)) {
       throw new Error("شماره موبایل معتبر وارد کنید.");
     }
+
     const city = args.city.trim().slice(0, 80);
     const propertyType = args.propertyType.trim().slice(0, 80);
     const dealType = args.dealType.trim().slice(0, 80);
@@ -895,8 +905,36 @@ export const submitPublicListing = mutation({
     if (title.length < 8) throw new Error("عنوان آگهی را کامل‌تر بنویسید.");
     if (description.length < 30) throw new Error("توضیحات آگهی خیلی کوتاه است.");
 
+    const hasLatitude = args.latitude != null;
+    const hasLongitude = args.longitude != null;
+    if (hasLatitude !== hasLongitude) {
+      throw new Error("مختصات نقشه ناقص است.");
+    }
+    if (
+      hasLatitude &&
+      hasLongitude &&
+      (args.latitude! < -90 ||
+        args.latitude! > 90 ||
+        args.longitude! < -180 ||
+        args.longitude! > 180)
+    ) {
+      throw new Error("مختصات نقشه معتبر نیست.");
+    }
+
     const now = Date.now();
+    const recent = await ctx.db
+      .query("listings")
+      .withIndex("by_submitter_created", (q) =>
+        q.eq("submittedByPhone", phone).gte("createdAt", now - 60 * 60 * 1000),
+      )
+      .order("desc")
+      .take(3);
+    if (recent.length >= 3) {
+      throw new Error("برای این شماره در یک ساعت بیش از سه آگهی قابل ثبت نیست.");
+    }
+
     const key = `public-${phone}-${now}`;
+    const uploadToken = globalThis.crypto.randomUUID().replace(/-/g, "");
     const id = await ctx.db.insert("listings", {
       key,
       city,
@@ -909,8 +947,17 @@ export const submitPublicListing = mutation({
       title,
       description,
       phone,
+      latitude: args.latitude,
+      longitude: args.longitude,
+      mapsUrl:
+        hasLatitude && hasLongitude
+          ? `https://www.google.com/maps?q=${args.latitude},${args.longitude}`
+          : undefined,
       submittedByPhone: phone,
-      submissionSource: "public",
+      submissionSource: "public_mobile",
+      publicSubmissionToken: uploadToken,
+      publicSubmissionExpiresAt: now + 30 * 60 * 1000,
+      publicUploadCount: 0,
       isPublic: false,
       featuredOnHome: false,
       publicationStatus: "pending",
@@ -939,7 +986,88 @@ export const submitPublicListing = mutation({
       consultant: `ثبت عمومی • ${phone}`,
     });
 
-    return { ok: true, trackingCode: shortHash(key) };
+    return {
+      ok: true,
+      trackingCode: shortHash(key),
+      key,
+      uploadToken,
+    };
+  },
+});
+
+export const generatePublicListingUploadUrl = mutation({
+  args: {
+    key: v.string(),
+    uploadToken: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const row = await byKey(ctx, args.key);
+    if (
+      !row ||
+      row.submissionSource !== "public_mobile" ||
+      !row.publicSubmissionToken ||
+      row.publicSubmissionToken !== args.uploadToken ||
+      (row.publicSubmissionExpiresAt ?? 0) < Date.now()
+    ) {
+      throw new Error("مجوز آپلود تصویر منقضی یا نامعتبر است.");
+    }
+
+    const used = row.publicUploadCount ?? 0;
+    if (used >= 12) {
+      throw new Error("تعداد تلاش‌های آپلود این آگهی بیش از حد مجاز است.");
+    }
+
+    await ctx.db.patch(row._id, {
+      publicUploadCount: used + 1,
+      updatedAt: Date.now(),
+    });
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const attachPublicListingImages = mutation({
+  args: {
+    key: v.string(),
+    uploadToken: v.string(),
+    storageIds: v.array(v.id("_storage")),
+  },
+  handler: async (ctx, args) => {
+    const row = await byKey(ctx, args.key);
+    if (
+      !row ||
+      row.submissionSource !== "public_mobile" ||
+      !row.publicSubmissionToken ||
+      row.publicSubmissionToken !== args.uploadToken ||
+      (row.publicSubmissionExpiresAt ?? 0) < Date.now()
+    ) {
+      throw new Error("مجوز تکمیل تصاویر منقضی یا نامعتبر است.");
+    }
+
+    const uniqueStorageIds = Array.from(
+      new Set(args.storageIds.map((storageId) => String(storageId))),
+    ).slice(0, 10) as typeof args.storageIds;
+
+    for (const storageId of uniqueStorageIds) {
+      const url = await ctx.storage.getUrl(storageId);
+      if (!url) throw new Error("یکی از تصاویر آپلودشده معتبر نیست.");
+    }
+
+    const listingImages = uniqueStorageIds.map((storageId, index) => ({
+      storageId,
+      alt: defaultImageAlt(row, index),
+      order: index,
+      featured: index === 0,
+    }));
+
+    await ctx.db.patch(row._id, {
+      listingImages,
+      publicSubmissionToken: undefined,
+      publicSubmissionExpiresAt: undefined,
+      publicUploadCount: undefined,
+      updatedAt: Date.now(),
+    });
+
+    return listingImages.length;
   },
 });
 
