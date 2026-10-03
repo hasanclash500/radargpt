@@ -699,6 +699,14 @@ export const updatePublicSettings = mutation({
       propertyType: row.propertyType || "ملک",
       dealType: row.dealType || "آگهی",
       area: row.area,
+      depositMillion: row.depositMillion,
+      rentMillion: row.rentMillion,
+      priceMillion: row.priceMillion,
+      description: (row.description || "").slice(0, 1200),
+      publicDetails: (row.customFields ?? [])
+        .filter((field) => field.public)
+        .map((field) => `${field.label}: ${field.value}${field.unit ? ` ${field.unit}` : ""}`)
+        .slice(0, 12),
       consultant,
     });
 
