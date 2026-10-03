@@ -181,7 +181,7 @@ export default function PublicListings() {
                       <img
                         src={item.ogImage}
                         alt={item.images?.find((image: any) => image.featured)?.alt || item.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.02]"
                         loading="lazy"
                       />
                     ) : (
@@ -221,9 +221,9 @@ export default function PublicListings() {
                     </div>
 
                     <div className="mt-4">
-                      {item.rentMillion != null ? (
+                      {item.rentMillion != null && item.rentMillion > 0 ? (
                         <div className="space-y-1">
-                          {item.depositMillion != null && (
+                          {item.depositMillion != null && item.depositMillion > 0 && (
                             <p className="text-xs text-muted-foreground">
                               ودیعه: {formatPrice(item.depositMillion)}
                             </p>
