@@ -630,6 +630,7 @@ export const updatePublicSettings = mutation({
     const now = Date.now();
     const publicSlug = row.publicSlug || makePublicSlug(row);
     const common = {
+      createdByUserId: row.createdByUserId ?? r.userId,
       featuredOnHome: args.isPublic ? args.featuredOnHome : false,
       publicSlug,
       seoTitle: args.seoTitle?.trim() || undefined,
