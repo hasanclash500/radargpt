@@ -7,16 +7,19 @@ import { cn } from "@/lib/utils";import {
   BedDouble,
   CalendarDays,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   Copy,
   ExternalLink,
   EyeOff,
+  Clock3,
   MapPin,
   Phone,
   Ruler,
   Send,
   UserRound,
+  XCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -50,12 +53,16 @@ interface ListingCardProps {
     seoKeywords?: string[];
     noIndex: boolean;
   }) => Promise<void>;
+  isAdmin?: boolean;
+  onApprovePublication?: () => Promise<void>;
+  onRejectPublication?: (reason?: string) => Promise<void>;
 }
 
 /** کارت نمایش یک آگهی با اکشن‌های کپی تلفن، تماس، دیوار، نقشه و ارسال. */
 export default function ListingCard({
   listing: l, canSeePhone, managerPhone, selected, onToggleSelect,
   onShare, folders = [], onSaveNotes, onToggleFolder, onSaveLocation, onSavePublic,
+  isAdmin = false, onApprovePublication, onRejectPublication,
 }: ListingCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -175,11 +182,61 @@ export default function ListingCard({
           canEdit={canSeePhone} />
       )}
 
+      {canSeePhone && l.publicationStatus === "pending" && (
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/8 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+              <Clock3 className="size-4" />
+              در انتظار تأیید مدیر
+            </span>
+            {isAdmin && onApprovePublication && onRejectPublication && (
+              <div className="flex gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 gap-1 text-xs"
+                  onClick={async () => {
+                    await onApprovePublication();
+                    toast.success("آگهی تأیید و عمومی شد");
+                  }}
+                >
+                  <CheckCircle2 className="size-3.5" />
+                  تأیید
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1 border-destructive/30 text-xs text-destructive"
+                  onClick={async () => {
+                    const reason = window.prompt("دلیل رد یا اصلاح موردنیاز را بنویسید:", "نیاز به اصلاح دارد.") ?? undefined;
+                    await onRejectPublication(reason);
+                    toast.success("درخواست انتشار رد شد");
+                  }}
+                >
+                  <XCircle className="size-3.5" />
+                  رد
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {canSeePhone && l.publicationStatus === "rejected" && (
+        <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 text-xs">
+          <p className="font-extrabold text-destructive">انتشار رد شده</p>
+          {l.publicationRejectReason && (
+            <p className="mt-1 leading-6 text-muted-foreground">{l.publicationRejectReason}</p>
+          )}
+        </div>
+      )}
+
       {canSeePhone && onSavePublic && (
         <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
           <div className="flex items-center gap-2">
             <PublicListingDialog listing={l} onSave={onSavePublic} />
-            {l.featuredOnHome && (
+            {l.isPublic && l.featuredOnHome && (
               <span className="rounded-full bg-gold/10 px-2 py-1 text-[10px] font-bold text-gold">
                 منتخب صفحه اصلی
               </span>
