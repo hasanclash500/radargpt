@@ -130,12 +130,15 @@ export default function ListingCard({
         )}
       </div>
 
-      {/* شهر و قیمت */}
-      <div className="flex items-center gap-1.5">
+      {/* عنوان ثبت‌شده، سپس موقعیت؛ عنوان کارت دقیقاً همان عنوان ذخیره‌شده است. */}
+      <h3 className="line-clamp-2 text-lg font-extrabold leading-7">
+        {l.title || [l.dealType, l.propertyType, l.area ? String(l.area) + " متری" : "", "در", l.city].filter(Boolean).join(" ")}
+      </h3>
+      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <MapPin className="size-4 shrink-0 text-primary" />
-        <h3 className="truncate text-lg font-extrabold leading-tight">
+        <span className="truncate">
           {l.neighborhood ? `${l.city}، ${l.neighborhood}` : l.city}
-        </h3>
+        </span>
       </div>
       <p className="text-gradient-brand text-2xl font-extrabold tracking-tight">
         {l.rentMillion != null && l.rentMillion > 0
@@ -188,9 +191,8 @@ export default function ListingCard({
         </div>
       )}
 
-      {/* عنوان و توضیحات */}
+      {/* توضیحات ثبت‌شده بدون تولید عنوان جایگزین */}
       <div className="space-y-1 border-t border-border/60 pt-3">
-        <p className="text-sm font-bold leading-6">{l.title}</p>
         {rest && (
           <>
             <p className={cn("whitespace-pre-line text-[13px] leading-6 text-muted-foreground",
