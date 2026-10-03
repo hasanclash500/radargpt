@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import DiscoverChatIdButton from "@/components/admin/DiscoverChatIdButton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -95,10 +96,16 @@ export default function IntegrationSettings() {
               placeholder={status.telegramConfigured ? "توکن قبلاً ثبت شده؛ برای تغییر مقدار جدید وارد کنید" : "Bot Token"}
             />
             <Input dir="ltr" value={telegramChatId} onChange={(e) => setTelegramChatId(e.target.value)} placeholder="Chat ID" />
-            <Button type="button" variant="outline" size="sm" disabled={testing !== null} onClick={() => void runTest("telegram")} className="gap-1.5">
+            <p className="text-[10px] leading-5 text-muted-foreground">
+              بعد از ذخیره توکن، به ربات /start بفرستید؛ سپس می‌توانید Chat ID را خودکار پیدا کنید.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <DiscoverChatIdButton channel="telegram" />
+              <Button type="button" variant="outline" size="sm" disabled={testing !== null} onClick={() => void runTest("telegram")} className="gap-1.5">
               {testing === "telegram" ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               تست تلگرام
-            </Button>
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-3 rounded-2xl border border-border/70 p-4">
@@ -114,10 +121,16 @@ export default function IntegrationSettings() {
               placeholder={status.baleConfigured ? "توکن قبلاً ثبت شده؛ برای تغییر مقدار جدید وارد کنید" : "Bot Token"}
             />
             <Input dir="ltr" value={baleChatId} onChange={(e) => setBaleChatId(e.target.value)} placeholder="Chat ID" />
-            <Button type="button" variant="outline" size="sm" disabled={testing !== null} onClick={() => void runTest("bale")} className="gap-1.5">
+            <p className="text-[10px] leading-5 text-muted-foreground">
+              بعد از ذخیره توکن، در بازوی بله /start بفرستید و Chat ID را خودکار پیدا کنید.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <DiscoverChatIdButton channel="bale" />
+              <Button type="button" variant="outline" size="sm" disabled={testing !== null} onClick={() => void runTest("bale")} className="gap-1.5">
               {testing === "bale" ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               تست بله
-            </Button>
+              </Button>
+            </div>
           </div>
         </div>
 
