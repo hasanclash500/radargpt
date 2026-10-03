@@ -46,7 +46,7 @@ export default function PublicListingDialog({
 
   useEffect(() => {
     if (!open) return;
-    setIsPublic(listing.isPublic ?? false);
+    setIsPublic(Boolean(listing.isPublic || listing.publicationStatus === "pending"));
     setFeaturedOnHome(listing.featuredOnHome ?? false);
     setSeoTitle(listing.seoTitle ?? "");
     setSeoDescription(listing.seoDescription ?? "");
