@@ -1,7 +1,10 @@
 {
+  "framework": "vite",
   "rewrites": [
     { "source": "/blog", "destination": "/index.html" },
     { "source": "/blog/:path*", "destination": "/index.html" },
+    { "source": "/listings", "destination": "/index.html" },
+    { "source": "/listings/:path*", "destination": "/index.html" },
     { "source": "/dashboard", "destination": "/index.html" },
     { "source": "/dashboard/:path*", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
