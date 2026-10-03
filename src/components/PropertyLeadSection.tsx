@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
-import { PROPERTY_TYPES } from "@/lib/parser";
+import { PROPERTY_TYPES, toEnglishDigits } from "@/lib/parser";
 import { useMutation, useQuery } from "convex/react";
 import {
   Building2,
@@ -102,7 +102,7 @@ export default function PropertyLeadSection() {
       toast.error("نام را کامل وارد کنید");
       return;
     }
-    if (!/^09\d{9}$/.test(form.phone.replace(/\D/g, ""))) {
+    if (!/^09\d{9}$/.test(toEnglishDigits(form.phone).replace(/\D/g, ""))) {
       toast.error("شماره تماس معتبر وارد کنید");
       return;
     }
