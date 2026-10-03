@@ -163,7 +163,7 @@ export default function ListingCard({
           ))}
           {!expanded && l.customFields.length > 5 && (
             <span className="rounded-lg bg-primary/8 px-2 py-1 text-[11px] font-bold text-primary">
-              +{faDigits(l.customFields.length - 5)} مشخصه
+              +{faDigits(String(l.customFields.length - 5))} مشخصه
             </span>
           )}
         </div>
