@@ -76,7 +76,7 @@ export default function Admin() {
   const role = access?.role ?? "guest";
   const isManager = access?.isManager ?? role === "manager";
   const canManageListings =
-    access?.canManageListings ?? role === "manager" || role === "admin";
+    access?.canManageListings ?? (role === "manager" || role === "admin");
 
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
