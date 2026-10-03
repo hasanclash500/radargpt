@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CONVEX_DEPLOYMENT: dev:rugged-capybara-153
+      VITE_CONVEX_URL: https://rugged-capybara-153.convex.cloud
     steps:
       - name: Checkout
         uses: actions/checkout@v4
