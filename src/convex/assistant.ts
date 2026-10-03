@@ -4,6 +4,29 @@ import { v } from "convex/values";
 
 const MAX_RESULTS = 8;
 
+type AssistantMatch = {
+  ref: string;
+  slug: string;
+  title: string;
+  city: string;
+  propertyType: string;
+  dealType: string;
+  area: number | null;
+  rooms: number | null;
+  priceMillion: number;
+  depositMillion: number | null;
+  rentMillion: number | null;
+  description: string;
+  imageUrl: string | null;
+  score: number;
+};
+
+type AssistantResponse = {
+  answer: string;
+  listings: AssistantMatch[];
+  ai: boolean;
+};
+
 function englishDigits(value: string) {
   return value
     .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
@@ -104,7 +127,7 @@ function relevantPrice(row: any, deal: string) {
   };
 }
 
-async function collectMatches(ctx: any, question: string) {
+async function collectMatches(ctx: any, question: string): Promise<AssistantMatch[]> {
   if (!isListingIntent(question)) return [];
 
   const q = normalize(question);
@@ -229,7 +252,7 @@ async function collectMatches(ctx: any, question: string) {
 
 export const searchSiteListings = query({
   args: { question: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<AssistantResponse> => {
     const question = args.question.trim().slice(0, 800);
     if (!question) return [];
     return await collectMatches(ctx, question);
@@ -243,7 +266,7 @@ export const searchSiteListingsInternal = internalQuery({
   },
 });
 
-function fallbackAnswer(question: string, matches: any[]) {
+function fallbackAnswer(question: string, matches: AssistantMatch[]) {
   if (isListingIntent(question)) {
     if (matches.length === 0) {
       return "فعلاً آگهی عمومی متناسبی داخل سایت مکا پیدا نکردم. می‌توانید شهر، نوع ملک، متراژ یا حدود قیمت را کمی بازتر بگویید.";
@@ -267,9 +290,10 @@ export const ask = action({
     const question = args.question.trim().slice(0, 1200);
     if (!question) throw new Error("سؤال را وارد کنید.");
 
-    const matches = await ctx.runQuery(internal.assistant.searchSiteListingsInternal, {
-      question,
-    });
+    const matches: AssistantMatch[] = await ctx.runQuery(
+      internal.assistant.searchSiteListingsInternal,
+      { question },
+    );
 
     const apiKey = (process.env.OPENROUTER_API_KEY ?? "").trim();
     const model = (process.env.OPENROUTER_MODEL ?? "openrouter/free").trim();
