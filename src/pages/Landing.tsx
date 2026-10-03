@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import PropertyLeadSection from "@/components/PropertyLeadSection";
+import PublicListingSubmission from "@/components/PublicListingSubmission";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
 import { useSeo } from "@/hooks/use-seo";
@@ -484,6 +485,8 @@ export default function Landing() {
         </div>
       </section>
 
+      <PublicListingSubmission />
+
       <PropertyLeadSection />
 
       <FeaturedPublicListings />
@@ -575,7 +578,8 @@ export default function Landing() {
               <div className="mt-4 flex flex-col gap-3 text-sm text-muted-foreground">
                 <Link to="/listings" className="hover:text-primary">آگهی‌های صنعتی و اداری</Link>
                 <Link to="/blog" className="hover:text-primary">مقالات و راهنمای معاملات</Link>
-                <Link to="/auth?mode=signIn&returnTo=/dashboard" className="hover:text-primary">ورود مشاوران</Link>
+                <a href="#submit-listing" className="hover:text-primary">ثبت آگهی بدون حساب</a>
+                <Link to="/auth?mode=signIn&returnTo=/dashboard" className="hover:text-primary">ورود پرسنل</Link>
                 <a href="#services" className="hover:text-primary">خدمات مکا</a>
               </div>
             </nav>
