@@ -149,6 +149,26 @@ export default function ListingCard({
         )}
       </div>
 
+      {l.customFields && l.customFields.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 border-t border-border/60 pt-3">
+          {l.customFields.slice(0, expanded ? undefined : 5).map((field) => (
+            <span
+              key={field.fieldId}
+              className="rounded-lg bg-muted/60 px-2 py-1 text-[11px] text-muted-foreground"
+              title={field.label}
+            >
+              <b className="text-foreground">{field.label}:</b>{" "}
+              {field.value}{field.unit ? ` ${field.unit}` : ""}
+            </span>
+          ))}
+          {!expanded && l.customFields.length > 5 && (
+            <span className="rounded-lg bg-primary/8 px-2 py-1 text-[11px] font-bold text-primary">
+              +{faDigits(l.customFields.length - 5)} مشخصه
+            </span>
+          )}
+        </div>
+      )}
+
       {/* عنوان و توضیحات */}
       <div className="space-y-1 border-t border-border/60 pt-3">
         <p className="text-sm font-bold leading-6">{l.title}</p>
