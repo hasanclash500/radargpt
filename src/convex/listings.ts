@@ -5,7 +5,14 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toEnglishDigits, type Listing as ListingRow } from "../lib/parser";
-import { OFFICE_ROLES, PRIVILEGED_ROLES, type OfficeRole } from "./schema";
+import { OFFICE_ROLES, type OfficeRole } from "./schema";
+import {
+  canEditListing,
+  canManageListings,
+  canWorkListings,
+  ownsOnlyListings,
+  roleForUser,
+} from "./permissions";
 
 type Ctx = Pick<QueryCtx, "db" | "auth" | "storage">;
 
@@ -17,15 +24,10 @@ async function resolve(ctx: Ctx): Promise<{
   const userId = await getAuthUserId(ctx);
   if (userId === null) return null;
 
-  const profs = await ctx.db
-    .query("userProfiles")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .take(2);
-  const prof = profs[0];
-  const role = (prof?.officeRole ?? OFFICE_ROLES.GUEST) as OfficeRole;
+  const role = await roleForUser(ctx, String(userId));
   return {
     role,
-    privileged: PRIVILEGED_ROLES.includes(role),
+    privileged: canWorkListings(role),
     userId: String(userId),
   };
 }
@@ -288,10 +290,20 @@ export const listListings = query({
       return { page: [], isDone: true, continueCursor: "" };
     }
 
-    const page = await ctx.db
-      .query("listings")
-      .order("desc")
-      .paginate(args.paginationOpts);
+    if (!canWorkListings(r.role)) {
+      return { page: [], isDone: true, continueCursor: "" };
+    }
+
+    const page = ownsOnlyListings(r.role)
+      ? await ctx.db
+          .query("listings")
+          .withIndex("by_created_by", (q) => q.eq("createdByUserId", r.userId))
+          .order("desc")
+          .paginate(args.paginationOpts)
+      : await ctx.db
+          .query("listings")
+          .order("desc")
+          .paginate(args.paginationOpts);
     const fallback = r.privileged ? "" : await managerPhone(ctx);
     return {
       ...page,
@@ -306,7 +318,7 @@ export const listPendingPublications = query({
   args: {},
   handler: async (ctx) => {
     const r = await resolve(ctx);
-    if (!r || r.role !== OFFICE_ROLES.ADMIN) return [];
+    if (!r || !canManageListings(r.role)) return [];
     const rows = await ctx.db
       .query("listings")
       .withIndex("by_publication_status", (q) => q.eq("publicationStatus", "pending"))
@@ -418,8 +430,8 @@ export const upsertListings = mutation({
   args: { items: v.array(v.object({ key: v.string(), ...listingFields })) },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
-    if (!r || !r.privileged) {
-      throw new Error("فقط مدیر یا مشاور اجازهٔ افزودن آگهی را دارد.");
+    if (!r || !canWorkListings(r.role)) {
+      throw new Error("دسترسی افزودن آگهی ندارید.");
     }
 
     let added = 0;
@@ -427,6 +439,9 @@ export const upsertListings = mutation({
     for (const item of args.items) {
       const existing = await byKey(ctx, item.key);
       if (existing) {
+        if (!canEditListing(r.role, r.userId, existing.createdByUserId)) {
+          throw new Error("این آگهی متعلق به مشاور دیگری است.");
+        }
         await ctx.db.patch(existing._id, {
           ...item,
           createdByUserId: existing.createdByUserId ?? r.userId,
@@ -459,6 +474,9 @@ export const saveNotes = mutation({
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
+      throw new Error("اجازهٔ تغییر این آگهی را ندارید.");
+    }
     await ctx.db.patch(row._id, { notes: args.notes, updatedAt: Date.now() });
     return args.notes;
   },
@@ -473,6 +491,9 @@ export const toggleFolder = mutation({
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
+      throw new Error("اجازهٔ تغییر این آگهی را ندارید.");
+    }
     const current: string[] = row.folderIds ?? [];
     const next = current.includes(args.folderId)
       ? current.filter((f) => f !== args.folderId)
@@ -509,9 +530,19 @@ export const updateListing = mutation({
       longitude: v.optional(v.number()),
       mapsUrl: v.optional(v.string()),
       divarUrl: v.optional(v.string()),
+      city: v.optional(v.string()),
+      neighborhood: v.optional(v.string()),
+      area: v.optional(v.number()),
+      rooms: v.optional(v.number()),
+      dealType: v.optional(v.string()),
+      propertyType: v.optional(v.string()),
+      phone: v.optional(v.string()),
       title: v.optional(v.string()),
       description: v.optional(v.string()),
       priceMillion: v.optional(v.number()),
+      depositMillion: v.optional(v.number()),
+      rentMillion: v.optional(v.number()),
+      pricePerMeter: v.optional(v.number()),
     }),
   },
   handler: async (ctx, args) => {
@@ -521,6 +552,9 @@ export const updateListing = mutation({
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
+      throw new Error("اجازهٔ تغییر این آگهی را ندارید.");
+    }
     await ctx.db.patch(row._id, { ...args.patch, updatedAt: Date.now() });
     return args.patch;
   },
@@ -567,6 +601,9 @@ export const saveListingImages = mutation({
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
+      throw new Error("اجازهٔ تغییر این آگهی را ندارید.");
+    }
 
     const sorted = [...args.images]
       .sort((a, b) => a.order - b.order)
@@ -605,6 +642,9 @@ export const removeListingImage = mutation({
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
+      throw new Error("اجازهٔ تغییر این آگهی را ندارید.");
+    }
 
     const remaining = (row.listingImages ?? [])
       .filter((image) => image.storageId !== args.storageId)
@@ -644,6 +684,9 @@ export const updatePublicSettings = mutation({
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
+      throw new Error("اجازهٔ تغییر این آگهی را ندارید.");
+    }
 
     const now = Date.now();
     const publicSlug = row.publicSlug || makePublicSlug(row);
@@ -673,7 +716,7 @@ export const updatePublicSettings = mutation({
       };
     }
 
-    if (r.role === OFFICE_ROLES.ADMIN) {
+    if (canManageListings(r.role)) {
       await ctx.db.patch(row._id, {
         ...common,
         isPublic: true,
@@ -744,8 +787,8 @@ export const approvePublication = mutation({
   args: { key: v.string() },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
-    if (!r || r.role !== OFFICE_ROLES.ADMIN) {
-      throw new Error("فقط مدیر اجازهٔ تأیید انتشار را دارد.");
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("فقط مدیر یا ادمین آگهی اجازهٔ تأیید انتشار را دارد.");
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
@@ -767,8 +810,8 @@ export const rejectPublication = mutation({
   args: { key: v.string(), reason: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
-    if (!r || r.role !== OFFICE_ROLES.ADMIN) {
-      throw new Error("فقط مدیر اجازهٔ رد انتشار را دارد.");
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("فقط مدیر یا ادمین آگهی اجازهٔ رد انتشار را دارد.");
     }
     const row = await byKey(ctx, args.key);
     if (!row) throw new Error("آگهی یافت نشد.");
@@ -790,6 +833,111 @@ export const countListings = query({
   handler: async (ctx) => {
     const rows = await ctx.db.query("listings").take(2000);
     return { count: rows.length };
+  },
+});
+
+export const deleteListing = mutation({
+  args: { key: v.string() },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canWorkListings(r.role)) {
+      throw new Error("دسترسی حذف آگهی ندارید.");
+    }
+    const row = await byKey(ctx, args.key);
+    if (!row) throw new Error("آگهی یافت نشد.");
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
+      throw new Error("اجازهٔ حذف این آگهی را ندارید.");
+    }
+
+    for (const image of row.listingImages ?? []) {
+      try {
+        await ctx.storage.delete(image.storageId);
+      } catch {
+        // فایل ممکن است قبلاً حذف شده باشد.
+      }
+    }
+    await ctx.db.delete(row._id);
+    return true;
+  },
+});
+
+export const submitPublicListing = mutation({
+  args: {
+    phone: v.string(),
+    city: v.string(),
+    propertyType: v.string(),
+    dealType: v.string(),
+    area: v.optional(v.number()),
+    priceMillion: v.optional(v.number()),
+    depositMillion: v.optional(v.number()),
+    rentMillion: v.optional(v.number()),
+    title: v.string(),
+    description: v.string(),
+    website: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.website?.trim()) return { ok: true, trackingCode: "" };
+
+    const phone = toEnglishDigits(args.phone).replace(/\D/g, "");
+    if (!/^09\d{9}$/.test(phone)) {
+      throw new Error("شماره موبایل معتبر وارد کنید.");
+    }
+    const city = args.city.trim().slice(0, 80);
+    const propertyType = args.propertyType.trim().slice(0, 80);
+    const dealType = args.dealType.trim().slice(0, 80);
+    const title = args.title.trim().slice(0, 180);
+    const description = args.description.trim().slice(0, 4000);
+    if (!city || !propertyType || !dealType) {
+      throw new Error("شهر، نوع ملک و نوع معامله را کامل کنید.");
+    }
+    if (title.length < 8) throw new Error("عنوان آگهی را کامل‌تر بنویسید.");
+    if (description.length < 30) throw new Error("توضیحات آگهی خیلی کوتاه است.");
+
+    const now = Date.now();
+    const key = `public-${phone}-${now}`;
+    const id = await ctx.db.insert("listings", {
+      key,
+      city,
+      propertyType,
+      dealType,
+      area: args.area,
+      priceMillion: args.priceMillion,
+      depositMillion: args.depositMillion,
+      rentMillion: args.rentMillion,
+      title,
+      description,
+      phone,
+      submittedByPhone: phone,
+      submissionSource: "public",
+      isPublic: false,
+      featuredOnHome: false,
+      publicationStatus: "pending",
+      publicationRequestedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const row = await ctx.db.get(id);
+    if (row) {
+      await ctx.db.patch(id, { publicSlug: makePublicSlug(row) });
+    }
+
+    await ctx.scheduler.runAfter(0, internal.integrations.notifyPublicationRequest, {
+      key,
+      title,
+      city,
+      propertyType,
+      dealType,
+      ...(args.area != null ? { area: args.area } : {}),
+      ...(args.depositMillion != null ? { depositMillion: args.depositMillion } : {}),
+      ...(args.rentMillion != null ? { rentMillion: args.rentMillion } : {}),
+      ...(args.priceMillion != null ? { priceMillion: args.priceMillion } : {}),
+      description: description.slice(0, 1200),
+      publicDetails: [],
+      consultant: `ثبت عمومی • ${phone}`,
+    });
+
+    return { ok: true, trackingCode: shortHash(key) };
   },
 });
 
@@ -821,8 +969,8 @@ export const createListing = mutation({
   },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
-    if (!r || !r.privileged) {
-      throw new Error("فقط مدیر یا مشاور اجازهٔ افزودن آگهی را دارد.");
+    if (!r || !canWorkListings(r.role)) {
+      throw new Error("دسترسی افزودن آگهی ندارید.");
     }
     const phone = toEnglishDigits(args.phone).replace(/\D/g, "");
     if (!/^09\d{9}$/.test(phone)) {
