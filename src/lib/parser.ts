@@ -65,6 +65,9 @@ export interface Listing {
   poster: string;
   /** آدرس متنی (از فیلد ادرس/extra). */
   address: string;
+  /** مختصات داخلی انتخاب‌شده روی نقشه؛ در public query منتشر نمی‌شود. */
+  latitude?: number;
+  longitude?: number;
   /** یادداشت روی پرونده (فقط برای مدیر/مشاور). */
   notes?: string;
   /** شناسهٔ زونکن‌هایی که آگهی در آن‌ها بایگانی شده است. */
