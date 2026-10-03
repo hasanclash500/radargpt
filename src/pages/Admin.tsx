@@ -1,17 +1,26 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
-import ListingFieldConfigManager from "@/components/admin/ListingFieldConfigManager";
 import IntegrationSettings from "@/components/admin/IntegrationSettings";
 import LeadInbox from "@/components/admin/LeadInbox";
+import ListingFieldConfigManager from "@/components/admin/ListingFieldConfigManager";
+import UserManagement from "@/components/admin/UserManagement";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
-import { useAuth } from "@/hooks/use-auth";
 import { faNum } from "@/lib/format";
-import { DEFAULT_LISTING_FIELD_CONFIGS, type ListingFieldConfig } from "@/lib/listing-field-config";
+import {
+  DEFAULT_LISTING_FIELD_CONFIGS,
+  type ListingFieldConfig,
+} from "@/lib/listing-field-config";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
@@ -20,14 +29,14 @@ import {
   Loader2,
   ShieldCheck,
   TriangleAlert,
-  UserCog,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
 const ROLE_LABELS: Record<string, string> = {
-  admin: "مدیر",
+  manager: "مدیر",
+  admin: "ادمین",
   consultant: "مشاور",
   user: "کاربر",
   guest: "مهمان",
@@ -46,19 +55,28 @@ function Stamp({ value }: { value: number | null | undefined }) {
 }
 
 export default function Admin() {
-  const { user } = useAuth();
   const access = useQuery(api.ingest.myAccess, {});
   const settings = useQuery(api.folders.getSettings, {});
   const status = useQuery(api.ingest.importStatus, {});
-  const users = useQuery(api.roles.listUsers, {});
   const folders = useQuery(api.folders.listFolders, {});
 
   const updateSettings = useMutation(api.folders.updateSettings);
-  const setUserRole = useMutation(api.roles.setUserRole);
   const ensureProfile = useMutation(api.roles.ensureProfile);
   const createFolder = useMutation(api.folders.createFolder);
   const deleteFolder = useMutation(api.folders.deleteFolder);
   const importNow = useAction(api.ingest.importNow);
+
+  const ensuredRef = useRef(false);
+  useEffect(() => {
+    if (access === undefined || ensuredRef.current) return;
+    ensuredRef.current = true;
+    ensureProfile().catch(() => undefined);
+  }, [access, ensureProfile]);
+
+  const role = access?.role ?? "guest";
+  const isManager = access?.isManager ?? role === "manager";
+  const canManageListings =
+    access?.canManageListings ?? role === "manager" || role === "admin";
 
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -66,7 +84,6 @@ export default function Admin() {
   const [newDeal, setNewDeal] = useState("");
   const [newType, setNewType] = useState("");
   const [newFolder, setNewFolder] = useState("");
-  // مقدار اولیهٔ فرم از تنظیمات خوانده می‌شود؛ بعد از آن کاربر خودش ویرایش می‌کند.
   const [hydrated, setHydrated] = useState(false);
   const [sourceDraft, setSourceDraft] = useState<{
     sourceUrl: string;
@@ -74,6 +91,7 @@ export default function Admin() {
     managerPhone: string;
     shareFooter: string;
   } | null>(null);
+
   const draft = sourceDraft ?? {
     sourceUrl: "",
     officeName: "",
@@ -81,15 +99,6 @@ export default function Admin() {
     shareFooter: "",
   };
 
-  // ساخت پروفایل در اولین بازدید تا نقش کاربر مشخص شود
-  const role = access?.role ?? null;
-  useEffect(() => {
-    if (user && role === null) {
-      ensureProfile().catch(() => undefined);
-    }
-  }, [user, role, ensureProfile]);
-
-  // بارگذاری مقادیر ذخیره‌شده فقط یک‌بار (بدون setState در چرخهٔ رندر)
   if (settings && !hydrated) {
     setHydrated(true);
     setSourceDraft({
@@ -100,24 +109,27 @@ export default function Admin() {
     });
   }
 
-  const sourceUrl = draft.sourceUrl;
-  const officeName = draft.officeName;
-  const managerPhone = draft.managerPhone;
-  const shareFooter = draft.shareFooter;
+  async function saveSource() {
+    setSaving(true);
+    try {
+      await updateSettings({ sourceUrl: draft.sourceUrl.trim() });
+      toast.success("منبع آگهی ذخیره شد.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "ذخیره ناموفق بود.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
-  const isAdmin = access?.isAdmin ?? false;
-  const isPrivileged = access?.isPrivileged ?? false;
-
-  async function save() {
+  async function saveOffice() {
     setSaving(true);
     try {
       await updateSettings({
-        sourceUrl: sourceUrl.trim(),
-        officeName: officeName.trim(),
-        managerPhone: managerPhone.trim(),
-        shareFooter,
+        officeName: draft.officeName.trim(),
+        managerPhone: draft.managerPhone.trim(),
+        shareFooter: draft.shareFooter,
       });
-      toast.success("تنظیمات ذخیره شد.");
+      toast.success("اطلاعات دفتر ذخیره شد.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ذخیره ناموفق بود.");
     } finally {
@@ -128,14 +140,14 @@ export default function Admin() {
   async function runImport() {
     setImporting(true);
     try {
-      const result = await importNow({ url: sourceUrl.trim() || undefined });
+      const result = await importNow({ url: draft.sourceUrl.trim() || undefined });
       if (result && "skipped" in result && result.skipped) {
         toast.error(result.reason);
         return;
       }
       if (result && "added" in result) {
         toast.success(
-          `${faNum(result.added ?? 0)} آگهی جدید ذخیره شد و ${faNum(result.updated ?? 0)} آگهی بروزرسانی شد.`,
+          `${faNum(result.added ?? 0)} آگهی جدید و ${faNum(result.updated ?? 0)} بروزرسانی شد.`,
         );
       }
     } catch (error) {
@@ -150,14 +162,14 @@ export default function Admin() {
     value: string,
     clear: () => void,
   ) {
-    const v = value.trim();
-    if (!v) return;
+    const nextValue = value.trim();
+    if (!nextValue) return;
     const current = settings?.[field] ?? [];
-    if (current.includes(v)) {
+    if (current.includes(nextValue)) {
       toast.error("قبلاً اضافه شده است.");
       return;
     }
-    await updateSettings({ [field]: [...current, v] });
+    await updateSettings({ [field]: [...current, nextValue] });
     clear();
   }
 
@@ -166,10 +178,10 @@ export default function Admin() {
     value: string,
   ) {
     const current = settings?.[field] ?? [];
-    await updateSettings({ [field]: current.filter((c) => c !== value) });
+    await updateSettings({ [field]: current.filter((item) => item !== value) });
   }
 
-  if (!isPrivileged) {
+  if (!canManageListings) {
     return (
       <main className="min-h-screen bg-background px-4 py-10 text-foreground">
         <div className="mx-auto max-w-lg">
@@ -180,8 +192,8 @@ export default function Admin() {
                 دسترسی محدود
               </CardTitle>
               <CardDescription>
-                این صفحه فقط برای مدیر و مشاوران دفتر است. با حساب کاربری خود وارد
-                شوید یا از مدیر بخواهید نقش شما را تغییر دهد.
+                این صفحه مخصوص مدیر و ادمین آگهی است. مشاور فقط از پنل آگهی‌ها به
+                فایل‌های خودش دسترسی دارد.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -199,17 +211,21 @@ export default function Admin() {
   }
 
   return (
-    <main className="min-h-screen bg-background px-4 py-8 text-foreground">
+    <main className="min-h-screen bg-background px-3 py-5 text-foreground sm:px-4 sm:py-8">
       <div className="mx-auto max-w-4xl space-y-6">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">مدیریت دفتر</h1>
-            <p className="text-sm text-muted-foreground">
-              منبع آگهی‌های روزانه، متن پیام‌ها، شهرها و دسته‌ها و نقش کاربران
+            <h1 className="text-2xl font-bold">
+              {isManager ? "مدیریت کامل مکا" : "مدیریت آگهی‌ها"}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isManager
+                ? "تنظیمات سایت، کاربران، آگهی‌ها، پیام‌رسان‌ها و محتوای دفتر"
+                : "منابع، دسته‌بندی‌ها، درخواست‌ها و تنظیمات مربوط به آگهی‌ها"}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary">{ROLE_LABELS[role ?? "guest"] ?? "مهمان"}</Badge>
+            <Badge variant="secondary">{ROLE_LABELS[role] ?? "مهمان"}</Badge>
             <Button asChild variant="ghost" size="sm">
               <Link to="/dashboard">
                 <ArrowRight className="size-4" />
@@ -220,17 +236,15 @@ export default function Admin() {
           </div>
         </header>
 
-        {/* افزودن روزانهٔ آگهی‌ها */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <CloudDownload className="size-5" />
-              افزودن روزانهٔ آگهی‌ها
+              منبع و ورود گروهی آگهی‌ها
             </CardTitle>
             <CardDescription>
-              نشانی فایل خروجی روزانه (HTML، JSON یا CSV) را وارد کنید. هر روز ساعت ۶
-              صبح به وقت تهران، آگهی‌های تازه به‌صورت خودکار روی سرور ذخیره می‌شوند و
-              آگهی‌های تکراری فقط بروزرسانی می‌شوند.
+              فایل HTML، JSON یا CSV منبع را تنظیم کنید و در صورت نیاز همین حالا
+              همگام‌سازی را اجرا کنید.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -239,22 +253,21 @@ export default function Admin() {
               <Input
                 id="sourceUrl"
                 dir="ltr"
-                placeholder="https://example.com/listings.json"
-                value={sourceUrl}
+                placeholder="https://example.com/listings.csv"
+                value={draft.sourceUrl}
                 onChange={(e) =>
                   setSourceDraft({ ...draft, sourceUrl: e.target.value })
                 }
               />
             </div>
-
             <div className="flex flex-wrap gap-2">
-              <Button onClick={save} disabled={saving}>
-                {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-                ذخیرهٔ منبع
+              <Button onClick={() => void saveSource()} disabled={saving}>
+                {saving && <Loader2 className="size-4 animate-spin" />}
+                ذخیره منبع
               </Button>
               <Button
-                onClick={runImport}
-                disabled={importing || !sourceUrl.trim()}
+                onClick={() => void runImport()}
+                disabled={importing || !draft.sourceUrl.trim()}
                 variant="secondary"
               >
                 {importing ? (
@@ -262,16 +275,14 @@ export default function Admin() {
                 ) : (
                   <CloudDownload className="size-4" />
                 )}
-                همین حالا اضافه کن
+                همین حالا همگام کن
               </Button>
             </div>
 
             <dl className="grid gap-2 rounded-lg border border-border/60 p-3 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-muted-foreground">آخرین اجرا</dt>
-                <dd>
-                  <Stamp value={status?.lastImportAt} />
-                </dd>
+                <dd><Stamp value={status?.lastImportAt} /></dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">نتیجه</dt>
@@ -284,8 +295,7 @@ export default function Admin() {
                   ) : status?.lastImportAt ? (
                     <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="size-4" />
-                      {status.lastImportAdded ?? 0} جدید، {status.lastImportUpdated ?? 0}{" "}
-                      بروزرسانی
+                      {status.lastImportAdded ?? 0} جدید، {status.lastImportUpdated ?? 0} بروزرسانی
                     </span>
                   ) : (
                     <span className="text-muted-foreground">—</span>
@@ -296,58 +306,58 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        {/* متن پیام‌ها */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">اطلاعات دفتر و متن پیام‌ها</CardTitle>
-            <CardDescription>
-              این مقادیر در انتهای متن اشتراک‌گذاری آگهی‌ها قرار می‌گیرند.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+        {isManager && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">تنظیمات اصلی دفتر</CardTitle>
+              <CardDescription>
+                فقط مدیر اصلی می‌تواند نام دفتر، شماره مرکزی و متن پایانی پیام‌ها
+                را تغییر دهد.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="officeName">نام دفتر</Label>
+                  <Input
+                    id="officeName"
+                    value={draft.officeName}
+                    onChange={(e) =>
+                      setSourceDraft({ ...draft, officeName: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="managerPhone">شماره تماس دفتر</Label>
+                  <Input
+                    id="managerPhone"
+                    dir="ltr"
+                    value={draft.managerPhone}
+                    onChange={(e) =>
+                      setSourceDraft({ ...draft, managerPhone: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="officeName">نام دفتر</Label>
-                <Input
-                  id="officeName"
-                  value={officeName}
+                <Label htmlFor="shareFooter">متن پایانی پیام‌ها</Label>
+                <Textarea
+                  id="shareFooter"
+                  rows={3}
+                  value={draft.shareFooter}
                   onChange={(e) =>
-                    setSourceDraft({ ...draft, officeName: e.target.value })
+                    setSourceDraft({ ...draft, shareFooter: e.target.value })
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="managerPhone">شمارهٔ تماس دفتر</Label>
-                <Input
-                  id="managerPhone"
-                  dir="ltr"
-                  placeholder="09120858095"
-                  value={managerPhone}
-                  onChange={(e) =>
-                    setSourceDraft({ ...draft, managerPhone: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="shareFooter">متن پایانی پیام‌ها</Label>
-              <Textarea
-                id="shareFooter"
-                rows={3}
-                value={shareFooter}
-                onChange={(e) =>
-                  setSourceDraft({ ...draft, shareFooter: e.target.value })
-                }
-              />
-            </div>
-            <Button onClick={save} disabled={saving}>
-              {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-              ذخیرهٔ اطلاعات دفتر
-            </Button>
-          </CardContent>
-        </Card>
+              <Button onClick={() => void saveOffice()} disabled={saving}>
+                {saving && <Loader2 className="size-4 animate-spin" />}
+                ذخیره تنظیمات دفتر
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* شهر، دسته و نوع ملک */}
         <div className="grid gap-6 md:grid-cols-3">
           <CategoryList
             title="شهرها"
@@ -355,7 +365,7 @@ export default function Admin() {
             draft={newCity}
             setDraft={setNewCity}
             onAdd={() => addToList("customCities", newCity, () => setNewCity(""))}
-            onRemove={(v) => removeFromList("customCities", v)}
+            onRemove={(value) => removeFromList("customCities", value)}
           />
           <CategoryList
             title="نوع معامله"
@@ -363,7 +373,7 @@ export default function Admin() {
             draft={newDeal}
             setDraft={setNewDeal}
             onAdd={() => addToList("customDeals", newDeal, () => setNewDeal(""))}
-            onRemove={(v) => removeFromList("customDeals", v)}
+            onRemove={(value) => removeFromList("customDeals", value)}
           />
           <CategoryList
             title="نوع ملک"
@@ -371,54 +381,50 @@ export default function Admin() {
             draft={newType}
             setDraft={setNewType}
             onAdd={() => addToList("customPropertyTypes", newType, () => setNewType(""))}
-            onRemove={(v) => removeFromList("customPropertyTypes", v)}
+            onRemove={(value) => removeFromList("customPropertyTypes", value)}
           />
         </div>
 
-        {isAdmin ? (
-          <ListingFieldConfigManager
-            configs={(settings?.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS) as ListingFieldConfig[]}
-            onSave={async (configs) => {
-              await updateSettings({ listingFieldConfigs: configs });
-            }}
-          />
-        ) : null}
-
-        {isAdmin ? <IntegrationSettings /> : null}
+        <ListingFieldConfigManager
+          configs={
+            (settings?.listingFieldConfigs ??
+              DEFAULT_LISTING_FIELD_CONFIGS) as ListingFieldConfig[]
+          }
+          onSave={async (configs) => {
+            await updateSettings({ listingFieldConfigs: configs });
+          }}
+        />
 
         <LeadInbox />
 
-        {/* زونکن‌ها */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">زونکن‌ها (پرونده‌های بایگانی)</CardTitle>
+            <CardTitle className="text-lg">زونکن‌ها و پرونده‌ها</CardTitle>
             <CardDescription>
-              آگهی‌ها را داخل زونکن دسته‌بندی کنید تا مثل دفتر فایلینگ کار کند.
+              دسته‌بندی داخلی فایل‌ها برای مدیریت سریع آگهی‌ها.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              {(folders ?? []).map((f) => (
+              {(folders ?? []).map((folder) => (
                 <span
-                  key={f._id}
+                  key={folder._id}
                   className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-sm"
                 >
-                  {f.name}
+                  {folder.name}
                   <button
                     type="button"
-                    aria-label={`حذف ${f.name}`}
+                    aria-label={`حذف ${folder.name}`}
                     className="text-muted-foreground hover:text-destructive"
-                    onClick={() => deleteFolder({ folderId: f._id })}
+                    onClick={() => void deleteFolder({ folderId: folder._id })}
                   >
                     ×
                   </button>
                 </span>
               ))}
-              {(folders ?? []).length === 0 ? (
-                <span className="text-sm text-muted-foreground">
-                  هنوز زونکنی ساخته نشده است.
-                </span>
-              ) : null}
+              {(folders ?? []).length === 0 && (
+                <span className="text-sm text-muted-foreground">هنوز زونکنی ساخته نشده است.</span>
+              )}
             </div>
             <div className="flex gap-2">
               <Input
@@ -441,53 +447,8 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        {/* کاربران و نقش‌ها */}
-        {isAdmin ? (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <UserCog className="size-5" />
-                کاربران و نقش‌ها
-              </CardTitle>
-              <CardDescription>
-                فقط مدیر و مشاور شمارهٔ تلفن آگهی‌ها را می‌بینند؛ بقیه شمارهٔ تماس
-                دفتر را دریافت می‌کنند.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {(users ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground">کاربری یافت نشد.</p>
-              ) : null}
-              {(users ?? []).map((u) => (
-                <div
-                  key={u.userId}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/60 p-3"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">
-                      {u.name || u.email || "کاربر بی‌نام"}
-                    </p>
-                    <p dir="ltr" className="truncate text-xs text-muted-foreground">
-                      {u.email || u.userId}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                      <Button
-                        key={value}
-                        size="sm"
-                        variant={u.role === value ? "default" : "outline"}
-                        onClick={() => setUserRole({ userId: u.userId, role: value })}
-                      >
-                        {label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        ) : null}
+        {isManager && <IntegrationSettings />}
+        {isManager && <UserManagement />}
       </div>
     </main>
   );
@@ -504,9 +465,9 @@ function CategoryList({
   title: string;
   values: string[];
   draft: string;
-  setDraft: (v: string) => void;
+  setDraft: (value: string) => void;
   onAdd: () => void;
-  onRemove: (v: string) => void;
+  onRemove: (value: string) => void;
 }) {
   return (
     <Card>
@@ -515,25 +476,25 @@ function CategoryList({
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          {values.map((v) => (
+          {values.map((value) => (
             <span
-              key={v}
+              key={value}
               className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-sm"
             >
-              {v}
+              {value}
               <button
                 type="button"
-                aria-label={`حذف ${v}`}
+                aria-label={`حذف ${value}`}
                 className="text-muted-foreground hover:text-destructive"
-                onClick={() => onRemove(v)}
+                onClick={() => onRemove(value)}
               >
                 ×
               </button>
             </span>
           ))}
-          {values.length === 0 ? (
+          {values.length === 0 && (
             <span className="text-sm text-muted-foreground">—</span>
-          ) : null}
+          )}
         </div>
         <div className="flex gap-2">
           <Input
