@@ -365,6 +365,7 @@ export default function Dashboard() {
                 <span className="hidden sm:inline">مدیریت</span>
               </Link>
             </Button>
+            {canSeePhone && <PublicContactDialog />}
             <ThemeToggle />
             <input ref={headerInputRef} type="file"
               accept={".html,.htm,.txt," + IMPORT_ACCEPT + ",text/html,text/plain"}
