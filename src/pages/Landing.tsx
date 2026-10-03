@@ -29,6 +29,7 @@ import {
   HomeIcon,
   Grid3X3,
   ClipboardList,
+  Bot,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router";
@@ -296,7 +297,14 @@ function MarketIntentHub() {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2.5">
+      <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <Link
+          to="/assistant"
+          className="rounded-2xl border border-primary/25 bg-primary/[0.045] p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
+        >
+          <Bot className="mx-auto size-6 text-primary" />
+          <p className="mt-2 text-xs font-extrabold sm:text-sm">دستیار هوشمند مکا</p>
+        </Link>
         <Link
           to="/listings"
           className="rounded-2xl border border-border/70 bg-card p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
@@ -487,6 +495,12 @@ export default function Landing() {
               className="hidden rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xs:block sm:block"
             >
               آگهی‌ها
+            </Link>
+            <Link
+              to="/assistant"
+              className="hidden rounded-xl px-2.5 py-2 text-xs font-extrabold text-primary transition-colors hover:bg-primary/10 sm:block"
+            >
+              دستیار AI
             </Link>
             <Link
               to="/blog"
