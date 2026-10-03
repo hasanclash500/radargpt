@@ -4,6 +4,7 @@ import ListingCard from "@/components/listings/ListingCard";
 import ShareDialog from "@/components/listings/ShareDialog";
 import UploadZone from "@/components/listings/UploadZone";
 import ManualListingDialog from "@/components/listings/ManualListingDialog";
+import PublicContactDialog from "@/components/listings/PublicContactDialog";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
