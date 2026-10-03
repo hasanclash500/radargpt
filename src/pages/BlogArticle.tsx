@@ -3,6 +3,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
+import { neshanSearchUrl } from "@/lib/neshan";
 import { useQuery } from "convex/react";
 import {
   ArrowRight,
@@ -193,7 +194,7 @@ export default function BlogArticle() {
                 </Button>
                 <Button variant="outline" asChild className="gap-2 rounded-xl">
                   <a
-                    href="https://www.google.com/maps/search/?api=1&query=%D8%B4%D9%87%D8%B1%DB%8C%D8%A7%D8%B1%D8%8C%20%D8%B1%D9%88%D8%A8%D8%B1%D9%88%DB%8C%20%D8%B4%D9%87%D8%B1%DA%A9%20%D8%A7%D8%AF%D8%A7%D8%B1%DB%8C%20%D8%AA%D8%AC%D8%B1%D8%A8%D9%87"
+                    href={neshanSearchUrl("شهریار، روبروی شهرک اداری تجربه")}
                     target="_blank"
                     rel="noreferrer"
                   >
