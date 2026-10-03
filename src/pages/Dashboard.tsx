@@ -86,7 +86,7 @@ export default function Dashboard() {
   const canSeePhone = roleData?.isPrivileged ?? false;
   const isManager = roleData?.canManageSite ?? role === "manager";
   const canManageListings =
-    roleData?.canManageListings ?? role === "manager" || role === "admin";
+    roleData?.canManageListings ?? (role === "manager" || role === "admin");
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [localTouched, setLocalTouched] = useState(false);
