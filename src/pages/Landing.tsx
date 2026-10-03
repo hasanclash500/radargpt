@@ -328,17 +328,19 @@ function FeaturedPublicListings() {
 
   if (!listings || listings.length === 0) return null;
 
+  const sale = listings.filter((item) => !String(item.dealType || "").includes("اجاره"));
+  const rent = listings.filter((item) => String(item.dealType || "").includes("اجاره"));
+  const groups = [
+    { title: "ویترین فروش", items: sale },
+    { title: "ویترین اجاره", items: rent },
+  ].filter((group) => group.items.length > 0);
+
   return (
-    <section className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-      <motion.div {...fadeUp} className="mb-7 flex items-end justify-between gap-4">
+    <section className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <div className="mb-5 flex items-end justify-between gap-4">
         <div>
           <span className="text-xs font-extrabold text-primary">فایل‌های منتخب</span>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
-            آگهی‌های عمومی مکا
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            تعدادی از فایل‌های صنعتی و اداری که برای مشاهده عمومی انتخاب شده‌اند.
-          </p>
+          <h2 className="mt-1 text-2xl font-black">ویترین آگهی‌های مکا</h2>
         </div>
         <Button variant="outline" asChild className="hidden gap-1.5 sm:inline-flex">
           <Link to="/listings">
@@ -346,81 +348,80 @@ function FeaturedPublicListings() {
             <ArrowLeft className="size-4" />
           </Link>
         </Button>
-      </motion.div>
+      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {listings.map((item) => (
-          <motion.article
-            key={item.slug}
-            {...fadeUp}
-            className="group flex flex-col rounded-[1.7rem] border border-border/70 bg-card/70 p-5 transition-all hover:-translate-y-1 hover:border-primary/35 hover:shadow-lg"
-          >
-            {item.ogImage ? (
-              <div className="-mx-5 -mt-5 mb-4 aspect-[16/9] overflow-hidden rounded-t-[1.7rem] bg-muted">
-                <img
-                  src={item.ogImage}
-                  alt={item.images?.find((image: any) => image.featured)?.alt || item.title}
-                  className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-[1.02]"
-                  loading="lazy"
-                />
-              </div>
-            ) : null}
+      <div className="space-y-8">
+        {groups.map((group) => (
+          <div key={group.title}>
+            <h3 className="mb-3 text-lg font-black">{group.title}</h3>
+            <div className="flex snap-x gap-3 overflow-x-auto pb-3 [scrollbar-width:none]">
+              {group.items.map((item) => {
+                const image =
+                  item.images?.find((entry: any) => entry.featured) ??
+                  item.images?.[0];
+                return (
+                  <Link
+                    key={item.slug}
+                    to={"/listings/" + item.slug}
+                    className="group w-[82vw] max-w-[360px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-transform hover:-translate-y-1 sm:w-[340px]"
+                  >
+                    <div className="relative aspect-[16/10] bg-muted/50 p-2">
+                      {image?.url ? (
+                        <img
+                          src={image.url}
+                          alt={image.alt || item.title}
+                          className="h-full w-full object-contain"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <Building2 className="size-12 text-muted-foreground/25" />
+                        </div>
+                      )}
+                      <span className="absolute end-3 top-3 rounded-full border border-border/60 bg-background/90 px-3 py-1 text-[11px] font-extrabold shadow-sm">
+                        {item.propertyType}
+                      </span>
+                    </div>
 
-            <div className="flex items-center justify-between gap-2 text-xs">
-              <span className="rounded-full bg-primary/10 px-2.5 py-1 font-bold text-primary">
-                {item.dealType}
-              </span>
-              <span className="text-muted-foreground">{item.propertyType}</span>
+                    <div className="p-4">
+                      <h4 className="line-clamp-2 text-sm font-black leading-7">
+                        {item.title}
+                      </h4>
+                      <div className="mt-2 flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <MapPin className="size-3.5 text-primary" />
+                        {item.city}
+                        {item.area != null && <span>· {formatArea(item.area)}</span>}
+                      </div>
+                      <div className="mt-3 text-sm">
+                        {item.rentMillion != null && item.rentMillion > 0 ? (
+                          <div className="space-y-1">
+                            {item.depositMillion != null && item.depositMillion > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                ودیعه: {formatPrice(item.depositMillion)}
+                              </p>
+                            )}
+                            <p className="font-extrabold text-primary">
+                              اجاره: {formatPrice(item.rentMillion)}
+                            </p>
+                          </div>
+                        ) : item.priceMillion > 0 ? (
+                          <p className="font-extrabold text-primary">
+                            {formatPrice(item.priceMillion)}
+                          </p>
+                        ) : (
+                          <p className="font-bold text-muted-foreground">قیمت توافقی</p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-
-            <h3 className="mt-4 line-clamp-2 text-lg font-extrabold leading-8">
-              {item.title}
-            </h3>
-
-            <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <MapPin className="size-3.5 text-primary" />
-                {item.city}
-              </span>
-              {item.area != null && <span>{formatArea(item.area)}</span>}
-            </div>
-
-            <div className="mt-4">
-              {item.rentMillion != null && item.rentMillion > 0 ? (
-                <div>
-                  {item.depositMillion != null && item.depositMillion > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      ودیعه: {formatPrice(item.depositMillion)}
-                    </p>
-                  )}
-                  <p className="mt-1 text-lg font-extrabold text-primary">
-                    اجاره: {formatPrice(item.rentMillion)}
-                  </p>
-                </div>
-              ) : item.priceMillion > 0 ? (
-                <p className="text-lg font-extrabold text-primary">
-                  {formatPrice(item.priceMillion)}
-                </p>
-              ) : (
-                <p className="text-sm font-bold text-muted-foreground">قیمت توافقی</p>
-              )}
-            </div>
-
-            <p className="mt-3 line-clamp-2 text-sm leading-7 text-muted-foreground">
-              {item.description}
-            </p>
-
-            <Button asChild variant="outline" className="mt-5 w-full gap-1.5 rounded-xl">
-              <Link to={`/listings/${item.slug}`}>
-                مشاهده جزئیات
-                <ArrowLeft className="size-4" />
-              </Link>
-            </Button>
-          </motion.article>
+          </div>
         ))}
       </div>
 
-      <Button asChild variant="outline" className="mt-5 w-full gap-1.5 rounded-xl sm:hidden">
+      <Button asChild variant="outline" className="mt-2 w-full gap-1.5 rounded-xl sm:hidden">
         <Link to="/listings">
           مشاهده همه آگهی‌ها
           <ArrowLeft className="size-4" />
