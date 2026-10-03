@@ -97,6 +97,8 @@ const schema = defineSchema(
       title: v.optional(v.string()),
       description: v.optional(v.string()),
       address: v.optional(v.string()),
+      latitude: v.optional(v.number()),
+      longitude: v.optional(v.number()),
       mapsUrl: v.optional(v.string()),
       divarUrl: v.optional(v.string()),
       date: v.optional(v.string()),
