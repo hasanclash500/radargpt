@@ -23,6 +23,8 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const Blog = lazy(() => import("./pages/Blog.tsx"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
 const BlogAdmin = lazy(() => import("./pages/BlogAdmin.tsx"));
+const PublicListings = lazy(() => import("./pages/PublicListings.tsx"));
+const PublicListing = lazy(() => import("./pages/PublicListing.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -137,6 +139,8 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/" element={<Landing />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogArticle />} />
+              <Route path="/listings" element={<PublicListings />} />
+              <Route path="/listings/:slug" element={<PublicListing />} />
               <Route
                 path="/auth"
                 element={<AuthPage redirectAfterAuth="/dashboard" />}
