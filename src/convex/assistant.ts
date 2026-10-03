@@ -272,7 +272,7 @@ async function collectMatches(ctx: any, question: string): Promise<AssistantMatc
 
 export const searchSiteListings = query({
   args: { question: v.string() },
-  handler: async (ctx, args): Promise<AssistantResponse> => {
+  handler: async (ctx, args): Promise<AssistantMatch[]> => {
     const question = args.question.trim().slice(0, 800);
     if (!question) return [];
     return await collectMatches(ctx, question);
@@ -306,7 +306,7 @@ function fallbackAnswer(question: string, matches: AssistantMatch[]) {
 
 export const ask = action({
   args: { question: v.string() },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<AssistantResponse> => {
     const question = args.question.trim().slice(0, 1200);
     if (!question) throw new Error("سؤال را وارد کنید.");
 
