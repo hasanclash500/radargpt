@@ -183,13 +183,6 @@ export default function ManualListingDialog({
     }
   }, [open]);
 
-  useEffect(
-    () => () => {
-      pendingImages.forEach((image) => URL.revokeObjectURL(image.preview));
-    },
-    [pendingImages],
-  );
-
   const set = <K extends keyof typeof EMPTY>(key: K, value: (typeof EMPTY)[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
 
@@ -416,7 +409,13 @@ export default function ManualListingDialog({
   const rentPreview = moneyMillion(form.rentMillion);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen && !saving) reset();
+        onOpenChange(nextOpen);
+      }}
+    >
       <DialogTrigger asChild>
         <Button type="button" variant="outline" size="sm" className="gap-1.5">
           <Plus className="size-4" />
