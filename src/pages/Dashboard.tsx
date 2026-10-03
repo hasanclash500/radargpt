@@ -56,6 +56,8 @@ export default function Dashboard() {
   const syncListings = useMutation(api.listings.upsertListings);
   const createListing = useMutation(api.listings.createListing);
   const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
+  const approvePublication = useMutation(api.listings.approvePublication);
+  const rejectPublication = useMutation(api.listings.rejectPublication);
   const ensureProfile = useMutation(api.roles.ensureProfile);
 
   // آگهی‌های ذخیره‌شدهٔ سرور؛ صفحه‌های بعدی هنگام اسکرول خوانده می‌شوند
@@ -90,6 +92,7 @@ export default function Dashboard() {
 
   const role = roleData?.role ?? "guest";
   const canSeePhone = roleData?.isPrivileged ?? false;
+  const isAdmin = role === "admin";
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [localTouched, setLocalTouched] = useState(false);
@@ -530,7 +533,17 @@ export default function Dashboard() {
                         onToggleFolder={canSeePhone ? async (fid) => { await toggleFolder({ key, folderId: fid }); } : undefined}
                         onSaveLocation={canSeePhone ? async (patch) => { await updateListing({ key, patch }); } : undefined}
                         onSavePublic={canSeePhone ? async (settings) => {
-                          await updatePublicSettings({ key, ...settings });
+                          const result = await updatePublicSettings({ key, ...settings });
+                          if (result.publicationStatus === "pending") {
+                            toast.success("درخواست انتشار برای مدیر ارسال شد");
+                          }
+                        } : undefined}
+                        isAdmin={isAdmin}
+                        onApprovePublication={isAdmin ? async () => {
+                          await approvePublication({ key });
+                        } : undefined}
+                        onRejectPublication={isAdmin ? async (reason) => {
+                          await rejectPublication({ key, reason });
                         } : undefined} />
                     );
                   })}
