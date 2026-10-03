@@ -241,7 +241,7 @@ export default function PublicListing() {
             <img
               src={images[activeImage]?.url}
               alt={images[activeImage]?.alt || listing.title}
-              className="aspect-[4/3] w-full object-cover sm:aspect-[16/9]"
+              className="aspect-[4/3] w-full object-contain p-2 sm:aspect-[16/9]"
               fetchPriority="high"
             />
           </div>
@@ -263,7 +263,7 @@ export default function PublicListing() {
                   <img
                     src={image.url}
                     alt={image.alt || `${listing.title} - تصویر ${index + 1}`}
-                    className="aspect-[4/3] w-full object-cover"
+                    className="aspect-[4/3] w-full object-contain p-1"
                     loading="lazy"
                   />
                 </button>
@@ -337,7 +337,7 @@ export default function PublicListing() {
                   <strong>{formatPrice(listing.depositMillion)}</strong>
                 </div>
               )}
-              {listing.rentMillion != null && (
+              {listing.rentMillion != null && listing.rentMillion > 0 && (
                 <div className="flex items-center justify-between gap-3 text-sm">
                   <span className="text-muted-foreground">اجاره ماهانه</span>
                   <strong className="text-primary">
@@ -345,12 +345,12 @@ export default function PublicListing() {
                   </strong>
                 </div>
               )}
-              {listing.rentMillion == null && listing.priceMillion > 0 && (
+              {(listing.rentMillion == null || listing.rentMillion <= 0) && listing.priceMillion > 0 && (
                 <p className="text-xl font-extrabold text-primary">
                   {formatPrice(listing.priceMillion)}
                 </p>
               )}
-              {listing.rentMillion == null && listing.priceMillion <= 0 && (
+              {(listing.rentMillion == null || listing.rentMillion <= 0) && listing.priceMillion <= 0 && (
                 <p className="font-bold">قیمت توافقی</p>
               )}
             </div>
