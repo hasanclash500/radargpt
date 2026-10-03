@@ -1,3 +1,5 @@
+import { neshanSearchUrl } from "./neshan";
+
 /**
  * ساخت متن دیزاین‌شدهٔ آگهی برای انتشار در شبکه‌های اجتماعی و پیام‌رسان‌ها.
  *
@@ -107,7 +109,8 @@ export function buildShareText(
 
   const links: string[] = [];
   if (l.divarUrl) links.push(l.divarUrl);
-  if (l.mapsUrl) links.push(l.mapsUrl);
+  const neshanUrl = neshanSearchUrl(l.address || where);
+  if (neshanUrl) links.push(neshanUrl);
   if (links.length) {
     lines.push("");
     lines.push("🔗 لینک‌ها:");
