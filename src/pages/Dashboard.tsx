@@ -5,6 +5,7 @@ import ShareDialog from "@/components/listings/ShareDialog";
 import UploadZone from "@/components/listings/UploadZone";
 import ManualListingDialog from "@/components/listings/ManualListingDialog";
 import PublicContactDialog from "@/components/listings/PublicContactDialog";
+import PendingPublicationPanel from "@/components/listings/PendingPublicationPanel";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -438,6 +439,8 @@ export default function Dashboard() {
         {!parsing && error && (
           <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-700 dark:text-amber-400">{error}</div>
         )}
+
+        {isAdmin && <PendingPublicationPanel />}
 
         {!parsing && displayListings.length === 0 && !loadingServer && (
           <section className="space-y-6">
