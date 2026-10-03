@@ -174,6 +174,7 @@ export default function BlogAdmin() {
   const savePost = useMutation(api.posts.save);
   const removePost = useMutation(api.posts.remove);
   const ensureSeedPosts = useMutation(api.posts.ensureSeedPosts);
+  const ensureProfile = useMutation(api.roles.ensureProfile);
   const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
   const resolveStorageUrl = useMutation(api.posts.resolveStorageUrl);
 
@@ -188,6 +189,12 @@ export default function BlogAdmin() {
 
   const canEdit =
     roleData?.role === "admin" || roleData?.role === "consultant";
+
+  useEffect(() => {
+    if (roleData === null) {
+      ensureProfile().catch(() => undefined);
+    }
+  }, [roleData, ensureProfile]);
 
   useEffect(() => {
     if (!canEdit || seededRef.current) return;
@@ -368,7 +375,7 @@ export default function BlogAdmin() {
     });
   };
 
-  if (roleData === undefined) {
+  if (roleData === undefined || roleData === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="size-6 animate-spin text-primary" />
