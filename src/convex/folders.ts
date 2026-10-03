@@ -92,16 +92,23 @@ export const getSettings = query({
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .take(2);
     const settings = rows[0] ?? null;
-    return settings
-      ? {
-          ...settings,
-          listingFieldConfigs:
-            settings.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS,
-        }
-      : {
-          key: "global",
-          listingFieldConfigs: DEFAULT_LISTING_FIELD_CONFIGS,
-        };
+    return {
+      key: "global",
+      officeName: settings?.officeName ?? "مکا",
+      managerPhone: settings?.managerPhone ?? "09120858095",
+      shareFooter: settings?.shareFooter ?? "",
+      customCities: settings?.customCities ?? [],
+      customDeals: settings?.customDeals ?? [],
+      customPropertyTypes: settings?.customPropertyTypes ?? [],
+      listingFieldConfigs:
+        settings?.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS,
+      sourceUrl: settings?.sourceUrl ?? "",
+      lastImportAt: settings?.lastImportAt,
+      lastImportAdded: settings?.lastImportAdded,
+      lastImportUpdated: settings?.lastImportUpdated,
+      lastImportError: settings?.lastImportError,
+      updatedAt: settings?.updatedAt,
+    };
   },
 });
 
