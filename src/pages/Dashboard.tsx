@@ -55,6 +55,7 @@ export default function Dashboard() {
   const markShared = useMutation(api.listings.markShared);
   const syncListings = useMutation(api.listings.upsertListings);
   const createListing = useMutation(api.listings.createListing);
+  const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
   const ensureProfile = useMutation(api.roles.ensureProfile);
 
   // آگهی‌های ذخیره‌شدهٔ سرور؛ صفحه‌های بعدی هنگام اسکرول خوانده می‌شوند
