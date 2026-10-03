@@ -202,6 +202,12 @@ export default function Landing() {
           </a>
 
           <div className="flex items-center gap-2">
+            <a
+              href="/blog"
+              className="rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              وبلاگ
+            </a>
             <ThemeToggle />
             <button
               onClick={() => navigate("/auth?returnTo=/dashboard")}
