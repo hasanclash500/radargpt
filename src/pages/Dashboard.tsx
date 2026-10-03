@@ -21,7 +21,7 @@ import { DEAL_TYPES, PROPERTY_TYPES, parseHtmlFile, type DealType, type Listing,
 import { SAMPLE_HTML } from "@/lib/sample";
 import { DEFAULT_SHARE_SETTINGS, type ShareSettings, type ShareableListing } from "@/lib/share";
 import {
-  Building2, Coins, FileCode2, FileJson, FileSpreadsheet, FileText, Loader2,
+  BookOpen, Building2, Coins, FileCode2, FileJson, FileSpreadsheet, FileText, Loader2,
   LogOut, MapPinned, Radar, RotateCcw, Ruler, SearchX, Send, Settings, Upload, X,
 } from "lucide-react";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
