@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
 import { formatArea, formatPrice } from "@/lib/format";
-import { useQuery } from "convex/react";
+import { usePaginatedQuery } from "convex/react";
 import {
   ArrowLeft,
   Building2,
@@ -18,7 +18,11 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 
 export default function PublicListings() {
-  const listings = useQuery(api.listings.listPublic);
+  const { results: listings, status, loadMore } = usePaginatedQuery(
+    api.listings.listPublicPaged,
+    {},
+    { initialNumItems: 24 },
+  );
   const [search, setSearch] = useState("");
   const [propertyType, setPropertyType] = useState("همه");
   const [dealType, setDealType] = useState("همه");
@@ -151,7 +155,7 @@ export default function PublicListings() {
           {filtered.length.toLocaleString("fa-IR")} آگهی عمومی
         </div>
 
-        {listings === undefined ? (
+        {status === "LoadingFirstPage" ? (
           <div className="py-24 text-center text-sm text-muted-foreground">
             در حال دریافت آگهی‌ها…
           </div>
@@ -254,6 +258,19 @@ export default function PublicListings() {
               );
             })}
           </div>
+        )}
+
+        {status === "CanLoadMore" && (
+          <div className="mt-7 flex justify-center">
+            <Button variant="outline" onClick={() => loadMore(24)} className="rounded-xl">
+              نمایش آگهی‌های بیشتر
+            </Button>
+          </div>
+        )}
+        {status === "LoadingMore" && (
+          <p className="mt-7 text-center text-xs text-muted-foreground">
+            در حال دریافت آگهی‌های بیشتر…
+          </p>
         )}
       </section>
     </main>
