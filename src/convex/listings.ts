@@ -1,5 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Doc } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
@@ -142,6 +143,9 @@ function toListing(row: Doc<"listings">, contactPhone: string): ListingRow {
     seoDescription: row.seoDescription,
     seoKeywords: row.seoKeywords,
     noIndex: row.noIndex ?? false,
+    publicationStatus: row.publicationStatus ?? (row.isPublic ? "approved" : "private"),
+    publicationRejectReason: row.publicationRejectReason,
+    customFields: row.customFields ?? [],
   };
 }
 
@@ -254,6 +258,15 @@ async function toPublicListing(
         "مکا",
       ].filter((value): value is string => Boolean(value)),
     noIndex: row.noIndex ?? false,
+    customFields: (row.customFields ?? [])
+      .filter((field) => field.public)
+      .map((field) => ({
+        fieldId: field.fieldId,
+        label: field.label,
+        value: field.value,
+        type: field.type,
+        unit: field.unit,
+      })),
     images: images.map(({ url, alt, featured, order }) => ({
       url,
       alt,
@@ -352,6 +365,15 @@ export const getPublicBySlug = query({
   },
 });
 
+const customFieldValidator = v.object({
+  fieldId: v.string(),
+  label: v.string(),
+  value: v.string(),
+  type: v.string(),
+  unit: v.optional(v.string()),
+  public: v.boolean(),
+});
+
 const listingFields = {
   radarCode: v.optional(v.string()),
   city: v.optional(v.string()),
@@ -373,6 +395,7 @@ const listingFields = {
   dateRaw: v.optional(v.string()),
   poster: v.optional(v.string()),
   phone: v.optional(v.string()),
+  customFields: v.optional(v.array(customFieldValidator)),
 };
 
 export const upsertListings = mutation({
@@ -605,24 +628,130 @@ export const updatePublicSettings = mutation({
 
     const now = Date.now();
     const publicSlug = row.publicSlug || makePublicSlug(row);
-    await ctx.db.patch(row._id, {
-      isPublic: args.isPublic,
+    const common = {
       featuredOnHome: args.isPublic ? args.featuredOnHome : false,
       publicSlug,
-      publishedAt:
-        args.isPublic ? row.publishedAt ?? now : row.publishedAt,
       seoTitle: args.seoTitle?.trim() || undefined,
       seoDescription: args.seoDescription?.trim() || undefined,
       seoKeywords: args.seoKeywords?.map((x) => x.trim()).filter(Boolean),
       noIndex: args.noIndex,
       updatedAt: now,
+    };
+
+    if (!args.isPublic) {
+      await ctx.db.patch(row._id, {
+        ...common,
+        isPublic: false,
+        publicationStatus: "private",
+        publicationRejectReason: undefined,
+      });
+      return {
+        isPublic: false,
+        featuredOnHome: false,
+        publicSlug,
+        publicationStatus: "private" as const,
+      };
+    }
+
+    if (r.role === OFFICE_ROLES.ADMIN) {
+      await ctx.db.patch(row._id, {
+        ...common,
+        isPublic: true,
+        publicationStatus: "approved",
+        publicationRequestedAt: row.publicationRequestedAt ?? now,
+        publicationReviewedAt: now,
+        publicationReviewedBy: r.userId,
+        publicationRejectReason: undefined,
+        publishedAt: row.publishedAt ?? now,
+      });
+      return {
+        isPublic: true,
+        featuredOnHome: args.featuredOnHome,
+        publicSlug,
+        publicationStatus: "approved" as const,
+      };
+    }
+
+    await ctx.db.patch(row._id, {
+      ...common,
+      isPublic: false,
+      publicationStatus: "pending",
+      publicationRequestedAt: now,
+      publicationReviewedAt: undefined,
+      publicationReviewedBy: undefined,
+      publicationRejectReason: undefined,
+    });
+
+    const profiles = await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", r.userId))
+      .take(1);
+    const consultant = profiles[0]?.displayName || "مشاور مکا";
+    const title =
+      row.title ||
+      `${row.dealType || "آگهی"} ${row.propertyType || "ملک"}${row.area ? ` ${row.area} متری` : ""} در ${row.city || "شهریار"}`;
+
+    await ctx.scheduler.runAfter(0, internal.integrations.notifyPublicationRequest, {
+      key: row.key,
+      title,
+      city: row.city || "شهریار",
+      propertyType: row.propertyType || "ملک",
+      dealType: row.dealType || "آگهی",
+      area: row.area,
+      consultant,
     });
 
     return {
-      isPublic: args.isPublic,
-      featuredOnHome: args.isPublic ? args.featuredOnHome : false,
+      isPublic: false,
+      featuredOnHome: args.featuredOnHome,
       publicSlug,
+      publicationStatus: "pending" as const,
     };
+  },
+});
+
+export const approvePublication = mutation({
+  args: { key: v.string() },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || r.role !== OFFICE_ROLES.ADMIN) {
+      throw new Error("فقط مدیر اجازهٔ تأیید انتشار را دارد.");
+    }
+    const row = await byKey(ctx, args.key);
+    if (!row) throw new Error("آگهی یافت نشد.");
+    const now = Date.now();
+    await ctx.db.patch(row._id, {
+      isPublic: true,
+      publicationStatus: "approved",
+      publicationReviewedAt: now,
+      publicationReviewedBy: r.userId,
+      publicationRejectReason: undefined,
+      publishedAt: row.publishedAt ?? now,
+      updatedAt: now,
+    });
+    return true;
+  },
+});
+
+export const rejectPublication = mutation({
+  args: { key: v.string(), reason: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || r.role !== OFFICE_ROLES.ADMIN) {
+      throw new Error("فقط مدیر اجازهٔ رد انتشار را دارد.");
+    }
+    const row = await byKey(ctx, args.key);
+    if (!row) throw new Error("آگهی یافت نشد.");
+    const now = Date.now();
+    await ctx.db.patch(row._id, {
+      isPublic: false,
+      publicationStatus: "rejected",
+      publicationReviewedAt: now,
+      publicationReviewedBy: r.userId,
+      publicationRejectReason: args.reason?.trim() || "نیاز به اصلاح دارد.",
+      updatedAt: now,
+    });
+    return true;
   },
 });
 
