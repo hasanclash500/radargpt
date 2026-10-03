@@ -1,3 +1,4 @@
+import { neshanSearchUrl } from "./neshan";
 /**
  * موتور استخراج آگهی‌های املاک از فایل HTML خام کانال تلگرامی «ملک‌رادار».
  *
@@ -278,7 +279,7 @@ function buildMapsUrl(city: string, description: string): string {
     .filter(Boolean)
     .join(" ")
     .trim();
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  return neshanSearchUrl(query);
 }
 
 function makeTitle(description: string, fallback: string): string {
