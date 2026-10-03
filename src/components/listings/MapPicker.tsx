@@ -7,7 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Crosshair, MapPin } from "lucide-react";
+import { neshanAppLocationUrl } from "@/lib/neshan";
+import { Crosshair, ExternalLink, MapPin, Navigation } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 declare global {
@@ -17,21 +18,12 @@ declare global {
 }
 
 const DEFAULT_POSITION = { lat: 35.659, lng: 51.059 };
+const NESHAN_MAP_KEY = (import.meta.env.VITE_NESHAN_MAP_KEY as string | undefined)?.trim();
 
-async function ensureLeaflet() {
-  if (window.L) return window.L;
-
-  if (!document.querySelector('link[data-meka-leaflet="1"]')) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    link.dataset.mekaLeaflet = "1";
-    document.head.appendChild(link);
-  }
-
+async function loadScript(src: string, marker: string) {
   await new Promise<void>((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-meka-leaflet="1"]',
+      `script[data-map-sdk="${marker}"]`,
     );
     if (existing) {
       if (window.L) resolve();
@@ -40,15 +32,45 @@ async function ensureLeaflet() {
     }
 
     const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.src = src;
     script.async = true;
-    script.dataset.mekaLeaflet = "1";
+    script.dataset.mapSdk = marker;
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("بارگذاری نقشه ممکن نشد."));
     document.body.appendChild(script);
   });
+}
 
-  return window.L;
+function ensureStyle(href: string, marker: string) {
+  if (document.querySelector(`link[data-map-sdk="${marker}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  link.dataset.mapSdk = marker;
+  document.head.appendChild(link);
+}
+
+async function ensureMapSdk() {
+  if (NESHAN_MAP_KEY) {
+    ensureStyle(
+      "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css",
+      "neshan",
+    );
+    await loadScript(
+      "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js",
+      "neshan",
+    );
+    return { L: window.L, neshan: true };
+  }
+
+  if (!window.L) {
+    ensureStyle("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css", "leaflet");
+    await loadScript(
+      "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+      "leaflet",
+    );
+  }
+  return { L: window.L, neshan: false };
 }
 
 export type MapPoint = { lat: number; lng: number };
@@ -63,18 +85,24 @@ export default function MapPicker({
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MapPoint | null>(value ?? null);
   const [loading, setLoading] = useState(false);
+  const [usingNeshan, setUsingNeshan] = useState(Boolean(NESHAN_MAP_KEY));
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+
+  useEffect(() => {
+    setSelected(value ?? null);
+  }, [value?.lat, value?.lng]);
 
   useEffect(() => {
     if (!open || !containerRef.current) return;
     let cancelled = false;
 
     setLoading(true);
-    void ensureLeaflet()
-      .then((L) => {
+    void ensureMapSdk()
+      .then(({ L, neshan }) => {
         if (cancelled || !containerRef.current || !L) return;
+        setUsingNeshan(neshan);
         const initial = selected ?? value ?? DEFAULT_POSITION;
 
         if (mapRef.current) {
@@ -82,15 +110,26 @@ export default function MapPicker({
           mapRef.current = null;
         }
 
-        const map = L.map(containerRef.current, {
-          zoomControl: true,
-          attributionControl: true,
-        }).setView([initial.lat, initial.lng], value ? 16 : 13);
+        const map = neshan
+          ? new L.Map(containerRef.current, {
+              key: NESHAN_MAP_KEY,
+              maptype: "dreamy",
+              poi: true,
+              traffic: false,
+              center: [initial.lat, initial.lng],
+              zoom: value ? 16 : 13,
+            })
+          : L.map(containerRef.current, {
+              zoomControl: true,
+              attributionControl: true,
+            }).setView([initial.lat, initial.lng], value ? 16 : 13);
 
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-          attribution: "© OpenStreetMap",
-        }).addTo(map);
+        if (!neshan) {
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "© OpenStreetMap",
+          }).addTo(map);
+        }
 
         const marker = L.marker([initial.lat, initial.lng], {
           draggable: true,
@@ -115,8 +154,9 @@ export default function MapPicker({
 
         mapRef.current = map;
         markerRef.current = marker;
-        setTimeout(() => map.invalidateSize(), 80);
+        setTimeout(() => map.invalidateSize(), 100);
       })
+      .catch(() => setUsingNeshan(false))
       .finally(() => setLoading(false));
 
     return () => {
@@ -153,14 +193,17 @@ export default function MapPicker({
           <Button type="button" variant="outline" className="w-full justify-start gap-2 rounded-xl">
             <MapPin className="size-4 text-primary" />
             {value
-              ? "تغییر موقعیت روی نقشه"
-              : "انتخاب موقعیت ملک روی نقشه"}
+              ? "تغییر موقعیت روی نقشه نشان"
+              : "انتخاب موقعیت ملک روی نقشه نشان"}
           </Button>
         </DialogTrigger>
         <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl overflow-hidden p-0">
           <div className="p-4 sm:p-5">
             <DialogHeader>
-              <DialogTitle>انتخاب موقعیت ملک</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <Navigation className="size-5 text-primary" />
+                انتخاب موقعیت در نشان
+              </DialogTitle>
               <DialogDescription>
                 روی نقشه لمس کنید یا نشانگر را جابه‌جا کنید. این موقعیت داخلی است و در آگهی عمومی منتشر نمی‌شود.
               </DialogDescription>
@@ -174,14 +217,35 @@ export default function MapPicker({
                 در حال بارگذاری نقشه…
               </div>
             )}
+            <span className="absolute start-3 top-3 rounded-full border border-border/60 bg-background/90 px-2.5 py-1 text-[10px] font-bold shadow-sm backdrop-blur">
+              {usingNeshan ? "نقشه نشان" : "نمایش پایه موقت"}
+            </span>
           </div>
+
+          {!usingNeshan && (
+            <p className="px-4 pt-3 text-[11px] leading-6 text-amber-700 dark:text-amber-400">
+              برای نمایش کاشی‌های رسمی نشان، متغیر VITE_NESHAN_MAP_KEY را در محیط Production تنظیم کنید. لینک‌های مسیریابی از همین حالا با نشان ساخته می‌شوند.
+            </p>
+          )}
 
           <div className="flex flex-col gap-3 border-t border-border p-4 sm:flex-row sm:items-center sm:justify-between">
             <Button type="button" variant="outline" onClick={useMyLocation} className="gap-2">
               <Crosshair className="size-4" />
               موقعیت فعلی من
             </Button>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              {selected && (
+                <Button type="button" variant="ghost" asChild className="gap-2">
+                  <a
+                    href={neshanAppLocationUrl(selected.lat, selected.lng)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink className="size-4" />
+                    بازکردن در نشان
+                  </a>
+                </Button>
+              )}
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 انصراف
               </Button>
