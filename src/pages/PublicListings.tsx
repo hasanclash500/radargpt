@@ -8,6 +8,7 @@ import { usePaginatedQuery } from "convex/react";
 import {
   ArrowDownWideNarrow,
   ArrowLeft,
+  Bot,
   Building2,
   Camera,
   ChevronDown,
@@ -241,6 +242,12 @@ export default function PublicListings() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Link to="/assistant">
+                <Bot className="size-4" />
+                دستیار مکا
+              </Link>
+            </Button>
             <Button asChild variant="ghost" size="sm"><Link to="/blog">وبلاگ</Link></Button>
             <ThemeToggle />
           </div>
