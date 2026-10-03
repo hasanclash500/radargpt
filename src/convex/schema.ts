@@ -121,6 +121,19 @@ const schema = defineSchema(
           }),
         ),
       ),
+      /** فیلدهای اختصاصی فرم بر اساس دسته ملک */
+      customFields: v.optional(
+        v.array(
+          v.object({
+            fieldId: v.string(),
+            label: v.string(),
+            value: v.string(),
+            type: v.string(),
+            unit: v.optional(v.string()),
+            public: v.boolean(),
+          }),
+        ),
+      ),
       /** کاربری که اولین بار این آگهی را در سیستم ثبت کرده است */
       createdByUserId: v.optional(v.string()),
       /** کنترل انتشار عمومی */
@@ -128,6 +141,18 @@ const schema = defineSchema(
       featuredOnHome: v.optional(v.boolean()),
       publicSlug: v.optional(v.string()),
       publishedAt: v.optional(v.number()),
+      publicationStatus: v.optional(
+        v.union(
+          v.literal("private"),
+          v.literal("pending"),
+          v.literal("approved"),
+          v.literal("rejected"),
+        ),
+      ),
+      publicationRequestedAt: v.optional(v.number()),
+      publicationReviewedAt: v.optional(v.number()),
+      publicationReviewedBy: v.optional(v.string()),
+      publicationRejectReason: v.optional(v.string()),
       /** SEO عمومی آگهی؛ در صورت خالی بودن، مقدار مناسب به‌صورت خودکار ساخته می‌شود */
       seoTitle: v.optional(v.string()),
       seoDescription: v.optional(v.string()),
@@ -144,6 +169,44 @@ const schema = defineSchema(
       .index("by_city", ["city"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"]),
+
+    /** درخواست‌های ثبت‌شده از لندینگ: می‌خرم/اجاره می‌کنم/می‌فروشم/اجاره می‌دهم */
+    propertyLeads: defineTable({
+      intent: v.union(
+        v.literal("buy"),
+        v.literal("rent"),
+        v.literal("sell"),
+        v.literal("lease_out"),
+      ),
+      name: v.string(),
+      phone: v.string(),
+      city: v.string(),
+      propertyType: v.string(),
+      area: v.optional(v.number()),
+      budget: v.optional(v.string()),
+      details: v.optional(v.string()),
+      status: v.union(
+        v.literal("new"),
+        v.literal("contacted"),
+        v.literal("closed"),
+      ),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_status_created", ["status", "createdAt"])
+      .index("by_created", ["createdAt"]),
+
+    /** اسرار اتصال پیام‌رسان؛ فقط در توابع سمت سرور و پنل مدیر استفاده می‌شود */
+    integrationSecrets: defineTable({
+      key: v.string(),
+      telegramBotToken: v.optional(v.string()),
+      telegramChatId: v.optional(v.string()),
+      baleBotToken: v.optional(v.string()),
+      baleChatId: v.optional(v.string()),
+      notifyLeads: v.optional(v.boolean()),
+      notifyPublicationRequests: v.optional(v.boolean()),
+      updatedAt: v.number(),
+    }).index("by_key", ["key"]),
 
     /** مقالات وبلاگ و تنظیمات SEO هر مقاله */
     posts: defineTable({
@@ -192,6 +255,35 @@ const schema = defineSchema(
       customCities: v.optional(v.array(v.string())),
       customDeals: v.optional(v.array(v.string())),
       customPropertyTypes: v.optional(v.array(v.string())),
+      /** فرم مرحله‌ای و فیلدهای قابل‌ویرایش برای هر گروه ملک */
+      listingFieldConfigs: v.optional(
+        v.array(
+          v.object({
+            id: v.string(),
+            name: v.string(),
+            propertyTypes: v.array(v.string()),
+            fields: v.array(
+              v.object({
+                id: v.string(),
+                label: v.string(),
+                type: v.union(
+                  v.literal("text"),
+                  v.literal("number"),
+                  v.literal("boolean"),
+                  v.literal("select"),
+                  v.literal("textarea"),
+                ),
+                required: v.boolean(),
+                public: v.boolean(),
+                unit: v.optional(v.string()),
+                placeholder: v.optional(v.string()),
+                options: v.optional(v.array(v.string())),
+                order: v.number(),
+              }),
+            ),
+          }),
+        ),
+      ),
       /**
        * نشانی فایل منبع آگهی‌های روزانه (HTML/JSON/CSV). هر روز ساعت ۶ صبح
        * توسط cron خوانده و آگهی‌های تازه روی سرور ذخیره می‌شوند.
