@@ -1,5 +1,8 @@
 import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 function runConvex(args, input) {
   const result = spawnSync("npx", ["convex", ...args], {
@@ -14,12 +17,32 @@ function runConvex(args, input) {
     throw new Error(message || `convex ${args.join(" ")} failed`);
   }
 
-  return (result.stdout || "").trim();
+  return (result.stdout || "").trimEnd();
 }
 
 function setEnv(name, value) {
   runConvex(["env", "set", name], `${value}\n`);
   console.log(`✓ Convex env ${name} configured`);
+}
+
+function setEnvFromFile(name, value) {
+  const dir = mkdtempSync(join(tmpdir(), "meka-convex-auth-"));
+  const file = join(dir, "value.txt");
+  try {
+    writeFileSync(file, value, { encoding: "utf8", mode: 0o600 });
+    runConvex(["env", "set", name, "--from-file", file]);
+    console.log(`✓ Convex env ${name} configured`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+function getEnv(name) {
+  try {
+    return runConvex(["env", "get", name]);
+  } catch {
+    return "";
+  }
 }
 
 let names;
@@ -45,7 +68,7 @@ const siteUrl =
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : "https://radargpt.vercel.app");
 
-if (!names.has("SITE_URL")) {
+if (!names.has("SITE_URL") || getEnv("SITE_URL").trim() !== siteUrl) {
   setEnv("SITE_URL", siteUrl);
 }
 
@@ -53,10 +76,28 @@ if (!names.has("AUTH_SECRET")) {
   setEnv("AUTH_SECRET", randomBytes(32).toString("base64url"));
 }
 
-const hasPrivateKey = names.has("JWT_PRIVATE_KEY");
-const hasJwks = names.has("JWKS");
+const currentPrivateKey = getEnv("JWT_PRIVATE_KEY");
+const currentJwks = getEnv("JWKS");
 
-if (!hasPrivateKey || !hasJwks) {
+let privateKeyLooksValid =
+  currentPrivateKey.includes("-----BEGIN PRIVATE KEY-----") &&
+  currentPrivateKey.includes("-----END PRIVATE KEY-----") &&
+  currentPrivateKey.includes("\n");
+
+let jwksLooksValid = false;
+try {
+  const parsed = JSON.parse(currentJwks);
+  jwksLooksValid =
+    Array.isArray(parsed?.keys) &&
+    parsed.keys.length > 0 &&
+    parsed.keys[0]?.kty === "RSA";
+} catch {
+  jwksLooksValid = false;
+}
+
+if (!privateKeyLooksValid || !jwksLooksValid) {
+  console.log("• Regenerating Convex Auth signing keys");
+
   const { privateKey, publicKey } = generateKeyPairSync("rsa", {
     modulusLength: 2048,
   });
@@ -64,16 +105,15 @@ if (!hasPrivateKey || !hasJwks) {
   const privatePem = privateKey
     .export({ type: "pkcs8", format: "pem" })
     .toString()
-    .trimEnd()
-    .replace(/\n/g, " ");
+    .trimEnd();
 
   const publicJwk = publicKey.export({ format: "jwk" });
   const jwks = JSON.stringify({
     keys: [{ use: "sig", alg: "RS256", ...publicJwk }],
   });
 
-  // Always replace both together so they are guaranteed to match.
-  setEnv("JWT_PRIVATE_KEY", privatePem);
+  // Keep the PEM newlines intact. Convex Auth requires a valid PKCS#8 PEM.
+  setEnvFromFile("JWT_PRIVATE_KEY", privatePem);
   setEnv("JWKS", jwks);
 }
 
