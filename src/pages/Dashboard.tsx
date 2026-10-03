@@ -59,6 +59,7 @@ export default function Dashboard() {
   const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
   const approvePublication = useMutation(api.listings.approvePublication);
   const rejectPublication = useMutation(api.listings.rejectPublication);
+  const deleteListing = useMutation(api.listings.deleteListing);
   const ensureProfile = useMutation(api.roles.ensureProfile);
 
   // آگهی‌های ذخیره‌شدهٔ سرور؛ صفحه‌های بعدی هنگام اسکرول خوانده می‌شوند
@@ -73,16 +74,19 @@ export default function Dashboard() {
   );
   const loadingServer = status === "LoadingFirstPage" || status === "LoadingMore";
 
-  // ساخت پروفایل در اولین بازدید تا نقش کاربر مشخص شود
+  // یک بار پروفایل را همگام می‌کنیم؛ این کار نقش admin قدیمی مالک را به manager مهاجرت می‌دهد.
+  const profileEnsuredRef = useRef(false);
   useEffect(() => {
-    if (roleData !== undefined && roleData === null) {
-      ensureProfile().catch(() => undefined);
-    }
+    if (roleData === undefined || profileEnsuredRef.current) return;
+    profileEnsuredRef.current = true;
+    ensureProfile().catch(() => undefined);
   }, [roleData, ensureProfile]);
 
   const role = roleData?.role ?? "guest";
   const canSeePhone = roleData?.isPrivileged ?? false;
-  const isAdmin = role === "admin";
+  const isManager = roleData?.canManageSite ?? role === "manager";
+  const canManageListings =
+    roleData?.canManageListings ?? role === "manager" || role === "admin";
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [localTouched, setLocalTouched] = useState(false);
@@ -349,7 +353,7 @@ export default function Dashboard() {
             <div className="min-w-0">
               <h1 className="truncate text-base font-extrabold leading-tight">مکا</h1>
               <p className="hidden truncate text-xs text-muted-foreground sm:block">
-                نقش: {role === "admin" ? "مدیر" : role === "consultant" ? "مشاور" : role === "user" ? "کاربر" : "مهمان"}
+                نقش: {role === "manager" ? "مدیر" : role === "admin" ? "ادمین" : role === "consultant" ? "مشاور" : role === "user" ? "کاربر" : "مهمان"}
               </p>
             </div>
             {fileName && (
@@ -360,18 +364,22 @@ export default function Dashboard() {
             )}
           </div>
           <div className="flex w-full items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&>*]:shrink-0 sm:w-auto sm:gap-2 sm:overflow-visible sm:pb-0">
-            <Button asChild variant="outline" size="sm" className="gap-1.5">
-              <Link to="/dashboard/blog" title="نوشتن و مدیریت مقاله‌ها">
-                <FileText className="size-4" />
-                <span className="hidden sm:inline">وبلاگ</span>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="gap-1.5">
-              <Link to="/admin" title="مدیریت دفتر و افزودن روزانهٔ آگهی">
-                <Settings className="size-4" />
-                <span className="hidden sm:inline">مدیریت</span>
-              </Link>
-            </Button>
+            {isManager && (
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <Link to="/dashboard/blog" title="نوشتن و مدیریت مقاله‌ها">
+                  <FileText className="size-4" />
+                  <span className="hidden sm:inline">وبلاگ</span>
+                </Link>
+              </Button>
+            )}
+            {canManageListings && (
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <Link to="/admin" title={isManager ? "مدیریت کامل سایت" : "مدیریت آگهی‌ها"}>
+                  <Settings className="size-4" />
+                  <span className="hidden sm:inline">{isManager ? "مدیریت" : "ادمین آگهی"}</span>
+                </Link>
+              </Button>
+            )}
             {canSeePhone && <PublicContactDialog />}
             <ThemeToggle />
             <input ref={headerInputRef} type="file"
@@ -443,7 +451,7 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-700 dark:text-amber-400">{error}</div>
         )}
 
-        {isAdmin && <PendingPublicationPanel />}
+        {canManageListings && <PendingPublicationPanel />}
 
         {!parsing && displayListings.length === 0 && !loadingServer && (
           <section className="space-y-6">
@@ -538,17 +546,31 @@ export default function Dashboard() {
                         onSaveNotes={canSeePhone ? async (notes) => { await saveNotes({ key, notes }); } : undefined}
                         onToggleFolder={canSeePhone ? async (fid) => { await toggleFolder({ key, folderId: fid }); } : undefined}
                         onSaveLocation={canSeePhone ? async (patch) => { await updateListing({ key, patch }); } : undefined}
+                        onEditListing={canSeePhone ? async (patch) => {
+                          await updateListing({ key, patch });
+                          setLocalTouched(false);
+                        } : undefined}
+                        onDeleteListing={canSeePhone ? async () => {
+                          await deleteListing({ key });
+                          setSelected((current) => {
+                            const next = new Set(current);
+                            next.delete(key);
+                            return next;
+                          });
+                          setListings((current) => current.filter((item) => listingKey(item) !== key));
+                          setLocalTouched(false);
+                        } : undefined}
                         onSavePublic={canSeePhone ? async (settings) => {
                           const result = await updatePublicSettings({ key, ...settings });
                           if (result.publicationStatus === "pending") {
-                            toast.success("درخواست انتشار برای مدیر ارسال شد");
+                            toast.success("درخواست انتشار برای مدیر یا ادمین ارسال شد");
                           }
                         } : undefined}
-                        isAdmin={isAdmin}
-                        onApprovePublication={isAdmin ? async () => {
+                        isAdmin={canManageListings}
+                        onApprovePublication={canManageListings ? async () => {
                           await approvePublication({ key });
                         } : undefined}
-                        onRejectPublication={isAdmin ? async (reason) => {
+                        onRejectPublication={canManageListings ? async (reason) => {
                           await rejectPublication({ key, reason });
                         } : undefined} />
                     );
