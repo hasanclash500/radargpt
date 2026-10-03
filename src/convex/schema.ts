@@ -238,6 +238,9 @@ const schema = defineSchema(
       telegramChatId: v.optional(v.string()),
       baleBotToken: v.optional(v.string()),
       baleChatId: v.optional(v.string()),
+      /** کلید OpenRouter فقط سمت سرور نگهداری می‌شود. */
+      openRouterApiKey: v.optional(v.string()),
+      openRouterModel: v.optional(v.string()),
       notifyLeads: v.optional(v.boolean()),
       notifyPublicationRequests: v.optional(v.boolean()),
       updatedAt: v.number(),
