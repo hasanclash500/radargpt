@@ -18,6 +18,11 @@ import {
   type IngestSource,
 } from "../lib/ingest";
 import { OFFICE_ROLES, PRIVILEGED_ROLES, type OfficeRole } from "./schema";
+import {
+  canManageListings,
+  canManageSite,
+  roleForUser,
+} from "./permissions";
 
 /** نگاشت آگهی به رکورد قابل ذخیره در جدول listings. */
 
@@ -151,11 +156,7 @@ export const currentRole = internalQuery({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) return null;
-    const profs = await ctx.db
-      .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .take(2);
-    return profs[0]?.officeRole ?? null;
+    return await roleForUser(ctx, String(userId));
   },
 });
 
@@ -246,8 +247,8 @@ export const importNow = action({
   args: { url: v.optional(v.string()) },
   handler: async (ctx, args): Promise<ImportOutcome> => {
     const role = await ctx.runQuery(internal.ingest.currentRole, {});
-    if (!role || !PRIVILEGED_ROLES.includes(role as never)) {
-      throw new Error("فقط مدیر یا مشاور اجازهٔ افزودن آگهی را دارد.");
+    if (!role || !canManageListings(role as OfficeRole)) {
+      throw new Error("فقط مدیر یا ادمین آگهی اجازهٔ اجرای منبع سراسری را دارد.");
     }
 
     const url = (args.url ?? "").trim() || (await ctx.runQuery(internal.ingest.getSource, {}));
@@ -268,18 +269,21 @@ export const myAccess = query({
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     if (userId === null) {
-      return { role: OFFICE_ROLES.GUEST, isPrivileged: false, isAdmin: false };
+      return {
+        role: OFFICE_ROLES.GUEST,
+        isPrivileged: false,
+        isAdmin: false,
+        isManager: false,
+        canManageListings: false,
+      };
     }
-    const profs = await ctx.db
-      .query("userProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .take(2);
-    const prof = profs[0];
-    const role = (prof?.officeRole ?? OFFICE_ROLES.GUEST) as OfficeRole;
+    const role = await roleForUser(ctx, String(userId));
     return {
       role,
       isPrivileged: PRIVILEGED_ROLES.includes(role),
       isAdmin: role === OFFICE_ROLES.ADMIN,
+      isManager: canManageSite(role),
+      canManageListings: canManageListings(role),
     };
   },
 });
