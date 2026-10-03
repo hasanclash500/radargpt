@@ -176,9 +176,18 @@ export default function PublicListings() {
                   key={item.slug}
                   className="group flex flex-col overflow-hidden rounded-[1.7rem] border border-border/70 bg-card/75 shadow-sm transition-all hover:-translate-y-1 hover:border-primary/35 hover:shadow-lg"
                 >
-                  <div className="relative h-24 overflow-hidden bg-gradient-to-br from-primary/14 via-card to-gold/10">
-                    <div className="absolute inset-0 grid-overlay opacity-35" />
-                    <span className="absolute end-4 top-4 rounded-full border border-primary/20 bg-background/70 px-3 py-1 text-[11px] font-bold text-primary">
+                  <div className="relative aspect-[16/9] overflow-hidden bg-gradient-to-br from-primary/14 via-card to-gold/10">
+                    {item.ogImage ? (
+                      <img
+                        src={item.ogImage}
+                        alt={item.images?.find((image: any) => image.featured)?.alt || item.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 grid-overlay opacity-35" />
+                    )}
+                    <span className="absolute end-4 top-4 rounded-full border border-primary/20 bg-background/85 px-3 py-1 text-[11px] font-bold text-primary shadow-sm backdrop-blur">
                       {item.dealType}
                     </span>
                   </div>
