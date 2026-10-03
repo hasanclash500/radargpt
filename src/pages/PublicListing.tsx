@@ -13,6 +13,7 @@ import {
   Ruler,
   Share2,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -29,6 +30,18 @@ function priceForSchema(item: any) {
 export default function PublicListing() {
   const { slug = "" } = useParams();
   const listing = useQuery(api.listings.getPublicBySlug, { slug });
+  const [activeImage, setActiveImage] = useState(0);
+  const images = useMemo(() => listing?.images || [], [listing?.images]);
+
+  useEffect(() => {
+    if (!images.length) {
+      setActiveImage(0);
+      return;
+    }
+    const featured = images.findIndex((image: any) => image.featured);
+    setActiveImage(featured >= 0 ? featured : 0);
+  }, [images]);
+
   const canonical =
     typeof window !== "undefined"
       ? `${window.location.origin}/listings/${slug}`
@@ -42,6 +55,7 @@ export default function PublicListing() {
     description: listing?.seoDescription || "",
     keywords: listing?.seoKeywords || [],
     canonical,
+    image: listing?.ogImage || undefined,
     noIndex: listing?.noIndex ?? false,
     type: "website",
     jsonLd: listing
@@ -52,6 +66,7 @@ export default function PublicListing() {
               "@type": "RealEstateListing",
               name: listing.title,
               description: listing.description,
+              image: listing.images?.map((image: any) => image.url).filter(Boolean),
               datePosted: new Date(listing.publishedAt).toISOString(),
               dateModified: new Date(listing.updatedAt).toISOString(),
               url: canonical,
@@ -211,6 +226,47 @@ export default function PublicListing() {
           </div>
         </div>
       </section>
+
+      {images.length > 0 && (
+        <section
+          aria-label="گالری تصاویر ملک"
+          className="mx-auto max-w-5xl px-4 pt-7 sm:px-6"
+        >
+          <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-muted">
+            <img
+              src={images[activeImage]?.url}
+              alt={images[activeImage]?.alt || listing.title}
+              className="aspect-[4/3] w-full object-cover sm:aspect-[16/9]"
+              fetchPriority="high"
+            />
+          </div>
+
+          {images.length > 1 && (
+            <div className="mt-3 flex snap-x gap-2 overflow-x-auto pb-2">
+              {images.map((image: any, index: number) => (
+                <button
+                  key={`${image.url}-${index}`}
+                  type="button"
+                  onClick={() => setActiveImage(index)}
+                  className={`relative w-24 shrink-0 snap-start overflow-hidden rounded-xl border transition-all sm:w-28 ${
+                    activeImage === index
+                      ? "border-primary ring-2 ring-primary/20"
+                      : "border-border/70 opacity-75 hover:opacity-100"
+                  }`}
+                  aria-label={`نمایش تصویر ${index + 1}`}
+                >
+                  <img
+                    src={image.url}
+                    alt={image.alt || `${listing.title} - تصویر ${index + 1}`}
+                    className="aspect-[4/3] w-full object-cover"
+                    loading="lazy"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <div className="mx-auto grid max-w-5xl gap-7 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_300px] lg:py-10">
         <article className="min-w-0">
