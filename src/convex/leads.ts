@@ -78,9 +78,9 @@ export const createLead = mutation({
       phone,
       city,
       propertyType,
-      area: args.area,
-      budget,
-      details,
+      ...(args.area != null ? { area: args.area } : {}),
+      ...(budget ? { budget } : {}),
+      ...(details ? { details } : {}),
     });
 
     return { ok: true, id };
