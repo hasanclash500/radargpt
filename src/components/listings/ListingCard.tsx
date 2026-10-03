@@ -1,6 +1,9 @@
 import { Button } from "@/components/ui/button";
 import EditPanel, { type Folder } from "@/components/listings/EditPanel";
 import PublicListingDialog from "@/components/listings/PublicListingDialog";
+import FullListingEditDialog, {
+  type ListingEditPatch,
+} from "@/components/listings/FullListingEditDialog";
 import { faDigits, formatArea, formatPrice, formatRooms } from "@/lib/format";
 import type { DealType, Listing } from "@/lib/parser";
 import { cn } from "@/lib/utils";import {
@@ -19,6 +22,7 @@ import { cn } from "@/lib/utils";import {
   Ruler,
   Send,
   UserRound,
+  Trash2,
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
@@ -51,6 +55,8 @@ interface ListingCardProps {
     latitude?: number;
     longitude?: number;
   }) => Promise<void>;
+  onEditListing?: (patch: ListingEditPatch) => Promise<void>;
+  onDeleteListing?: () => Promise<void>;
   onSavePublic?: (settings: {
     isPublic: boolean;
     featuredOnHome: boolean;
@@ -67,7 +73,8 @@ interface ListingCardProps {
 /** کارت نمایش یک آگهی با اکشن‌های کپی تلفن، تماس، دیوار، نقشه و ارسال. */
 export default function ListingCard({
   listing: l, canSeePhone, managerPhone, selected, onToggleSelect,
-  onShare, folders = [], onSaveNotes, onToggleFolder, onSaveLocation, onSavePublic,
+  onShare, folders = [], onSaveNotes, onToggleFolder, onSaveLocation,
+  onEditListing, onDeleteListing, onSavePublic,
   isAdmin = false, onApprovePublication, onRejectPublication,
 }: ListingCardProps) {
   const [expanded, setExpanded] = useState(false);
@@ -205,7 +212,32 @@ export default function ListingCard({
         </p>
       )}
 
-      {/* ویرایش و بایگانی */}
+      {/* ویرایش کامل + یادداشت و بایگانی */}
+      {onEditListing && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+          <FullListingEditDialog listing={l} onSave={onEditListing} />
+          {onDeleteListing && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 border-destructive/30 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={async () => {
+                if (!window.confirm("این آگهی کاملاً حذف شود؟ تصاویر ذخیره‌شده آن نیز حذف می‌شوند و این عملیات قابل بازگشت نیست.")) return;
+                try {
+                  await onDeleteListing();
+                  toast.success("آگهی حذف شد");
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : "حذف آگهی ناموفق بود");
+                }
+              }}
+            >
+              <Trash2 className="size-3.5" />
+              حذف
+            </Button>
+          )}
+        </div>
+      )}
       {onSaveNotes && onToggleFolder && onSaveLocation && (
         <EditPanel notes={l.notes ?? ""} onSaveNotes={onSaveNotes}
           folderIds={l.folderIds ?? []} folders={folders} onToggleFolder={onToggleFolder}
