@@ -16,6 +16,7 @@ import {
   FileText,
   Heading2,
   Heading3,
+  ImagePlus,
   Link2,
   List,
   Loader2,
