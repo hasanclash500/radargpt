@@ -67,6 +67,11 @@ export default function PublicListing() {
               name: listing.title,
               description: listing.description,
               image: listing.images?.map((image: any) => image.url).filter(Boolean),
+              additionalProperty: (listing.customFields || []).map((field: any) => ({
+                "@type": "PropertyValue",
+                name: field.label,
+                value: field.unit ? `${field.value} ${field.unit}` : field.value,
+              })),
               datePosted: new Date(listing.publishedAt).toISOString(),
               dateModified: new Date(listing.updatedAt).toISOString(),
               url: canonical,
@@ -284,6 +289,26 @@ export default function PublicListing() {
               <p className="mt-2 font-extrabold">{listing.propertyType}</p>
             </div>
           </section>
+
+          {(listing.customFields?.length ?? 0) > 0 && (
+            <section className="mt-5 rounded-[1.8rem] border border-border/70 bg-card/70 p-5 sm:p-7">
+              <h2 className="text-xl font-extrabold">مشخصات تخصصی</h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {listing.customFields.map((field: any) => (
+                  <div
+                    key={field.fieldId}
+                    className="flex items-start justify-between gap-4 rounded-xl border border-border/60 bg-background/45 p-3"
+                  >
+                    <span className="text-xs text-muted-foreground">{field.label}</span>
+                    <strong className="text-left text-sm">
+                      {field.value}
+                      {field.unit ? ` ${field.unit}` : ""}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           <section className="mt-5 rounded-[1.8rem] border border-border/70 bg-card/70 p-5 sm:p-7">
             <h2 className="text-xl font-extrabold">توضیحات کامل ملک</h2>
