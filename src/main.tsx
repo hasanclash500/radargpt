@@ -19,7 +19,10 @@ const Landing = lazy(() => import("./pages/Landing.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));\nconst Blog = lazy(() => import("./pages/Blog.tsx"));\nconst BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));\nconst BlogAdmin = lazy(() => import("./pages/BlogAdmin.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const Blog = lazy(() => import("./pages/Blog.tsx"));
+const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
+const BlogAdmin = lazy(() => import("./pages/BlogAdmin.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -131,7 +134,9 @@ createRoot(document.getElementById("root")!).render(
           <RouteSyncer />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
-              <Route path="/" element={<Landing />} />\n              <Route path="/blog" element={<Blog />} />\n              <Route path="/blog/:slug" element={<BlogArticle />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogArticle />} />
               <Route
                 path="/auth"
                 element={<AuthPage redirectAfterAuth="/dashboard" />}
