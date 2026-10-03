@@ -6,6 +6,7 @@ import UploadZone from "@/components/listings/UploadZone";
 import ManualListingDialog from "@/components/listings/ManualListingDialog";
 import PublicContactDialog from "@/components/listings/PublicContactDialog";
 import PendingPublicationPanel from "@/components/listings/PendingPublicationPanel";
+import ListingReminderPanel from "@/components/listings/ListingReminderPanel";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -23,7 +24,7 @@ import { DEAL_TYPES, PROPERTY_TYPES, parseHtmlFile, type DealType, type Listing,
 import { SAMPLE_HTML } from "@/lib/sample";
 import { DEFAULT_SHARE_SETTINGS, type ShareSettings, type ShareableListing } from "@/lib/share";
 import {
-  BookOpen, Building2, Coins, FileCode2, FileJson, FileSpreadsheet, FileText, Loader2,
+  BellRing, BookOpen, Building2, Coins, FileCode2, FileJson, FileSpreadsheet, FileText, Loader2,
   LogOut, MapPinned, Radar, RotateCcw, Ruler, SearchX, Send, Settings, Upload, X,
 } from "lucide-react";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
@@ -393,6 +394,14 @@ export default function Dashboard() {
                 </Link>
               </Button>
             )}
+            {canSeePhone && (
+              <Button asChild variant="outline" size="sm" className="gap-1.5">
+                <a href="#listing-reminders" title="یادآوری پیگیری آگهی‌ها">
+                  <BellRing className="size-4" />
+                  <span className="hidden sm:inline">یادآوری</span>
+                </a>
+              </Button>
+            )}
             {canSeePhone && <PublicContactDialog />}
             <ThemeToggle />
             <input ref={headerInputRef} type="file"
@@ -465,6 +474,12 @@ export default function Dashboard() {
         )}
 
         {canManageListings && <PendingPublicationPanel />}
+
+        {canSeePhone && (
+          <div id="listing-reminders" className="scroll-mt-24">
+            <ListingReminderPanel />
+          </div>
+        )}
 
         {!parsing && displayListings.length === 0 && !loadingServer && (
           <section className="space-y-6">
