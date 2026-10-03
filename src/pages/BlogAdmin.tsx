@@ -188,8 +188,7 @@ export default function BlogAdmin() {
   const contentRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const canEdit =
-    roleData?.role === "admin" || roleData?.role === "consultant";
+  const canEdit = roleData?.canManageSite ?? roleData?.role === "manager";
 
   useEffect(() => {
     if (roleData === null) {
