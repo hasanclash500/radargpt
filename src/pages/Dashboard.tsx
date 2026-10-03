@@ -80,20 +80,6 @@ export default function Dashboard() {
     }
   }, [roleData, ensureProfile]);
 
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver((entries) => {
-      if (!entries[0]?.isIntersecting) return;
-      // افزایش تعداد کارت‌های واقعاً قابل نمایش؛ برای فایل محلی و سرور.
-      setVisibleCount((current) => current + PAGE_SIZE);
-      if (!localTouched && status === "CanLoadMore") loadMore(PAGE_SIZE);
-    }, { rootMargin: "700px" });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [loadMore, localTouched, status]);
-
   const role = roleData?.role ?? "guest";
   const canSeePhone = roleData?.isPrivileged ?? false;
   const isAdmin = role === "admin";
@@ -113,6 +99,20 @@ export default function Dashboard() {
   const [manualOpen, setManualOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries[0]?.isIntersecting) return;
+      // افزایش تعداد کارت‌های واقعاً قابل نمایش؛ برای فایل محلی و سرور.
+      setVisibleCount((current) => current + PAGE_SIZE);
+      if (!localTouched && status === "CanLoadMore") loadMore(PAGE_SIZE);
+    }, { rootMargin: "700px" });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore, localTouched, status]);
 
   const deferredFilters = useDeferredValue(filters);
 
