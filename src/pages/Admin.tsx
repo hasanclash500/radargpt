@@ -1,4 +1,7 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ListingFieldConfigManager from "@/components/admin/ListingFieldConfigManager";
+import IntegrationSettings from "@/components/admin/IntegrationSettings";
+import LeadInbox from "@/components/admin/LeadInbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
 import { faNum } from "@/lib/format";
+import { DEFAULT_LISTING_FIELD_CONFIGS, type ListingFieldConfig } from "@/lib/listing-field-config";
 import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
@@ -370,6 +374,19 @@ export default function Admin() {
             onRemove={(v) => removeFromList("customPropertyTypes", v)}
           />
         </div>
+
+        {isAdmin ? (
+          <ListingFieldConfigManager
+            configs={(settings?.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS) as ListingFieldConfig[]}
+            onSave={async (configs) => {
+              await updateSettings({ listingFieldConfigs: configs });
+            }}
+          />
+        ) : null}
+
+        {isAdmin ? <IntegrationSettings /> : null}
+
+        <LeadInbox />
 
         {/* زونکن‌ها */}
         <Card>
