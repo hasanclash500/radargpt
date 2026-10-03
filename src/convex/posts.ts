@@ -173,6 +173,24 @@ export const save = mutation({
   },
 });
 
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const editor = await getEditor(ctx);
+    if (!editor) throw new Error("دسترسی آپلود تصویر را ندارید.");
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const getStorageUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    const editor = await getEditor(ctx);
+    if (!editor) return null;
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
+
 export const remove = mutation({
   args: { id: v.id("posts") },
   handler: async (ctx, args) => {
