@@ -3,6 +3,7 @@
  * Generated `api` utility.
  * To regenerate from Convex, run `npx convex codegen`.
  */
+import type * as assistant from "../assistant.js";
 import type * as auth from "../auth.js";
 import type * as folders from "../folders.js";
 import type * as ingest from "../ingest.js";
@@ -21,6 +22,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  assistant: typeof assistant;
   auth: typeof auth;
   folders: typeof folders;
   ingest: typeof ingest;
