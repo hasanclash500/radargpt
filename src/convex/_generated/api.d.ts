@@ -10,6 +10,7 @@ import type * as integrations from "../integrations.js";
 import type * as leads from "../leads.js";
 import type * as listings from "../listings.js";
 import type * as posts from "../posts.js";
+import type * as reminders from "../reminders.js";
 import type * as roles from "../roles.js";
 import type * as users from "../users.js";
 
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   leads: typeof leads;
   listings: typeof listings;
   posts: typeof posts;
+  reminders: typeof reminders;
   roles: typeof roles;
   users: typeof users;
 }>;
