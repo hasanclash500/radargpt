@@ -1043,9 +1043,12 @@ export const attachPublicListingImages = mutation({
       throw new Error("مجوز تکمیل تصاویر منقضی یا نامعتبر است.");
     }
 
-    const uniqueStorageIds = Array.from(
-      new Set(args.storageIds.map((storageId) => String(storageId))),
-    ).slice(0, 10) as typeof args.storageIds;
+    const uniqueStorageIds = args.storageIds
+      .filter(
+        (storageId, index, all) =>
+          all.findIndex((candidate) => candidate === storageId) === index,
+      )
+      .slice(0, 10);
 
     for (const storageId of uniqueStorageIds) {
       const url = await ctx.storage.getUrl(storageId);
