@@ -44,7 +44,13 @@ interface ListingCardProps {
   folders?: Folder[];
   onSaveNotes?: (notes: string) => Promise<void>;
   onToggleFolder?: (folderId: string) => Promise<void>;
-  onSaveLocation?: (patch: { address: string; divarUrl: string; mapsUrl: string }) => Promise<void>;
+  onSaveLocation?: (patch: {
+    address: string;
+    divarUrl: string;
+    mapsUrl: string;
+    latitude?: number;
+    longitude?: number;
+  }) => Promise<void>;
   onSavePublic?: (settings: {
     isPublic: boolean;
     featuredOnHome: boolean;
@@ -204,7 +210,9 @@ export default function ListingCard({
         <EditPanel notes={l.notes ?? ""} onSaveNotes={onSaveNotes}
           folderIds={l.folderIds ?? []} folders={folders} onToggleFolder={onToggleFolder}
           currentAddress={l.address ?? ""} currentDivarUrl={l.divarUrl ?? ""}
-          currentMapsUrl={l.mapsUrl ?? ""} onSaveLocation={onSaveLocation}
+          currentMapsUrl={l.mapsUrl ?? ""}
+          currentLatitude={l.latitude} currentLongitude={l.longitude}
+          onSaveLocation={onSaveLocation}
           canEdit={canSeePhone} />
       )}
 
