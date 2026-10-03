@@ -6,7 +6,7 @@ import { v } from "convex/values";
 import { toEnglishDigits, type Listing as ListingRow } from "../lib/parser";
 import { OFFICE_ROLES, PRIVILEGED_ROLES, type OfficeRole } from "./schema";
 
-type Ctx = { db: QueryCtx["db"]; auth: QueryCtx["auth"] };
+type Ctx = Pick<QueryCtx, "db" | "auth" | "storage">;
 
 async function resolve(ctx: Ctx): Promise<{
   role: OfficeRole;
