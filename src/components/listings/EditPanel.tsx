@@ -1,9 +1,10 @@
+import MapPicker, { type MapPoint } from "@/components/listings/MapPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { FolderPlus, NotebookPen, Pencil, Save, X } from "lucide-react";
+import { ExternalLink, FolderPlus, NotebookPen, Pencil, Save, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -22,16 +23,22 @@ interface EditPanelProps {
   currentAddress: string;
   currentDivarUrl: string;
   currentMapsUrl: string;
+  currentLatitude?: number;
+  currentLongitude?: number;
   onSaveLocation: (patch: {
     address: string;
     divarUrl: string;
     mapsUrl: string;
+    latitude?: number;
+    longitude?: number;
   }) => Promise<void>;
-  /** فقط مدیر و مشاور این ابزارها را می‌بینند. */
   canEdit: boolean;
 }
 
-/** یادداشت، بایگانی در زونکن و ویرایش لوکیشن/لینک برای یک آگهی. */
+function mapsUrl(point: MapPoint) {
+  return `https://www.google.com/maps?q=${point.lat},${point.lng}`;
+}
+
 export default function EditPanel({
   notes,
   onSaveNotes,
@@ -41,6 +48,8 @@ export default function EditPanel({
   currentAddress,
   currentDivarUrl,
   currentMapsUrl,
+  currentLatitude,
+  currentLongitude,
   onSaveLocation,
   canEdit,
 }: EditPanelProps) {
@@ -48,15 +57,23 @@ export default function EditPanel({
   const [draftNotes, setDraftNotes] = useState(notes);
   const [address, setAddress] = useState(currentAddress);
   const [divar, setDivar] = useState(currentDivarUrl);
-  const [map, setMap] = useState(currentMapsUrl);
+  const [point, setPoint] = useState<MapPoint | null>(
+    currentLatitude != null && currentLongitude != null
+      ? { lat: currentLatitude, lng: currentLongitude }
+      : null,
+  );
   const [saving, setSaving] = useState(false);
 
   const toggleOpen = () => {
     setDraftNotes(notes);
     setAddress(currentAddress);
     setDivar(currentDivarUrl);
-    setMap(currentMapsUrl);
-    setOpen((v) => !v);
+    setPoint(
+      currentLatitude != null && currentLongitude != null
+        ? { lat: currentLatitude, lng: currentLongitude }
+        : null,
+    );
+    setOpen((value) => !value);
   };
 
   if (!canEdit) return null;
@@ -65,21 +82,29 @@ export default function EditPanel({
     setSaving(true);
     try {
       if (draftNotes !== notes) await onSaveNotes(draftNotes);
-      if (
+
+      const nextMapsUrl = point ? mapsUrl(point) : currentMapsUrl;
+      const locationChanged =
         address !== currentAddress ||
         divar !== currentDivarUrl ||
-        map !== currentMapsUrl
-      ) {
+        nextMapsUrl !== currentMapsUrl ||
+        point?.lat !== currentLatitude ||
+        point?.lng !== currentLongitude;
+
+      if (locationChanged) {
         await onSaveLocation({
           address,
           divarUrl: divar,
-          mapsUrl: map,
+          mapsUrl: nextMapsUrl,
+          latitude: point?.lat,
+          longitude: point?.lng,
         });
       }
+
       toast.success("تغییرات ذخیره شد");
       setOpen(false);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
       toast.error("ذخیرهٔ تغییرات ناموفق بود");
     } finally {
       setSaving(false);
@@ -89,28 +114,18 @@ export default function EditPanel({
   return (
     <div className="space-y-2 rounded-xl border border-border/60 bg-background/40 p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1.5 px-2 text-xs"
-          onClick={toggleOpen}
-        >
-          {open ? (
-            <X className="size-3.5" />
-          ) : (
-            <Pencil className="size-3.5" />
-          )}
+        <Button type="button" variant="ghost" size="sm" className="h-7 gap-1.5 px-2 text-xs" onClick={toggleOpen}>
+          {open ? <X className="size-3.5" /> : <Pencil className="size-3.5" />}
           یادداشت و بایگانی
         </Button>
 
-        {folders.map((f) => {
-          const active = folderIds.includes(f._id);
+        {folders.map((folder) => {
+          const active = folderIds.includes(folder._id);
           return (
             <button
-              key={f._id}
+              key={folder._id}
               type="button"
-              onClick={() => void onToggleFolder(f._id)}
+              onClick={() => void onToggleFolder(folder._id)}
               className={cn(
                 "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-bold transition-colors",
                 active
@@ -119,7 +134,7 @@ export default function EditPanel({
               )}
             >
               {active && <NotebookPen className="size-3" />}
-              {f.name}
+              {folder.name}
             </button>
           );
         })}
@@ -141,9 +156,7 @@ export default function EditPanel({
       {open && (
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">
-              یادداشت روی پرونده
-            </Label>
+            <Label className="text-xs text-muted-foreground">یادداشت روی پرونده</Label>
             <Textarea
               value={draftNotes}
               onChange={(e) => setDraftNotes(e.target.value)}
@@ -153,55 +166,41 @@ export default function EditPanel({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">آدرس</Label>
+            <Label className="text-xs text-muted-foreground">آدرس دقیق داخلی</Label>
+            <Input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="آدرس دقیق ملک" />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">موقعیت روی نقشه</Label>
+            <MapPicker value={point} onChange={setPoint} />
+            {currentMapsUrl && !point && (
+              <a
+                href={currentMapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-primary"
+              >
+                <ExternalLink className="size-3.5" />
+                مشاهده موقعیت قبلی
+              </a>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">لینک دیوار</Label>
             <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="آدرس دقیق ملک"
+              dir="ltr"
+              value={divar}
+              onChange={(e) => setDivar(e.target.value)}
+              placeholder="https://divar.ir/v/..."
             />
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                لینک دیوار
-              </Label>
-              <Input
-                dir="ltr"
-                value={divar}
-                onChange={(e) => setDivar(e.target.value)}
-                placeholder="https://divar.ir/v/..."
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">
-                لینک گوگل‌مپ
-              </Label>
-              <Input
-                dir="ltr"
-                value={map}
-                onChange={(e) => setMap(e.target.value)}
-                placeholder="https://maps.google.com/..."
-              />
-            </div>
-          </div>
-
           <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => setOpen(false)}
-            >
+            <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
               انصراف
             </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="gap-1.5"
-              disabled={saving}
-              onClick={() => void saveAll()}
-            >
+            <Button type="button" size="sm" className="gap-1.5" disabled={saving} onClick={() => void saveAll()}>
               <Save className="size-4" />
               {saving ? "در حال ذخیره…" : "ذخیره"}
             </Button>
