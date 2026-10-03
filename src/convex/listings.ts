@@ -423,6 +423,7 @@ export const upsertListings = mutation({
           createdByUserId: r.userId,
           isPublic: false,
           featuredOnHome: false,
+          publicationStatus: "private",
           createdAt: Date.now(),
           updatedAt: Date.now(),
         });
@@ -784,6 +785,7 @@ export const createListing = mutation({
     date: v.optional(v.string()),
     dateRaw: v.optional(v.string()),
     poster: v.optional(v.string()),
+    customFields: v.optional(v.array(customFieldValidator)),
     phone: v.string(),
   },
   handler: async (ctx, args) => {
@@ -809,6 +811,7 @@ export const createListing = mutation({
       createdByUserId: r.userId,
       isPublic: false,
       featuredOnHome: false,
+      publicationStatus: "private",
       createdAt: now,
       updatedAt: now,
     });
