@@ -2,6 +2,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { OFFICE_ROLES, PRIVILEGED_ROLES } from "./schema";
+import { DEFAULT_LISTING_FIELD_CONFIGS } from "../lib/listing-field-config";
 
 /** نقش کاربر جاری؛ اگر وارد نشده باشد null. */
 async function resolveRole(ctx: {
@@ -16,6 +17,31 @@ async function resolveRole(ctx: {
     .take(2);
   return prof[0]?.officeRole ?? null;
 }
+
+const fieldDefinitionValidator = v.object({
+  id: v.string(),
+  label: v.string(),
+  type: v.union(
+    v.literal("text"),
+    v.literal("number"),
+    v.literal("boolean"),
+    v.literal("select"),
+    v.literal("textarea"),
+  ),
+  required: v.boolean(),
+  public: v.boolean(),
+  unit: v.optional(v.string()),
+  placeholder: v.optional(v.string()),
+  options: v.optional(v.array(v.string())),
+  order: v.number(),
+});
+
+const fieldConfigValidator = v.object({
+  id: v.string(),
+  name: v.string(),
+  propertyTypes: v.array(v.string()),
+  fields: v.array(fieldDefinitionValidator),
+});
 
 /** همهٔ زونکن‌های بایگانی. */
 export const listFolders = query({
@@ -65,7 +91,17 @@ export const getSettings = query({
       .query("appSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .take(2);
-    return rows[0] ?? null;
+    const settings = rows[0] ?? null;
+    return settings
+      ? {
+          ...settings,
+          listingFieldConfigs:
+            settings.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS,
+        }
+      : {
+          key: "global",
+          listingFieldConfigs: DEFAULT_LISTING_FIELD_CONFIGS,
+        };
   },
 });
 
@@ -78,6 +114,7 @@ export const updateSettings = mutation({
     customCities: v.optional(v.array(v.string())),
     customDeals: v.optional(v.array(v.string())),
     customPropertyTypes: v.optional(v.array(v.string())),
+    listingFieldConfigs: v.optional(v.array(fieldConfigValidator)),
     sourceUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
