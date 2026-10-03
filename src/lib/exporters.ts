@@ -1,4 +1,5 @@
 import type { Listing } from "./parser";
+import { listingNeshanUrl } from "./neshan";
 
 /** سرفصل‌های فارسی خروجی CSV و اکسل. */
 export const CSV_HEADERS = [
@@ -17,7 +18,7 @@ export const CSV_HEADERS = [
   "توضیحات",
   "شماره تلفن",
   "لینک دیوار",
-  "لینک گوگل مپ",
+  "لینک نشان",
   "تاریخ ثبت",
   "آگهی‌دهنده",
   "آدرس",
@@ -40,7 +41,7 @@ function toCells(l: Listing): (string | number)[] {
     l.description.replace(/\n+/g, " ").trim(),
     l.phone,
     l.divarUrl,
-    l.mapsUrl,
+    listingNeshanUrl({ latitude: l.latitude, longitude: l.longitude, address: l.address, city: l.city }),
     l.dateRaw || l.date,
     l.poster,
     l.address,
@@ -98,7 +99,7 @@ export function exportJson(listings: Listing[]): void {
     description: l.description,
     phone: l.phone,
     divar_url: l.divarUrl,
-    maps_url: l.mapsUrl,
+    maps_url: listingNeshanUrl({ latitude: l.latitude, longitude: l.longitude, address: l.address, city: l.city }),
     date: l.date,
     date_raw: l.dateRaw,
     poster: l.poster,
