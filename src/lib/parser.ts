@@ -80,6 +80,16 @@ export interface Listing {
   seoDescription?: string;
   seoKeywords?: string[];
   noIndex?: boolean;
+  publicationStatus?: "private" | "pending" | "approved" | "rejected";
+  publicationRejectReason?: string;
+  customFields?: Array<{
+    fieldId: string;
+    label: string;
+    value: string;
+    type: string;
+    unit?: string;
+    public: boolean;
+  }>;
 }
 
 /** فیلدهای عددی/اختیاری پیش‌فرض برای ساخت آگهی. */
