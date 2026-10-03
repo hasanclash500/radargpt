@@ -5,6 +5,7 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toEnglishDigits, type Listing as ListingRow } from "../lib/parser";
+import { neshanAppLocationUrl } from "../lib/neshan";
 import { OFFICE_ROLES, type OfficeRole } from "./schema";
 import {
   canEditListing,
@@ -951,7 +952,7 @@ export const submitPublicListing = mutation({
       longitude: args.longitude,
       mapsUrl:
         hasLatitude && hasLongitude
-          ? `https://www.google.com/maps?q=${args.latitude},${args.longitude}`
+          ? neshanAppLocationUrl(args.latitude!, args.longitude!)
           : undefined,
       submittedByPhone: phone,
       submissionSource: "public_mobile",
