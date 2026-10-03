@@ -2,16 +2,13 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
-import { OFFICE_ROLES, PRIVILEGED_ROLES, type OfficeRole } from "./schema";
+import { OFFICE_ROLES, type OfficeRole } from "./schema";
+import { canManageListings, roleForUser } from "./permissions";
 
 async function role(ctx: Pick<QueryCtx, "db" | "auth">): Promise<OfficeRole> {
   const userId = await getAuthUserId(ctx);
   if (userId === null) return OFFICE_ROLES.GUEST;
-  const rows = await ctx.db
-    .query("userProfiles")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .take(2);
-  return (rows[0]?.officeRole ?? OFFICE_ROLES.GUEST) as OfficeRole;
+  return await roleForUser(ctx, String(userId));
 }
 
 function cleanPhone(value: string) {
@@ -91,7 +88,7 @@ export const listLeads = query({
   args: {},
   handler: async (ctx) => {
     const r = await role(ctx);
-    if (!PRIVILEGED_ROLES.includes(r)) return [];
+    if (!canManageListings(r)) return [];
     return await ctx.db.query("propertyLeads").withIndex("by_created").order("desc").take(300);
   },
 });
@@ -103,7 +100,7 @@ export const setLeadStatus = mutation({
   },
   handler: async (ctx, args) => {
     const r = await role(ctx);
-    if (!PRIVILEGED_ROLES.includes(r)) {
+    if (!canManageListings(r)) {
       throw new Error("دسترسی کافی ندارید.");
     }
     await ctx.db.patch(args.id, {
