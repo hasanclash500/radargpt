@@ -53,11 +53,14 @@ async function assertUniqueSlug(ctx: any, slug: string, ignoreId?: string) {
 export const listPublished = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db
+    const saved = await ctx.db
       .query("posts")
       .withIndex("by_status_published", (q) => q.eq("status", "published"))
       .order("desc")
       .take(100);
+
+    if (saved.length > 0) return saved;
+    return [publicSeedPost(INDUSTRIAL_RENT, 0), publicSeedPost(OFFICE_RENT, 1)];
   },
 });
 
@@ -68,8 +71,10 @@ export const getPublishedBySlug = query({
       .query("posts")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
-    if (!post || post.status !== "published") return null;
-    return post;
+    if (post?.status === "published") return post;
+
+    const seed = [INDUSTRIAL_RENT, OFFICE_RENT].find((item) => item.slug === args.slug);
+    return seed ? publicSeedPost(seed, seed.slug === INDUSTRIAL_RENT.slug ? 0 : 1) : null;
   },
 });
 
@@ -331,6 +336,21 @@ const OFFICE_RENT = {
 
 برای دریافت فایل‌های اجاره واحد اداری در شهریار با شماره 09120858095 تماس بگیرید.`,
 };
+
+function publicSeedPost(seed: typeof INDUSTRIAL_RENT | typeof OFFICE_RENT, index: number) {
+  const timestamp = Date.now() - (index + 1) * 86400000;
+  return {
+    _id: `seed-${index}`,
+    _creationTime: timestamp,
+    ...seed,
+    status: "published" as const,
+    authorName: "تیم مکا",
+    noIndex: false,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    publishedAt: timestamp,
+  };
+}
 
 export const ensureSeedPosts = mutation({
   args: {},
