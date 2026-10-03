@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import PropertyLeadSection from "@/components/PropertyLeadSection";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
 import { useSeo } from "@/hooks/use-seo";
@@ -467,6 +468,8 @@ export default function Landing() {
           ))}
         </div>
       </section>
+
+      <PropertyLeadSection />
 
       <FeaturedPublicListings />
 
