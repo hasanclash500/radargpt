@@ -713,11 +713,13 @@ export const updatePublicSettings = mutation({
       city: row.city || "شهریار",
       propertyType: row.propertyType || "ملک",
       dealType: row.dealType || "آگهی",
-      area: row.area,
-      depositMillion: row.depositMillion,
-      rentMillion: row.rentMillion,
-      priceMillion: row.priceMillion,
-      description: (row.description || "").slice(0, 1200),
+      ...(row.area != null ? { area: row.area } : {}),
+      ...(row.depositMillion != null ? { depositMillion: row.depositMillion } : {}),
+      ...(row.rentMillion != null ? { rentMillion: row.rentMillion } : {}),
+      ...(row.priceMillion != null ? { priceMillion: row.priceMillion } : {}),
+      ...((row.description || "").trim()
+        ? { description: (row.description || "").slice(0, 1200) }
+        : {}),
       publicDetails: (row.customFields ?? [])
         .filter((field) => field.public)
         .map((field) => `${field.label}: ${field.value}${field.unit ? ` ${field.unit}` : ""}`)
