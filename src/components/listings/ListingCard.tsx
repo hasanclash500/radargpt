@@ -6,7 +6,9 @@ import FullListingEditDialog, {
 } from "@/components/listings/FullListingEditDialog";
 import { faDigits, formatArea, formatPrice, formatRooms } from "@/lib/format";
 import type { DealType, Listing } from "@/lib/parser";
-import { cn } from "@/lib/utils";import {
+import { cn } from "@/lib/utils";
+import { listingNeshanUrl } from "@/lib/neshan";
+import {
   BedDouble,
   CalendarDays,
   Check,
@@ -86,6 +88,12 @@ export default function ListingCard({
   const longEnough = rest.length > 110;
   const contact = canSeePhone ? l.phone : (managerPhone ?? "");
   const isRestricted = !canSeePhone;
+  const mapHref = listingNeshanUrl({
+    latitude: l.latitude,
+    longitude: l.longitude,
+    address: l.address,
+    city: l.city,
+  });
 
   const copyPhone = async () => {
     if (!contact) return;
@@ -350,8 +358,8 @@ export default function ListingCard({
             <ExternalLink className="size-4" />
           </a>
         )}
-        {l.mapsUrl && (
-          <a href={l.mapsUrl} target="_blank" rel="noopener noreferrer" title="موقعیت در نقشه"
+        {mapHref && (
+          <a href={mapHref} target="_blank" rel="noopener noreferrer" title="موقعیت در نشان"
             className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background transition-colors hover:border-primary/50 hover:text-primary">
             <MapPin className="size-4" />
           </a>
