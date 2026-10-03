@@ -118,6 +118,34 @@ const schema = defineSchema(
       .index("by_date", ["date"])
       .index("by_city", ["city"]),
 
+    /** مقالات وبلاگ و تنظیمات SEO هر مقاله */
+    posts: defineTable({
+      title: v.string(),
+      slug: v.string(),
+      excerpt: v.optional(v.string()),
+      content: v.string(),
+      category: v.optional(v.string()),
+      featuredImage: v.optional(v.string()),
+      status: v.union(v.literal("draft"), v.literal("published")),
+      authorId: v.optional(v.string()),
+      authorName: v.optional(v.string()),
+      metaTitle: v.optional(v.string()),
+      metaDescription: v.optional(v.string()),
+      focusKeyword: v.optional(v.string()),
+      keywords: v.optional(v.array(v.string())),
+      canonicalUrl: v.optional(v.string()),
+      ogTitle: v.optional(v.string()),
+      ogDescription: v.optional(v.string()),
+      ogImage: v.optional(v.string()),
+      noIndex: v.optional(v.boolean()),
+      publishedAt: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_slug", ["slug"])
+      .index("by_status_published", ["status", "publishedAt"])
+      .index("by_updated", ["updatedAt"]),
+
     /** زونکن/پرونده‌های بایگانی برای دسته‌بندی آگهی‌ها */
     folders: defineTable({
       name: v.string(),
