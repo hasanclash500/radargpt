@@ -169,7 +169,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به مدیریت"
-                    description="این صفحه مخصوص مدیر و مشاوران دفتر است."
+                    description="این صفحه مخصوص مدیر و ادمین آگهی است."
                   >
                     <Admin />
                   </RequireAuth>
