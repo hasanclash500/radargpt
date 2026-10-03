@@ -19,7 +19,7 @@ const Landing = lazy(() => import("./pages/Landing.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const NotFound = lazy(() => import("./pages/NotFound.tsx"));\nconst Blog = lazy(() => import("./pages/Blog.tsx"));\nconst BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));\nconst BlogAdmin = lazy(() => import("./pages/BlogAdmin.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -131,7 +131,7 @@ createRoot(document.getElementById("root")!).render(
           <RouteSyncer />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<Landing />} />\n              <Route path="/blog" element={<Blog />} />\n              <Route path="/blog/:slug" element={<BlogArticle />} />
               <Route
                 path="/auth"
                 element={<AuthPage redirectAfterAuth="/dashboard" />}
@@ -141,6 +141,17 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth>
                     <Dashboard />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/blog"
+                element={
+                  <RequireAuth
+                    title="ورود به استودیوی محتوا"
+                    description="برای نوشتن و مدیریت مقاله‌های مکا وارد حساب کاربری شوید."
+                  >
+                    <BlogAdmin />
                   </RequireAuth>
                 }
               />
