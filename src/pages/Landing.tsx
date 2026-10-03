@@ -58,7 +58,10 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
       </div>
       <div className="leading-none">
         <p className={`${compact ? "text-base" : "text-xl"} font-extrabold tracking-tight`}>
-          کارجا
+          مکا
+        </p>
+        <p className="mt-1 text-[9px] font-bold tracking-[0.18em] text-primary/70" dir="ltr">
+          MEKA
         </p>
         <p className="mt-1 text-[10px] font-medium text-muted-foreground">
           املاک صنعتی و اداری
@@ -194,7 +197,7 @@ export default function Landing() {
 
       <header className="glass sticky top-0 z-50 border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <a href="#" aria-label="کارجا - صفحه اصلی">
+          <a href="#" aria-label="مکا - صفحه اصلی">
             <BrandMark compact />
           </a>
 
@@ -231,7 +234,7 @@ export default function Landing() {
             </h1>
 
             <p className="mt-5 max-w-xl text-sm leading-8 text-muted-foreground sm:text-base">
-              کارجا برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛
+              مکا برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛
               با تمرکز روی موقعیت‌های واقعی کسب‌وکار و ارتباط مستقیم.
             </p>
 
@@ -278,14 +281,14 @@ export default function Landing() {
 
       <section id="services" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <motion.div {...fadeUp} className="mb-7">
-          <span className="text-xs font-extrabold text-primary">حوزه تخصصی کارجا</span>
+          <span className="text-xs font-extrabold text-primary">حوزه تخصصی مکا</span>
           <div className="mt-2 flex items-end justify-between gap-5">
             <div>
               <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
                 ملک برای کسب‌وکار، نه فقط یک آدرس
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-                نیازهای صنعتی و اداری متفاوت‌اند؛ کارجا فایل‌ها را با نگاه کاربردی به
+                نیازهای صنعتی و اداری متفاوت‌اند؛ مکا فایل‌ها را با نگاه کاربردی به
                 دسترسی، موقعیت و نوع فعالیت بررسی می‌کند.
               </p>
             </div>
@@ -323,7 +326,7 @@ export default function Landing() {
                 مراجعه حضوری
               </span>
               <h2 className="mt-2 text-xl font-extrabold sm:text-2xl">
-                کارجا در شهریار
+                مکا در شهریار
               </h2>
               <p className="mt-3 flex items-start gap-2 text-sm leading-7 text-muted-foreground">
                 <MapPin className="mt-1 size-4 shrink-0 text-primary" />
@@ -372,7 +375,7 @@ export default function Landing() {
       <footer className="border-t border-border/60">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-7 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <BrandMark compact />
-          <p>کارجا · املاک صنعتی و اداری شهریار</p>
+          <p>مکا · املاک صنعتی و اداری شهریار</p>
         </div>
       </footer>
 
