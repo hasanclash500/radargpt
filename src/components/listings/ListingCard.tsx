@@ -125,12 +125,18 @@ export default function ListingCard({
         </h3>
       </div>
       <p className="text-gradient-brand text-2xl font-extrabold tracking-tight">
-        {formatPrice(l.priceMillion)}
+        {l.rentMillion != null && l.rentMillion > 0
+          ? `اجاره: ${formatPrice(l.rentMillion)}`
+          : l.depositMillion != null && l.depositMillion > 0
+            ? `ودیعه: ${formatPrice(l.depositMillion)}`
+            : l.priceMillion > 0
+              ? formatPrice(l.priceMillion)
+              : "قیمت توافقی"}
       </p>
-      {(l.depositMillion !== null || l.rentMillion !== null) && (
+      {(l.depositMillion != null || l.rentMillion != null) && (
         <p className="-mt-2 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-          {l.depositMillion !== null && <span>رهن: {formatPrice(l.depositMillion)}</span>}
-          {l.rentMillion !== null && <span>اجاره: {formatPrice(l.rentMillion)}</span>}
+          {l.depositMillion != null && l.depositMillion > 0 && <span>رهن: {formatPrice(l.depositMillion)}</span>}
+          {l.rentMillion != null && l.rentMillion > 0 && <span>اجاره: {formatPrice(l.rentMillion)}</span>}
         </p>
       )}
       {l.pricePerMeter !== null && l.pricePerMeter > 0 && (
