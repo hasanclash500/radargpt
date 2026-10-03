@@ -3,6 +3,7 @@ import { internal } from "./_generated/api";
 import {
   action,
   internalAction,
+  internalMutation,
   internalQuery,
   mutation,
   query,
@@ -105,6 +106,24 @@ export const saveIntegrationSettings = mutation({
       return existing._id;
     }
     return await ctx.db.insert("integrationSecrets", payload);
+  },
+});
+
+export const saveDiscoveredChatId = internalMutation({
+  args: {
+    channel: v.union(v.literal("telegram"), v.literal("bale")),
+    chatId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const config = await getSecrets(ctx);
+    if (!config) throw new Error("ابتدا توکن ربات را ذخیره کنید.");
+    await ctx.db.patch(config._id, {
+      ...(args.channel === "telegram"
+        ? { telegramChatId: args.chatId }
+        : { baleChatId: args.chatId }),
+      updatedAt: Date.now(),
+    });
+    return args.chatId;
   },
 });
 
@@ -326,5 +345,59 @@ export const testIntegrations = action({
       "✅ اتصال پیام‌رسان مکا با موفقیت برقرار است.",
       args.channel,
     );
+  },
+});
+
+
+export const discoverChatId = action({
+  args: {
+    channel: v.union(v.literal("telegram"), v.literal("bale")),
+  },
+  handler: async (ctx, args) => {
+    const role = await ctx.runQuery(internal.integrations.actionRole, {});
+    if (role !== OFFICE_ROLES.ADMIN) {
+      throw new Error("فقط مدیر می‌تواند Chat ID را دریافت کند.");
+    }
+
+    const config = await ctx.runQuery(internal.integrations.getSecretsInternal, {});
+    const token =
+      args.channel === "telegram"
+        ? config?.telegramBotToken
+        : config?.baleBotToken;
+    if (!token) throw new Error("ابتدا توکن ربات را ذخیره کنید.");
+
+    const base =
+      args.channel === "telegram"
+        ? "https://api.telegram.org"
+        : "https://tapi.bale.ai";
+    const response = await fetch(`${base}/bot${token}/getUpdates`);
+    const body = await response.json();
+    if (!response.ok || body?.ok === false) {
+      throw new Error(body?.description || "دریافت پیام‌های ربات ناموفق بود.");
+    }
+
+    const updates = Array.isArray(body?.result) ? body.result : [];
+    let chatId = "";
+    for (let i = updates.length - 1; i >= 0; i--) {
+      const update = updates[i];
+      const value =
+        update?.message?.chat?.id ??
+        update?.edited_message?.chat?.id ??
+        update?.callback_query?.message?.chat?.id;
+      if (value !== undefined && value !== null) {
+        chatId = String(value);
+        break;
+      }
+    }
+
+    if (!chatId) {
+      throw new Error("پیامی پیدا نشد. ابتدا در ربات /start بفرستید و دوباره امتحان کنید.");
+    }
+
+    await ctx.runMutation(internal.integrations.saveDiscoveredChatId, {
+      channel: args.channel,
+      chatId,
+    });
+    return { chatId };
   },
 });
