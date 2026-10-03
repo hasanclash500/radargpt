@@ -26,6 +26,7 @@ const BlogAdmin = lazy(() => import("./pages/BlogAdmin.tsx"));
 const PublicListings = lazy(() => import("./pages/PublicListings.tsx"));
 const PublicListing = lazy(() => import("./pages/PublicListing.tsx"));
 const AssistantPage = lazy(() => import("./pages/Assistant.tsx"));
+const SmartMatches = lazy(() => import("./pages/SmartMatches.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -174,6 +175,17 @@ createRoot(document.getElementById("root")!).render(
                     description="این صفحه مخصوص مدیر و ادمین آگهی است."
                   >
                     <Admin />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/matches"
+                element={
+                  <RequireAuth
+                    title="ورود به مچ هوشمند"
+                    description="این صفحه مخصوص مدیر و ادمین آگهی است."
+                  >
+                    <SmartMatches />
                   </RequireAuth>
                 }
               />
