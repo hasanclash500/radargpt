@@ -54,13 +54,16 @@ export const FIELD_ALIASES: Record<string, string[]> = {
   rooms: ["تعداد اتاق", "اتاق", "rooms", "تعداد خواب"],
   priceMillion: [
     "قیمت (میلیون تومان)",
+    "قیمت / رهن (میلیون تومان)",
+    "قیمت/رهن (میلیون تومان)",
+    "قیمت / رهن",
     "قیمت",
     "price_million_toman",
     "قیمت (تومان)",
     "price",
   ],
-  deposit: ["ودیعه", "رهن", "deposit"],
-  rent: ["اجاره", "rent"],
+  deposit: ["ودیعه", "ودیعه (میلیون تومان)", "رهن", "رهن (میلیون تومان)", "deposit"],
+  rent: ["اجاره", "اجاره ماهانه", "اجاره ماهانه (میلیون تومان)", "rent"],
   pricePerMeter: [
     "قیمت هر متر",
     "price_per_meter",
@@ -169,7 +172,11 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
   const cityRaw = str(mapped.city);
   const city =
     cityRaw && !/^(اجاره|فروش|رهن|مناسب|قیمت)$/.test(cityRaw) ? cityRaw : "نامشخص";
-  const deposit = toNumber(mapped.deposit);
+  const deal = str(mapped.dealType);
+  const priceField = toNumber(mapped.priceMillion) ?? 0;
+  const deposit =
+    toNumber(mapped.deposit) ??
+    (/رهن|اجاره/.test(deal) && priceField > 0 ? priceField : null);
   const rent = toNumber(mapped.rent);
   const propertyType = PROPS.includes(
     str(mapped.propertyType) as PropertyType,
@@ -177,12 +184,8 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
     ? (str(mapped.propertyType) as PropertyType)
     : "سایر";
 
-  // قیمت کل: برای رهن و اجاره ترکیب ودیعه+اجاره؛ در غیر این‌صورت فیلد price
-  const deal = str(mapped.dealType);
-  const priceMillion =
-    /رهن|اجاره/.test(deal) && (deposit !== null || rent !== null)
-      ? (deposit ?? 0) + (rent ?? 0)
-      : (toNumber(mapped.priceMillion) ?? 0);
+  // در فایل‌های ملک‌رادار «قیمت / رهن» برای فروش قیمت و برای اجاره ودیعه است.
+  const priceMillion = /رهن|اجاره/.test(deal) ? 0 : priceField;
 
   // تاریخ ممکن است YYYY-MM-DD (خروجی JSON) یا YYYY/M/D (خروجی CSV) باشد
   const { date, dateRaw } = normalizeDate(mapped.date ?? mapped.dateRaw);
