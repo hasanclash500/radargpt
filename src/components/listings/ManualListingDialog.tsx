@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import { formatPrice } from "@/lib/format";
 import { resizeImageFile } from "@/lib/image-resize";
+import { neshanAppLocationUrl } from "@/lib/neshan";
 import {
   configForPropertyType,
   DEFAULT_LISTING_FIELD_CONFIGS,
@@ -94,7 +95,7 @@ function moneyMillion(value: string) {
 
 function mapUrl(point: MapPoint | null) {
   return point
-    ? `https://www.google.com/maps?q=${point.lat},${point.lng}`
+    ? neshanAppLocationUrl(point.lat, point.lng)
     : undefined;
 }
 
