@@ -512,6 +512,7 @@ export const markShared = mutation({
     for (const key of args.keys) {
       const row = await byKey(ctx, key);
       if (!row) continue;
+      if (!canEditListing(r.role, r.userId, row.createdByUserId)) continue;
       await ctx.db.patch(row._id, {
         sentCount: (row.sentCount ?? 0) + 1,
         lastSharedAt: now,
@@ -578,6 +579,7 @@ export const getListingImages = query({
     if (!r || !r.privileged) return [];
     const row = await byKey(ctx, args.key);
     if (!row) return [];
+    if (!canEditListing(r.role, r.userId, row.createdByUserId)) return [];
     return await resolveListingImages(ctx, row);
   },
 });
