@@ -144,8 +144,8 @@ export default function ManualListingDialog({
         <DialogHeader>
           <DialogTitle>ثبت دستی آگهی</DialogTitle>
           <DialogDescription>
-            آگهی را بدون فایل وارد کنید. شمارهٔ تلفن اجباری است و آگهی بلافاصله
-            روی سرور ذخیره می‌شود.
+            آگهی را بدون فایل وارد کنید. شماره مالک فقط برای استفاده داخلی ذخیره
+            می‌شود و در صفحات عمومی نمایش داده نخواهد شد.
           </DialogDescription>
         </DialogHeader>
 
@@ -247,7 +247,7 @@ export default function ManualListingDialog({
               onChange={(e) => set("rentMillion", e.target.value)}
             />
           </Field>
-          <Field label="شمارهٔ تلفن" required>
+          <Field label="شماره مالک (خصوصی)" required>
             <Input
               dir="ltr"
               inputMode="tel"
@@ -262,17 +262,21 @@ export default function ManualListingDialog({
             <Input
               value={form.title}
               onChange={(e) => set("title", e.target.value)}
-              placeholder="سوله ۲۰۰ متری در شهریار"
+              placeholder="مثلاً: اجاره سوله ۵۰۰ متری صنعتی در شهریار"
             />
           </div>
 
           <div className="space-y-1.5 sm:col-span-2">
             <Label className="text-xs text-muted-foreground">توضیحات</Label>
             <Textarea
-              rows={3}
+              rows={6}
               value={form.description}
               onChange={(e) => set("description", e.target.value)}
+              placeholder="توضیحات واقعی و کامل بنویسید: نوع سازه، ارتفاع سقف، برق و گاز، کف، دسترسی خودرو سنگین، امکانات، شرایط قرارداد و مزیت‌های واقعی ملک. از تکرار مصنوعی کلمات کلیدی خودداری کنید."
             />
+            <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+              برای صفحه عمومی و SEO بهتر است توضیحات اختصاصی و حداقل حدود ۱۵۰ تا ۳۰۰ کلمه باشد.
+            </p>
           </div>
 
           <div className="space-y-1.5 sm:col-span-2">
