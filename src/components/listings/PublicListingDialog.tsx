@@ -91,7 +91,11 @@ export default function PublicListingDialog({
         seoKeywords: seoKeywords.split(/[،,]/).map((x) => x.trim()).filter(Boolean),
         noIndex,
       });
-      toast.success(isPublic ? "تنظیمات انتشار عمومی ذخیره شد" : "آگهی از حالت عمومی خارج شد");
+      toast.success(
+        isPublic
+          ? "درخواست/تنظیمات انتشار ذخیره شد"
+          : "آگهی از حالت عمومی خارج شد",
+      );
       setOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ذخیره تنظیمات انتشار ناموفق بود");
@@ -110,7 +114,11 @@ export default function PublicListingDialog({
           className="h-8 gap-1.5 text-xs"
         >
           <Globe2 className="size-3.5" />
-          {listing.isPublic ? "عمومی" : "انتشار"}
+          {listing.publicationStatus === "pending"
+            ? "در انتظار تأیید"
+            : listing.isPublic
+              ? "عمومی"
+              : "انتشار"}
         </Button>
       </DialogTrigger>
 
