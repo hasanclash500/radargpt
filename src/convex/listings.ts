@@ -241,6 +241,22 @@ export const listListings = query({
   },
 });
 
+export const listPublicPaged = query({
+  args: { paginationOpts: paginationOptsValidator },
+  handler: async (ctx, args) => {
+    const page = await ctx.db
+      .query("listings")
+      .withIndex("by_public_published", (q) => q.eq("isPublic", true))
+      .order("desc")
+      .paginate(args.paginationOpts);
+    const context = await publicContext(ctx);
+    return {
+      ...page,
+      page: page.page.map((row) => toPublicListing(row, context)),
+    };
+  },
+});
+
 export const listPublic = query({
   args: {},
   handler: async (ctx) => {
