@@ -121,7 +121,7 @@ export const listPanel = query({
         q.gt("date", oldestEligible).lte("date", newestEligible),
       )
       .order("desc")
-      .take(300);
+      .take(1000);
 
     const reminders = await ctx.db.query("listingReminders").collect();
     const reminderByListing = new Map<string, typeof reminders>();
