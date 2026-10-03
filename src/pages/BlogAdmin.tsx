@@ -174,13 +174,17 @@ export default function BlogAdmin() {
   const savePost = useMutation(api.posts.save);
   const removePost = useMutation(api.posts.remove);
   const ensureSeedPosts = useMutation(api.posts.ensureSeedPosts);
+  const generateUploadUrl = useMutation(api.posts.generateUploadUrl);
+  const resolveStorageUrl = useMutation(api.posts.resolveStorageUrl);
 
   const [form, setForm] = useState<FormState>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [preview, setPreview] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const seededRef = useRef(false);
   const contentRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const canEdit =
     roleData?.role === "admin" || roleData?.role === "consultant";
@@ -310,6 +314,37 @@ export default function BlogAdmin() {
       newPost();
     } catch (error: any) {
       toast.error(error?.message || "حذف مقاله ناموفق بود");
+    }
+  };
+
+  const uploadFeaturedImage = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("فایل انتخاب‌شده تصویر نیست");
+      return;
+    }
+    if (file.size > 6 * 1024 * 1024) {
+      toast.error("حجم تصویر باید کمتر از ۶ مگابایت باشد");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!response.ok) throw new Error("upload_failed");
+      const payload = await response.json();
+      const url = await resolveStorageUrl({ storageId: payload.storageId });
+      if (!url) throw new Error("url_failed");
+      update("featuredImage", url);
+      toast.success("تصویر شاخص آپلود شد");
+    } catch {
+      toast.error("آپلود تصویر ناموفق بود");
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -553,14 +588,42 @@ export default function BlogAdmin() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <FieldLabel>آدرس تصویر شاخص</FieldLabel>
-                    <Input
-                      dir="ltr"
-                      value={form.featuredImage}
-                      onChange={(e) => update("featuredImage", e.target.value)}
-                      placeholder="https://..."
-                      className="h-11 rounded-xl text-left"
-                    />
+                    <FieldLabel>تصویر شاخص</FieldLabel>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        dir="ltr"
+                        value={form.featuredImage}
+                        onChange={(e) => update("featuredImage", e.target.value)}
+                        placeholder="https://... یا تصویر را آپلود کنید"
+                        className="h-11 rounded-xl text-left"
+                      />
+                      <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/avif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void uploadFeaturedImage(file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-11 shrink-0 gap-2 rounded-xl"
+                        disabled={uploadingImage}
+                        onClick={() => imageInputRef.current?.click()}
+                      >
+                        {uploadingImage ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+                        {uploadingImage ? "آپلود…" : "آپلود از موبایل"}
+                      </Button>
+                    </div>
+                    {form.featuredImage ? (
+                      <div className="mt-3 overflow-hidden rounded-2xl border border-border/70 bg-muted/30">
+                        <img src={form.featuredImage} alt="پیش‌نمایش تصویر شاخص" className="aspect-[16/7] w-full object-cover" />
+                      </div>
+                    ) : null}
                   </div>
                 </div>
 
