@@ -3,6 +3,7 @@ import IntegrationSettings from "@/components/admin/IntegrationSettings";
 import LeadInbox from "@/components/admin/LeadInbox";
 import ListingFieldConfigManager from "@/components/admin/ListingFieldConfigManager";
 import UserManagement from "@/components/admin/UserManagement";
+import ListingReminderPanel from "@/components/listings/ListingReminderPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -396,6 +397,8 @@ export default function Admin() {
         />
 
         <LeadInbox />
+
+        <ListingReminderPanel />
 
         <Card>
           <CardHeader>
