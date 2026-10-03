@@ -150,6 +150,10 @@ const schema = defineSchema(
       /** ثبت مستقیم عمومی بدون حساب */
       submissionSource: v.optional(v.string()),
       submittedByPhone: v.optional(v.string()),
+      /** توکن کوتاه‌عمر برای تکمیل آپلود تصاویر ثبت عمومی */
+      publicSubmissionToken: v.optional(v.string()),
+      publicSubmissionExpiresAt: v.optional(v.number()),
+      publicUploadCount: v.optional(v.number()),
       /** کنترل انتشار عمومی */
       isPublic: v.optional(v.boolean()),
       featuredOnHome: v.optional(v.boolean()),
@@ -182,6 +186,7 @@ const schema = defineSchema(
       .index("by_date", ["date"])
       .index("by_city", ["city"])
       .index("by_created_by", ["createdByUserId"])
+      .index("by_submitter_created", ["submittedByPhone", "createdAt"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"])
       .index("by_publication_status", ["publicationStatus"]),
