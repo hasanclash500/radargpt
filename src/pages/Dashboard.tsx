@@ -352,6 +352,12 @@ export default function Dashboard() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Link to="/dashboard/blog" title="نوشتن و مدیریت مقاله‌ها">
+                <FileText className="size-4" />
+                <span className="hidden sm:inline">وبلاگ</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="gap-1.5">
               <Link to="/admin" title="مدیریت دفتر و افزودن روزانهٔ آگهی">
                 <Settings className="size-4" />
                 <span className="hidden sm:inline">مدیریت</span>
