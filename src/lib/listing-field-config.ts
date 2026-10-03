@@ -28,7 +28,7 @@ export const DEFAULT_LISTING_FIELD_CONFIGS: ListingFieldConfig[] = [
   {
     id: "industrial",
     name: "صنعتی",
-    propertyTypes: ["سوله", "کارخانه", "کارگاه", "انبار", "زمین صنعتی"],
+    propertyTypes: ["سوله", "کارخانه", "کارگاه", "انبار", "زمین صنعتی", "صنعتی", "سوله صنعتی", "کارگاه صنعتی"],
     fields: [
       {
         id: "ceilingHeight",
@@ -134,7 +134,7 @@ export const DEFAULT_LISTING_FIELD_CONFIGS: ListingFieldConfig[] = [
   {
     id: "office",
     name: "اداری",
-    propertyTypes: ["دفتر اداری", "واحد اداری", "تجاری"],
+    propertyTypes: ["دفتر اداری", "واحد اداری", "اداری", "دفتر کار", "تجاری"],
     fields: [
       {
         id: "floor",
