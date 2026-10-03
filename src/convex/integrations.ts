@@ -153,7 +153,6 @@ async function postMessage(
       body: JSON.stringify({
         chat_id: chatId.trim(),
         text: text.slice(0, 3900),
-        disable_web_page_preview: true,
       }),
     },
   );
@@ -280,6 +279,11 @@ export const notifyPublicationRequest = internalAction({
     propertyType: v.string(),
     dealType: v.string(),
     area: v.optional(v.number()),
+    depositMillion: v.optional(v.number()),
+    rentMillion: v.optional(v.number()),
+    priceMillion: v.optional(v.number()),
+    description: v.optional(v.string()),
+    publicDetails: v.optional(v.array(v.string())),
     consultant: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -293,6 +297,13 @@ export const notifyPublicationRequest = internalAction({
       `نوع: ${args.dealType} / ${args.propertyType}`,
       `شهر: ${args.city}`,
       args.area != null ? `متراژ: ${args.area} متر` : "",
+      args.depositMillion != null ? `ودیعه: ${args.depositMillion} میلیون تومان` : "",
+      args.rentMillion != null ? `اجاره: ${args.rentMillion} میلیون تومان` : "",
+      args.rentMillion == null && args.priceMillion != null && args.priceMillion > 0
+        ? `قیمت: ${args.priceMillion} میلیون تومان`
+        : "",
+      ...(args.publicDetails ?? []),
+      args.description ? `\nتوضیحات:\n${args.description}` : "",
       args.consultant ? `ثبت‌کننده: ${args.consultant}` : "",
       `کد داخلی: ${args.key}`,
       "",
