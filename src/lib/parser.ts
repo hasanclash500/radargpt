@@ -237,7 +237,9 @@ export function parsePriceMillion(input: string): {
   }
   const normalized = toEnglishDigits(raw)
     .replace(/٬/g, ",")
-    .replace(/٫/g, ".");
+    .replace(/٫/g, ".")
+    // خروجی ملک‌رادار اعشار را گاهی با / می‌نویسد: 7/5 میلیارد = 7.5
+    .replace(/(\d)\/(\d)/g, "$1.$2");
 
   const re = /(\d+(?:[.,]\d+)*)\s*(میلیارد|میلیون|هزار|تومان|تومن)?/g;
   let total = 0;
