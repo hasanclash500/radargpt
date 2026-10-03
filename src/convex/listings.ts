@@ -155,7 +155,39 @@ async function publicContext(ctx: Ctx) {
   };
 }
 
-function toPublicListing(
+function defaultImageAlt(row: Doc<"listings">, index: number) {
+  const area = row.area ? ` ${row.area} متری` : "";
+  return [
+    row.dealType || "آگهی",
+    row.propertyType || "ملک",
+    area,
+    "در",
+    row.city || "شهریار",
+    index > 0 ? `- تصویر ${index + 1}` : "",
+    "| مکا",
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function resolveListingImages(ctx: Ctx, row: Doc<"listings">) {
+  const ordered = [...(row.listingImages ?? [])].sort((a, b) => a.order - b.order);
+  const resolved = await Promise.all(
+    ordered.map(async (image, index) => ({
+      storageId: image.storageId,
+      url: await ctx.storage.getUrl(image.storageId),
+      alt: image.alt.trim() || defaultImageAlt(row, index),
+      order: image.order,
+      featured: image.featured,
+    })),
+  );
+  return resolved.filter((image) => Boolean(image.url));
+}
+
+async async function toPublicListing(
+  ctx: Ctx,
   row: Doc<"listings">,
   context: Awaited<ReturnType<typeof publicContext>>,
 ) {
@@ -181,6 +213,9 @@ function toPublicListing(
       });
     }
   }
+
+  const images = await resolveListingImages(ctx, row);
+  const featuredImage = images.find((image) => image.featured) ?? images[0];
 
   return {
     slug: row.publicSlug || makePublicSlug(row),
@@ -215,6 +250,13 @@ function toPublicListing(
         "مکا",
       ].filter((value): value is string => Boolean(value)),
     noIndex: row.noIndex ?? false,
+    images: images.map(({ url, alt, featured, order }) => ({
+      url,
+      alt,
+      featured,
+      order,
+    })),
+    ogImage: featuredImage?.url ?? null,
     contacts,
   };
 }
@@ -252,7 +294,9 @@ export const listPublicPaged = query({
     const context = await publicContext(ctx);
     return {
       ...page,
-      page: page.page.map((row) => toPublicListing(row, context)),
+      page: await Promise.all(
+        page.page.map((row) => toPublicListing(ctx, row, context)),
+      ),
     };
   },
 });
@@ -266,7 +310,9 @@ export const listPublic = query({
       .order("desc")
       .take(200);
     const context = await publicContext(ctx);
-    return rows.map((row) => toPublicListing(row, context));
+    return await Promise.all(
+      rows.map((row) => toPublicListing(ctx, row, context)),
+    );
   },
 });
 
@@ -279,10 +325,12 @@ export const listFeaturedPublic = query({
       .order("desc")
       .take(60);
     const context = await publicContext(ctx);
-    return rows
-      .filter((row) => row.featuredOnHome)
-      .slice(0, 6)
-      .map((row) => toPublicListing(row, context));
+    return await Promise.all(
+      rows
+        .filter((row) => row.featuredOnHome)
+        .slice(0, 6)
+        .map((row) => toPublicListing(ctx, row, context)),
+    );
   },
 });
 
@@ -296,7 +344,7 @@ export const getPublicBySlug = query({
     const row = rows[0];
     if (!row || !row.isPublic) return null;
     const context = await publicContext(ctx);
-    return toPublicListing(row, context);
+    return await toPublicListing(ctx, row, context);
   },
 });
 
@@ -429,6 +477,107 @@ export const updateListing = mutation({
     if (!row) throw new Error("آگهی یافت نشد.");
     await ctx.db.patch(row._id, { ...args.patch, updatedAt: Date.now() });
     return args.patch;
+  },
+});
+
+export const generateListingUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const r = await resolve(ctx);
+    if (!r || !r.privileged) {
+      throw new Error("فقط مدیر یا مشاور اجازهٔ آپلود تصویر را دارد.");
+    }
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const getListingImages = query({
+  args: { key: v.string() },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !r.privileged) return [];
+    const row = await byKey(ctx, args.key);
+    if (!row) return [];
+    return await resolveListingImages(ctx, row);
+  },
+});
+
+export const saveListingImages = mutation({
+  args: {
+    key: v.string(),
+    images: v.array(
+      v.object({
+        storageId: v.id("_storage"),
+        alt: v.string(),
+        order: v.number(),
+        featured: v.boolean(),
+      }),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !r.privileged) {
+      throw new Error("فقط مدیر یا مشاور اجازهٔ مدیریت تصاویر را دارد.");
+    }
+    const row = await byKey(ctx, args.key);
+    if (!row) throw new Error("آگهی یافت نشد.");
+
+    const sorted = [...args.images]
+      .sort((a, b) => a.order - b.order)
+      .slice(0, 20)
+      .map((image, index) => ({
+        storageId: image.storageId,
+        alt: image.alt.trim() || defaultImageAlt(row, index),
+        order: index,
+        featured: image.featured,
+      }));
+
+    if (sorted.length > 0) {
+      const featuredIndex = sorted.findIndex((image) => image.featured);
+      sorted.forEach((image, index) => {
+        image.featured = index === (featuredIndex >= 0 ? featuredIndex : 0);
+      });
+    }
+
+    await ctx.db.patch(row._id, {
+      listingImages: sorted,
+      updatedAt: Date.now(),
+    });
+    return sorted.length;
+  },
+});
+
+export const removeListingImage = mutation({
+  args: {
+    key: v.string(),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !r.privileged) {
+      throw new Error("فقط مدیر یا مشاور اجازهٔ حذف تصویر را دارد.");
+    }
+    const row = await byKey(ctx, args.key);
+    if (!row) throw new Error("آگهی یافت نشد.");
+
+    const remaining = (row.listingImages ?? [])
+      .filter((image) => image.storageId !== args.storageId)
+      .sort((a, b) => a.order - b.order)
+      .map((image, index) => ({
+        ...image,
+        order: index,
+      }));
+
+    if (remaining.length > 0 && !remaining.some((image) => image.featured)) {
+      remaining[0] = { ...remaining[0], featured: true };
+    }
+
+    await ctx.db.patch(row._id, {
+      listingImages: remaining,
+      updatedAt: Date.now(),
+    });
+    await ctx.storage.delete(args.storageId);
+    return remaining.length;
   },
 });
 
