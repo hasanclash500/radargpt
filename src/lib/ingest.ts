@@ -5,7 +5,7 @@
  * (برای افزودن روزانهٔ آگهی) قابل استفاده باشد. منطق از importers.ts استخراج شده.
  */
 
-import { toEnglishDigits, type Listing } from "./parser";
+import { parsePriceMillion, toEnglishDigits, type Listing } from "./parser";
 import type { DealType, PropertyType } from "./parser";
 import { CSV_HEADERS } from "./exporters";
 
@@ -64,6 +64,7 @@ export const FIELD_ALIASES: Record<string, string[]> = {
   ],
   deposit: ["ودیعه", "ودیعه (میلیون تومان)", "رهن", "رهن (میلیون تومان)", "deposit"],
   rent: ["اجاره", "اجاره ماهانه", "اجاره ماهانه (میلیون تومان)", "rent"],
+  priceRaw: ["متن قیمت", "price_raw", "price_text", "price text"],
   pricePerMeter: [
     "قیمت هر متر",
     "price_per_meter",
@@ -130,6 +131,17 @@ export function toNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function labeledPriceMillion(text: string, labels: string[]): number | null {
+  if (!text.trim()) return null;
+  const label = labels.join("|");
+  const match = text.match(
+    new RegExp(`(?:${label})\\s*[:：]?\\s*([^،,+\\n]+)`, "i"),
+  );
+  if (!match?.[1]) return null;
+  const value = parsePriceMillion(match[1]).value;
+  return value > 0 ? value : null;
+}
+
 /** تعداد اتاق: «بدون»/«بدون خواب»/«استودیو» → 0. */
 function parseRooms(value: unknown): number | null {
   if (typeof value === "string" && /بدون|استودیو/.test(value)) return 0;
@@ -173,11 +185,19 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
   const city =
     cityRaw && !/^(اجاره|فروش|رهن|مناسب|قیمت)$/.test(cityRaw) ? cityRaw : "نامشخص";
   const deal = str(mapped.dealType);
+  const priceText = str(mapped.priceRaw);
+  const parsedTextPrice = priceText ? parsePriceMillion(priceText).value : 0;
   const priceField = toNumber(mapped.priceMillion) ?? 0;
   const deposit =
     toNumber(mapped.deposit) ??
-    (/رهن|اجاره/.test(deal) && priceField > 0 ? priceField : null);
-  const rent = toNumber(mapped.rent);
+    (/رهن|اجاره/.test(deal) && priceField > 0
+      ? priceField
+      : labeledPriceMillion(priceText, ["رهن", "ودیعه"]));
+  const rent =
+    toNumber(mapped.rent) ??
+    (/رهن|اجاره/.test(deal)
+      ? labeledPriceMillion(priceText, ["اجاره"])
+      : null);
   const propertyType = PROPS.includes(
     str(mapped.propertyType) as PropertyType,
   )
@@ -185,7 +205,9 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
     : "سایر";
 
   // در فایل‌های ملک‌رادار «قیمت / رهن» برای فروش قیمت و برای اجاره ودیعه است.
-  const priceMillion = /رهن|اجاره/.test(deal) ? 0 : priceField;
+  const priceMillion = /رهن|اجاره/.test(deal)
+    ? 0
+    : priceField || parsedTextPrice;
 
   // تاریخ ممکن است YYYY-MM-DD (خروجی JSON) یا YYYY/M/D (خروجی CSV) باشد
   const { date, dateRaw } = normalizeDate(mapped.date ?? mapped.dateRaw);
@@ -202,7 +224,7 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
     depositMillion: deposit,
     rentMillion: rent,
     pricePerMeter: toNumber(mapped.pricePerMeter),
-    priceRaw: str(mapped.priceRaw) || str(mapped.priceMillion),
+    priceRaw: priceText || str(mapped.priceMillion),
     dealType: DEALS.includes(str(mapped.dealType) as DealType)
       ? (str(mapped.dealType) as DealType)
       : "سایر",
