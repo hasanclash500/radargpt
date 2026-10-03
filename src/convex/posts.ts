@@ -182,6 +182,15 @@ export const generateUploadUrl = mutation({
   },
 });
 
+export const resolveStorageUrl = mutation({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    const editor = await getEditor(ctx);
+    if (!editor) throw new Error("دسترسی تصویر را ندارید.");
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
+
 export const getStorageUrl = query({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, args) => {
