@@ -528,7 +528,10 @@ export default function Dashboard() {
                         folders={folderList}
                         onSaveNotes={canSeePhone ? async (notes) => { await saveNotes({ key, notes }); } : undefined}
                         onToggleFolder={canSeePhone ? async (fid) => { await toggleFolder({ key, folderId: fid }); } : undefined}
-                        onSaveLocation={canSeePhone ? async (patch) => { await updateListing({ key, patch }); } : undefined} />
+                        onSaveLocation={canSeePhone ? async (patch) => { await updateListing({ key, patch }); } : undefined}
+                        onSavePublic={canSeePhone ? async (settings) => {
+                          await updatePublicSettings({ key, ...settings });
+                        } : undefined} />
                     );
                   })}
                 </div>
