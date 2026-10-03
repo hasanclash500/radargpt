@@ -1,11 +1,13 @@
 {
-  "name": "freebuff.com application",
-  "short_name": "freebuff.com",
-  "description": "freebuff.com application",
+  "name": "کارجا | املاک صنعتی و اداری شهریار",
+  "short_name": "کارجا",
+  "description": "املاک صنعتی و اداری شهریار",
+  "lang": "fa",
+  "dir": "rtl",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#0f241f",
+  "theme_color": "#0f241f",
   "icons": [
     {
       "src": "/logo.svg",
