@@ -91,7 +91,7 @@ export const getMyProfile = query({
     const userId = String(authId);
     const role = await roleForUser(ctx, userId);
     if (role !== OFFICE_ROLES.CONSULTANT && role !== OFFICE_ROLES.MANAGER) {
-      return { allowed: false, role };
+      return { allowed: false as const, role };
     }
 
     const row = (
@@ -109,8 +109,8 @@ export const getMyProfile = query({
       )[0];
       const user = await ctx.db.get(authId);
       return {
-        allowed: true,
-        exists: false,
+        allowed: true as const,
+        exists: false as const,
         role,
         displayName: p?.displayName ?? user?.name ?? "",
         publicPhone: p?.publicPhone ?? "",
@@ -118,8 +118,8 @@ export const getMyProfile = query({
     }
 
     return {
-      allowed: true,
-      exists: true,
+      allowed: true as const,
+      exists: true as const,
       role,
       profileImageStorageId: row.profileImageStorageId,
       coverImageStorageId: row.coverImageStorageId,
