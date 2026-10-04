@@ -363,20 +363,42 @@ export default function PublicListing() {
             </div>
             <div className="mt-4 space-y-3">
               {listing.contacts.map((contact: any) => (
-                <a
-                  key={`${contact.role}-${contact.phone}`}
-                  href={`tel:${contact.phone}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 transition-colors hover:border-primary/40"
+                <div
+                  key={contact.role + "-" + contact.phone}
+                  className="rounded-xl border border-border/70 p-3 transition-colors hover:border-primary/40"
                 >
-                  <div>
-                    <p className="text-sm font-extrabold">{contact.name}</p>
-                    <p className="mt-1 text-[10px] text-muted-foreground">{contact.role}</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      {contact.profileSlug ? (
+                        <Link
+                          to={"/consultants/" + contact.profileSlug}
+                          className="text-sm font-extrabold hover:text-primary"
+                        >
+                          {contact.name}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-extrabold">{contact.name}</p>
+                      )}
+                      <p className="mt-1 text-[10px] text-muted-foreground">{contact.role}</p>
+                    </div>
+                    <a
+                      href={"tel:" + contact.phone}
+                      className="flex items-center gap-1.5 font-mono text-xs text-primary"
+                      dir="ltr"
+                    >
+                      <PhoneCall className="size-4" />
+                      {contact.phone}
+                    </a>
                   </div>
-                  <span className="flex items-center gap-1.5 font-mono text-xs text-primary" dir="ltr">
-                    <PhoneCall className="size-4" />
-                    {contact.phone}
-                  </span>
-                </a>
+                  {contact.profileSlug && (
+                    <Link
+                      to={"/consultants/" + contact.profileSlug}
+                      className="mt-2 inline-flex text-[10px] font-bold text-primary"
+                    >
+                      مشاهده پروفایل مشاور
+                    </Link>
+                  )}
+                </div>
               ))}
             </div>
           </div>
