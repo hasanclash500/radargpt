@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import PublicListingSubmission from "@/components/PublicListingSubmission";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
 import { neshanSearchUrl } from "@/lib/neshan";
@@ -219,6 +218,7 @@ function MarketIntentHub() {
   const [intent, setIntent] = useState<LandingIntent>("rent");
   const browseMode = intent === "buy" || intent === "rent";
   const deal = intent === "buy" ? "فروش" : "رهن و اجاره";
+  const ownerDeal = intent === "sell" ? "فروش" : "رهن و اجاره";
 
   return (
     <section className="relative mx-auto max-w-6xl px-4 pb-4 sm:px-6 sm:pb-8">
@@ -277,13 +277,18 @@ function MarketIntentHub() {
                   {property}
                 </Link>
               ) : (
-                <a
+                <Link
                   key={property}
-                  href="#submit-listing"
+                  to={
+                    "/submit-listing?deal=" +
+                    encodeURIComponent(ownerDeal) +
+                    "&property=" +
+                    encodeURIComponent(property)
+                  }
                   className="rounded-2xl border border-primary/20 bg-primary/[0.035] px-3 py-4 text-center text-sm font-extrabold transition-all hover:-translate-y-0.5 hover:border-primary/45 hover:bg-primary/8"
                 >
                   {property}
-                </a>
+                </Link>
               ),
             )}
           </div>
@@ -305,13 +310,13 @@ function MarketIntentHub() {
           <Search className="mx-auto size-6 text-primary" />
           <p className="mt-2 text-xs font-extrabold sm:text-sm">جستجوی پیشرفته</p>
         </Link>
-        <a
-          href="#submit-listing"
+        <Link
+          to="/submit-listing"
           className="rounded-2xl border border-border/70 bg-card p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
         >
           <Building2 className="mx-auto size-6 text-primary" />
           <p className="mt-2 text-xs font-extrabold sm:text-sm">ثبت آگهی ملک</p>
-        </a>
+        </Link>
         <Link
           to="/request"
           className="rounded-2xl border border-border/70 bg-card p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
@@ -629,8 +634,6 @@ export default function Landing() {
         </div>
       </section>
 
-      <PublicListingSubmission />
-
       <section className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <motion.div
           {...fadeUp}
@@ -718,7 +721,7 @@ export default function Landing() {
               <div className="mt-4 flex flex-col gap-3 text-sm text-muted-foreground">
                 <Link to="/listings" className="hover:text-primary">آگهی‌های صنعتی و اداری</Link>
                 <Link to="/blog" className="hover:text-primary">مقالات و راهنمای معاملات</Link>
-                <a href="#submit-listing" className="hover:text-primary">ثبت آگهی بدون حساب</a>
+                <Link to="/submit-listing" className="hover:text-primary">ثبت آگهی بدون حساب</Link>
                 <Link to="/auth?mode=signIn&returnTo=/dashboard" className="hover:text-primary">ورود پرسنل</Link>
                 <a href="#services" className="hover:text-primary">خدمات مکا</a>
               </div>
