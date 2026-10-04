@@ -259,6 +259,36 @@ const schema = defineSchema(
       .index("by_status_starts", ["status", "startsAt"])
       .index("by_status_expires", ["status", "expiresAt"]),
 
+    /**
+     * گفت‌وگوی خصوصی داخلی بین مشاوران و مدیر. pairKey همیشه از دو userId
+     * مرتب‌شده ساخته می‌شود تا برای هر دو نفر فقط یک Thread وجود داشته باشد.
+     */
+    advisorConversations: defineTable({
+      pairKey: v.string(),
+      participantA: v.string(),
+      participantB: v.string(),
+      lastMessage: v.optional(v.string()),
+      lastSenderUserId: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_pair", ["pairKey"])
+      .index("by_a_updated", ["participantA", "updatedAt"])
+      .index("by_b_updated", ["participantB", "updatedAt"]),
+
+    advisorMessages: defineTable({
+      conversationId: v.id("advisorConversations"),
+      senderUserId: v.string(),
+      body: v.string(),
+      createdAt: v.number(),
+    }).index("by_conversation_created", ["conversationId", "createdAt"]),
+
+    advisorConversationReads: defineTable({
+      conversationId: v.id("advisorConversations"),
+      userId: v.string(),
+      lastReadAt: v.number(),
+    }).index("by_conversation_user", ["conversationId", "userId"]),
+
     /** یادآوری پیگیری آگهی؛ برای هر آگهی حداکثر دو تاریخ قابل تنظیم است. */
     listingReminders: defineTable({
       listingId: v.id("listings"),
