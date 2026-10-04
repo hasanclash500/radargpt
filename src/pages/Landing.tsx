@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/sheet";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
-import { neshanSearchUrl } from "@/lib/neshan";
 import { useSeo } from "@/hooks/use-seo";
 import { useQuery } from "convex/react";
 import {
@@ -49,7 +48,7 @@ import { useState } from "react";
 
 const PHONE = "09120858095";
 const ADDRESS = "شهریار، روبروی شهرک اداری تجربه";
-const MAPS_URL = neshanSearchUrl(ADDRESS);
+const MAPS_URL = "https://neshan.org/maps/places/rbve_DVxCgq9";
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
@@ -544,7 +543,8 @@ export default function Landing() {
                     <MenuLink to="/assistant" icon={Bot} label="دستیار هوشمند مکا" highlight />
                     <MenuLink to="/submit-listing" icon={Building2} label="ثبت آگهی ملک" />
                     <MenuLink to="/request" icon={ClipboardList} label="ثبت متقاضی / تقاضای ملک" />
-                    <MenuLink to="/blog" icon={Newspaper} label="وبلاگ و راهنما" />\n                    <MenuLink to="/about" icon={BadgeCheck} label="درباره مکا" />
+                    <MenuLink to="/blog" icon={Newspaper} label="وبلاگ و راهنما" />
+                    <MenuLink to="/about" icon={BadgeCheck} label="درباره مکا" />
                     <MenuLink
                       to="/auth?mode=signIn&returnTo=/dashboard"
                       icon={LayoutDashboard}
@@ -605,7 +605,13 @@ export default function Landing() {
             </Sheet>
           </div>
         </div>
-      </header>\n\n      <PublicStoryStrip />\n\n      <MarketIntentHub />\n\n      <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-14">
+      </header>
+
+      <PublicStoryStrip />
+
+      <MarketIntentHub />
+
+      <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-14">
         <div className="grid items-center gap-7 lg:grid-cols-[1.02fr_.98fr] lg:gap-10">
           <motion.div
             initial={{ opacity: 0, y: 26 }}
@@ -669,7 +675,9 @@ export default function Landing() {
 
           <RadarMapScene />
         </div>
-      </section>\n\n      <FeaturedPublicListings />
+      </section>
+
+      <FeaturedPublicListings />
 
       <section id="services" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <motion.div {...fadeUp} className="mb-7">
