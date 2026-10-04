@@ -45,15 +45,49 @@ const SORTS: Array<{ value: SortKey; label: string }> = [
   { value: "area-asc", label: "کمترین مساحت" },
 ];
 
+function normalizeDigits(value: string) {
+  return value
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+}
+
 function numberValue(value: string) {
   if (!value.trim()) return null;
   const parsed = Number(
-    value
-      .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
-      .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
-      .replace(/[,،٬\s]/g, ""),
+    normalizeDigits(value).replace(/[,،٬\s]/g, ""),
   );
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * ورودی قیمت فیلتر را به «میلیون تومان» تبدیل می‌کند.
+ * پذیرفته می‌شود:
+ * ۴۰۰۰ -> ۴۰۰۰ میلیون
+ * ۴ میلیارد -> ۴۰۰۰ میلیون
+ * 4,000,000,000 -> ۴۰۰۰ میلیون
+ * ۵۰۰ میلیون -> ۵۰۰ میلیون
+ */
+function moneyMillionValue(value: string) {
+  const raw = normalizeDigits(value)
+    .trim()
+    .toLowerCase()
+    .replace(/تومان|تومن/g, "")
+    .trim();
+  if (!raw) return null;
+
+  const hasBillion = /میلیارد/.test(raw);
+  const hasMillion = /میلیون/.test(raw);
+  const numericText = raw
+    .replace(/میلیارد|میلیون/g, "")
+    .replace(/[,،٬\s]/g, "")
+    .replace(/٫/g, ".")
+    .trim();
+  const parsed = Number(numericText);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  if (hasBillion) return parsed * 1000;
+  if (hasMillion) return parsed;
+  if (parsed >= 1_000_000) return parsed / 1_000_000;
+  return parsed;
 }
 
 function rangeLabel(min: string, max: string, unit: string) {
@@ -125,12 +159,12 @@ export default function PublicListings() {
     const q = search.trim().toLowerCase();
     const aMin = numberValue(areaMin);
     const aMax = numberValue(areaMax);
-    const dMin = numberValue(depositMin);
-    const dMax = numberValue(depositMax);
-    const rMin = numberValue(rentMin);
-    const rMax = numberValue(rentMax);
-    const pMin = numberValue(priceMin);
-    const pMax = numberValue(priceMax);
+    const dMin = moneyMillionValue(depositMin);
+    const dMax = moneyMillionValue(depositMax);
+    const rMin = moneyMillionValue(rentMin);
+    const rMax = moneyMillionValue(rentMax);
+    const pMin = moneyMillionValue(priceMin);
+    const pMax = moneyMillionValue(priceMax);
 
     const result = (listings || []).filter((item) => {
       if (
@@ -169,12 +203,24 @@ export default function PublicListings() {
       }
       if (aMin != null && (item.area == null || item.area < aMin)) return false;
       if (aMax != null && (item.area == null || item.area > aMax)) return false;
-      if (dMin != null && (item.depositMillion ?? 0) < dMin) return false;
-      if (dMax != null && (item.depositMillion ?? 0) > dMax) return false;
-      if (rMin != null && (item.rentMillion ?? 0) < rMin) return false;
-      if (rMax != null && (item.rentMillion ?? 0) > rMax) return false;
-      if (pMin != null && (item.priceMillion ?? 0) < pMin) return false;
-      if (pMax != null && (item.priceMillion ?? 0) > pMax) return false;
+      if (dMin != null || dMax != null) {
+        const value = item.depositMillion;
+        if (value == null || value <= 0) return false;
+        if (dMin != null && value < dMin) return false;
+        if (dMax != null && value > dMax) return false;
+      }
+      if (rMin != null || rMax != null) {
+        const value = item.rentMillion;
+        if (value == null || value <= 0) return false;
+        if (rMin != null && value < rMin) return false;
+        if (rMax != null && value > rMax) return false;
+      }
+      if (pMin != null || pMax != null) {
+        const value = item.priceMillion;
+        if (value == null || value <= 0) return false;
+        if (pMin != null && value < pMin) return false;
+        if (pMax != null && value > pMax) return false;
+      }
       return true;
     });
 
@@ -183,13 +229,30 @@ export default function PublicListings() {
       const parts = sort.split("-");
       const key = parts[0];
       const sign = parts[1] === "asc" ? 1 : -1;
-      const value = (item: any) => {
-        if (key === "deposit") return item.depositMillion ?? 0;
-        if (key === "rent") return item.rentMillion ?? 0;
-        if (key === "price") return item.priceMillion ?? 0;
-        return item.area ?? 0;
+      const value = (item: any): number | null => {
+        if (key === "deposit") {
+          return item.depositMillion != null && item.depositMillion > 0
+            ? item.depositMillion
+            : null;
+        }
+        if (key === "rent") {
+          return item.rentMillion != null && item.rentMillion > 0
+            ? item.rentMillion
+            : null;
+        }
+        if (key === "price") {
+          return item.priceMillion != null && item.priceMillion > 0
+            ? item.priceMillion
+            : null;
+        }
+        return item.area != null && item.area > 0 ? item.area : null;
       };
-      return (value(a) - value(b)) * sign;
+      const aValue = value(a);
+      const bValue = value(b);
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+      return (aValue - bValue) * sign;
     });
 
     return result;
@@ -298,9 +361,9 @@ export default function PublicListings() {
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="جستجو در عنوان، توضیحات، شهر و نوع ملک…" className="pe-9" />
               </div>
               <RangeFields label="متراژ (متر)" min={areaMin} max={areaMax} onMin={setAreaMin} onMax={setAreaMax} />
-              <RangeFields label="ودیعه (میلیون تومان)" min={depositMin} max={depositMax} onMin={setDepositMin} onMax={setDepositMax} />
-              <RangeFields label="اجاره (میلیون تومان)" min={rentMin} max={rentMax} onMin={setRentMin} onMax={setRentMax} />
-              <RangeFields label="قیمت فروش (میلیون تومان)" min={priceMin} max={priceMax} onMin={setPriceMin} onMax={setPriceMax} />
+              <RangeFields label="ودیعه" min={depositMin} max={depositMax} onMin={setDepositMin} onMax={setDepositMax} money />
+              <RangeFields label="اجاره" min={rentMin} max={rentMax} onMin={setRentMin} onMax={setRentMax} money />
+              <RangeFields label="قیمت فروش" min={priceMin} max={priceMax} onMin={setPriceMin} onMax={setPriceMax} money />
               <label className="space-y-1.5 text-xs font-bold">
                 تعداد اتاق
                 <select value={rooms} onChange={(event) => setRooms(event.target.value)} className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm">
@@ -479,20 +542,40 @@ function FilterSelect({
 }
 
 function RangeFields({
-  label, min, max, onMin, onMax,
+  label, min, max, onMin, onMax, money = false,
 }: {
   label: string;
   min: string;
   max: string;
   onMin: (value: string) => void;
   onMax: (value: string) => void;
+  money?: boolean;
 }) {
   return (
     <div className="space-y-1.5">
       <p className="text-xs font-bold">{label}</p>
+      {money && (
+        <p className="text-[9px] leading-4 text-muted-foreground">
+          میلیون تومان؛ «۴ میلیارد» یا «4,000,000,000» هم قابل ورود است.
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-2">
-        <Input type="number" inputMode="numeric" min={0} placeholder="حداقل" value={min} onChange={(event) => onMin(event.target.value)} />
-        <Input type="number" inputMode="numeric" min={0} placeholder="حداکثر" value={max} onChange={(event) => onMax(event.target.value)} />
+        <Input
+          type={money ? "text" : "number"}
+          inputMode={money ? "text" : "numeric"}
+          min={money ? undefined : 0}
+          placeholder="حداقل"
+          value={min}
+          onChange={(event) => onMin(event.target.value)}
+        />
+        <Input
+          type={money ? "text" : "number"}
+          inputMode={money ? "text" : "numeric"}
+          min={money ? undefined : 0}
+          placeholder="حداکثر"
+          value={max}
+          onChange={(event) => onMax(event.target.value)}
+        />
       </div>
     </div>
   );
