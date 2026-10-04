@@ -7,9 +7,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { api } from "@/convex/_generated/api";
 import { neshanAppLocationUrl } from "@/lib/neshan";
-import { Crosshair, ExternalLink, MapPin, Navigation } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useQuery } from "convex/react";
+import {
+  Crosshair,
+  ExternalLink,
+  Map,
+  MapPin,
+  Navigation,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -18,7 +26,15 @@ declare global {
 }
 
 const DEFAULT_POSITION = { lat: 35.659, lng: 51.059 };
-const NESHAN_MAP_KEY = (import.meta.env.VITE_NESHAN_MAP_KEY as string | undefined)?.trim();
+const ENV_NESHAN_MAP_KEY = (
+  import.meta.env.VITE_NESHAN_MAP_KEY as string | undefined
+)?.trim();
+
+type MapProvider = "neshan" | "osm";
+
+function osmLocationUrl(lat: number, lng: number, zoom = 16) {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=${zoom}/${lat}/${lng}`;
+}
 
 async function loadScript(src: string, marker: string) {
   await new Promise<void>((resolve, reject) => {
@@ -50,8 +66,8 @@ function ensureStyle(href: string, marker: string) {
   document.head.appendChild(link);
 }
 
-async function ensureMapSdk() {
-  if (NESHAN_MAP_KEY) {
+async function ensureMapSdk(provider: MapProvider, neshanKey: string) {
+  if (provider === "neshan" && neshanKey) {
     ensureStyle(
       "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css",
       "neshan",
@@ -60,7 +76,7 @@ async function ensureMapSdk() {
       "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.js",
       "neshan",
     );
-    return { L: window.L, neshan: true };
+    return { L: window.L, provider: "neshan" as const };
   }
 
   if (!window.L) {
@@ -70,7 +86,7 @@ async function ensureMapSdk() {
       "leaflet",
     );
   }
-  return { L: window.L, neshan: false };
+  return { L: window.L, provider: "osm" as const };
 }
 
 export type MapPoint = { lat: number; lng: number };
@@ -82,27 +98,52 @@ export default function MapPicker({
   value?: MapPoint | null;
   onChange: (point: MapPoint) => void;
 }) {
+  const mapSettings = useQuery(api.folders.getMapSettings, {});
+  const configuredKey = (
+    mapSettings?.neshanMapKey ||
+    ENV_NESHAN_MAP_KEY ||
+    ""
+  ).trim();
+
+  const savedProvider = (mapSettings?.provider ?? "neshan") as MapProvider;
+  const [providerOverride, setProviderOverride] = useState<MapProvider | null>(
+    null,
+  );
+  const requestedProvider = providerOverride ?? savedProvider;
+  const effectiveProvider: MapProvider =
+    requestedProvider === "neshan" && !configuredKey ? "osm" : requestedProvider;
+
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MapPoint | null>(value ?? null);
   const [loading, setLoading] = useState(false);
-  const [usingNeshan, setUsingNeshan] = useState(Boolean(NESHAN_MAP_KEY));
+  const [renderedProvider, setRenderedProvider] =
+    useState<MapProvider>(effectiveProvider);
+  const [loadError, setLoadError] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
+
+  const providerLabel = renderedProvider === "neshan" ? "نشان" : "OpenStreetMap";
 
   useEffect(() => {
     setSelected(value ?? null);
   }, [value?.lat, value?.lng]);
 
   useEffect(() => {
+    setProviderOverride(null);
+  }, [savedProvider]);
+
+  useEffect(() => {
     if (!open || !containerRef.current) return;
     let cancelled = false;
 
     setLoading(true);
-    void ensureMapSdk()
-      .then(({ L, neshan }) => {
+    setLoadError("");
+
+    void ensureMapSdk(effectiveProvider, configuredKey)
+      .then(({ L, provider }) => {
         if (cancelled || !containerRef.current || !L) return;
-        setUsingNeshan(neshan);
+        setRenderedProvider(provider);
         const initial = selected ?? value ?? DEFAULT_POSITION;
 
         if (mapRef.current) {
@@ -110,24 +151,25 @@ export default function MapPicker({
           mapRef.current = null;
         }
 
-        const map = neshan
-          ? new L.Map(containerRef.current, {
-              key: NESHAN_MAP_KEY,
-              maptype: "dreamy",
-              poi: true,
-              traffic: false,
-              center: [initial.lat, initial.lng],
-              zoom: value ? 16 : 13,
-            })
-          : L.map(containerRef.current, {
-              zoomControl: true,
-              attributionControl: true,
-            }).setView([initial.lat, initial.lng], value ? 16 : 13);
+        const map =
+          provider === "neshan"
+            ? new L.Map(containerRef.current, {
+                key: configuredKey,
+                maptype: "dreamy",
+                poi: true,
+                traffic: false,
+                center: [initial.lat, initial.lng],
+                zoom: value ? 16 : 13,
+              })
+            : L.map(containerRef.current, {
+                zoomControl: true,
+                attributionControl: true,
+              }).setView([initial.lat, initial.lng], value ? 16 : 13);
 
-        if (!neshan) {
+        if (provider === "osm") {
           L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             maxZoom: 19,
-            attribution: "© OpenStreetMap",
+            attribution: "© OpenStreetMap contributors",
           }).addTo(map);
         }
 
@@ -147,6 +189,7 @@ export default function MapPicker({
         map.on("click", (event: any) => {
           apply(event.latlng.lat, event.latlng.lng);
         });
+
         marker.on("dragend", () => {
           const pos = marker.getLatLng();
           apply(pos.lat, pos.lng);
@@ -156,7 +199,13 @@ export default function MapPicker({
         markerRef.current = marker;
         setTimeout(() => map.invalidateSize(), 100);
       })
-      .catch(() => setUsingNeshan(false))
+      .catch((error) => {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "بارگذاری نقشه ممکن نشد.",
+        );
+      })
       .finally(() => setLoading(false));
 
     return () => {
@@ -167,7 +216,7 @@ export default function MapPicker({
       }
       markerRef.current = null;
     };
-  }, [open]);
+  }, [open, effectiveProvider, configuredKey]);
 
   const useMyLocation = () => {
     if (!navigator.geolocation) return;
@@ -186,67 +235,153 @@ export default function MapPicker({
     );
   };
 
+  const providerButtons = useMemo(
+    () => [
+      {
+        id: "neshan" as const,
+        label: "نشان",
+        available: Boolean(configuredKey),
+      },
+      {
+        id: "osm" as const,
+        label: "OpenStreetMap",
+        available: true,
+      },
+    ],
+    [configuredKey],
+  );
+
   return (
     <div className="space-y-2">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button type="button" variant="outline" className="w-full justify-start gap-2 rounded-xl">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-start gap-2 rounded-xl"
+          >
             <MapPin className="size-4 text-primary" />
-            {value
-              ? "تغییر موقعیت روی نقشه نشان"
-              : "انتخاب موقعیت ملک روی نقشه نشان"}
+            {value ? "تغییر موقعیت روی نقشه" : "انتخاب موقعیت ملک روی نقشه"}
           </Button>
         </DialogTrigger>
+
         <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl overflow-hidden p-0">
           <div className="p-4 sm:p-5">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Navigation className="size-5 text-primary" />
-                انتخاب موقعیت در نشان
+                انتخاب موقعیت ملک
               </DialogTitle>
               <DialogDescription>
-                روی نقشه لمس کنید یا نشانگر را جابه‌جا کنید. این موقعیت داخلی است و در آگهی عمومی منتشر نمی‌شود.
+                روی نقشه لمس کنید یا نشانگر را جابه‌جا کنید. موقعیت دقیق فقط
+                برای استفاده داخلی مکا ذخیره می‌شود.
               </DialogDescription>
             </DialogHeader>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {providerButtons.map((item) => {
+                const active = effectiveProvider === item.id;
+                return (
+                  <Button
+                    key={item.id}
+                    type="button"
+                    size="sm"
+                    variant={active ? "default" : "outline"}
+                    className="gap-1.5 rounded-xl"
+                    disabled={!item.available}
+                    onClick={() => setProviderOverride(item.id)}
+                  >
+                    <Map className="size-4" />
+                    {item.label}
+                    {!item.available && " (بدون کلید)"}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="relative">
-            <div ref={containerRef} className="h-[55vh] min-h-[360px] w-full bg-muted" />
+            <div
+              ref={containerRef}
+              className="h-[55vh] min-h-[360px] w-full bg-muted"
+            />
             {loading && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/60 text-sm">
                 در حال بارگذاری نقشه…
               </div>
             )}
             <span className="absolute start-3 top-3 rounded-full border border-border/60 bg-background/90 px-2.5 py-1 text-[10px] font-bold shadow-sm backdrop-blur">
-              {usingNeshan ? "نقشه نشان" : "نمایش پایه موقت"}
+              {providerLabel}
             </span>
           </div>
 
-          {!usingNeshan && (
+          {requestedProvider === "neshan" && !configuredKey && (
             <p className="px-4 pt-3 text-[11px] leading-6 text-amber-700 dark:text-amber-400">
-              برای نمایش کاشی‌های رسمی نشان، متغیر VITE_NESHAN_MAP_KEY را در محیط Production تنظیم کنید. لینک‌های مسیریابی از همین حالا با نشان ساخته می‌شوند.
+              کلید نشان هنوز در پنل مدیریت ذخیره نشده است؛ OpenStreetMap
+              به‌عنوان نقشه جایگزین فعال شده است.
             </p>
           )}
 
-          <div className="flex flex-col gap-3 border-t border-border p-4 sm:flex-row sm:items-center sm:justify-between">
-            <Button type="button" variant="outline" onClick={useMyLocation} className="gap-2">
-              <Crosshair className="size-4" />
-              موقعیت فعلی من
-            </Button>
+          {loadError && (
+            <p className="px-4 pt-3 text-[11px] leading-6 text-destructive">
+              {loadError} می‌توانید OpenStreetMap را انتخاب کنید.
+            </p>
+          )}
+
+          <div className="flex flex-col gap-3 border-t border-border p-4">
             <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={useMyLocation}
+                className="gap-2"
+              >
+                <Crosshair className="size-4" />
+                موقعیت فعلی من
+              </Button>
+
               {selected && (
-                <Button type="button" variant="ghost" asChild className="gap-2">
-                  <a
-                    href={neshanAppLocationUrl(selected.lat, selected.lng)}
-                    target="_blank"
-                    rel="noreferrer"
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    asChild
+                    className="gap-2"
                   >
-                    <ExternalLink className="size-4" />
-                    بازکردن در نشان
-                  </a>
-                </Button>
+                    <a
+                      href={neshanAppLocationUrl(selected.lat, selected.lng)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <ExternalLink className="size-4" />
+                      نشان
+                    </a>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    asChild
+                    className="gap-2"
+                  >
+                    <a
+                      href={osmLocationUrl(selected.lat, selected.lng)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <ExternalLink className="size-4" />
+                      OpenStreetMap
+                    </a>
+                  </Button>
+                </>
               )}
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+              >
                 انصراف
               </Button>
               <Button
