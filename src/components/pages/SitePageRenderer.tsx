@@ -1,4 +1,6 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import MekaBrand from "@/components/MekaBrand";
+import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
 import {
   Sheet,
   SheetClose,
@@ -90,25 +92,11 @@ function SmartLink({
   );
 }
 
-function Brand() {
-  return (
-    <Link to="/" className="flex items-center gap-2.5">
-      <span className="flex size-10 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary">
-        <Building2 className="size-5" />
-      </span>
-      <span>
-        <strong className="block text-sm font-black">مکا</strong>
-        <span className="block text-[9px] font-bold tracking-[0.18em] text-primary/70" dir="ltr">MEKA</span>
-      </span>
-    </Link>
-  );
-}
-
 function PublicHeader() {
   return (
     <header className="glass relative z-40 border-b border-border/60">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Brand />
+        <MekaBrand compact />
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Sheet>
@@ -398,6 +386,7 @@ export default function SitePageRenderer({
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
       {!hideHeader && <PublicHeader />}
+      {!hideHeader && <PublicStoryStrip />}
       {blocks.map((block) => <BlockRenderer key={block.id} block={block} />)}
     </main>
   );
