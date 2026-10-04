@@ -125,10 +125,18 @@ export default function DashboardHome() {
       restricted: !isPrivileged,
     },
     {
-      title: "مدیریت و تنظیمات",
+      title: "کاربران و نقش‌ها",
       description:
-        "کاربران، نقش‌ها، تنظیمات سایت، فیلدهای آگهی، اتصال‌ها و تنظیمات هوش مصنوعی.",
-      to: "/admin",
+        "مدیریت کاربران، مشاوران، ادمین‌ها، نقش‌ها و سطح دسترسی هر حساب.",
+      to: "/admin?tab=users",
+      icon: Users,
+      restricted: !isManager,
+    },
+    {
+      title: "تنظیمات سیستم",
+      description:
+        "منبع آگهی، اطلاعات دفتر، دسته‌بندی‌ها، فیلدها، زونکن‌ها، نقشه و اتصال‌ها؛ هر کدام در تب مستقل.",
+      to: "/admin?tab=source",
       icon: Settings,
       restricted: !canManageListings,
     },
