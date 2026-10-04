@@ -19,7 +19,6 @@ import {
   Route,
   ShieldCheck,
   Sparkles,
-  Warehouse,
   LogIn,
   UserPlus,
   Search,
