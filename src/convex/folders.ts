@@ -98,6 +98,7 @@ export const getSettings = query({
       customPropertyTypes: settings?.customPropertyTypes ?? [],
       listingFieldConfigs:
         settings?.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS,
+      mapProvider: settings?.mapProvider ?? "neshan",
       sourceUrl: canSeeImportSettings ? (settings?.sourceUrl ?? "") : "",
       lastImportAt: canSeeImportSettings ? settings?.lastImportAt : undefined,
       lastImportAdded: canSeeImportSettings ? settings?.lastImportAdded : undefined,
@@ -105,6 +106,92 @@ export const getSettings = query({
       lastImportError: canSeeImportSettings ? settings?.lastImportError : undefined,
       updatedAt: settings?.updatedAt,
     };
+  },
+});
+
+/** تنظیمات عمومی نقشه برای MapPicker. کلید Web SDK در مرورگر قابل مشاهده است. */
+export const getMapSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .take(2);
+    const settings = rows[0] ?? null;
+    return {
+      provider: settings?.mapProvider ?? "neshan",
+      neshanMapKey: settings?.neshanMapKey ?? "",
+      neshanConfigured: Boolean(settings?.neshanMapKey?.trim()),
+    };
+  },
+});
+
+/** وضعیت نقشه برای پنل مدیر؛ خود کلید برگردانده نمی‌شود. */
+export const getMapAdminSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    const current = await currentRole(ctx);
+    if (!current || !canManageSite(current.role)) {
+      return {
+        allowed: false,
+        provider: "osm" as const,
+        neshanConfigured: false,
+        keyHint: "",
+      };
+    }
+
+    const rows = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .take(2);
+    const settings = rows[0] ?? null;
+    const key = settings?.neshanMapKey?.trim() ?? "";
+    return {
+      allowed: true,
+      provider: settings?.mapProvider ?? "neshan",
+      neshanConfigured: Boolean(key),
+      keyHint: key ? `${key.slice(0, 7)}••••${key.slice(-4)}` : "",
+    };
+  },
+});
+
+/** ذخیرهٔ provider و کلید نشان فقط توسط مدیر اصلی. */
+export const updateMapSettings = mutation({
+  args: {
+    provider: v.union(v.literal("neshan"), v.literal("osm")),
+    neshanMapKey: v.optional(v.string()),
+    clearNeshanMapKey: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const current = await currentRole(ctx);
+    if (!current || !canManageSite(current.role)) {
+      throw new Error("فقط مدیر اصلی اجازهٔ تغییر تنظیمات نقشه را دارد.");
+    }
+
+    const rows = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .take(2);
+    const existing = rows[0];
+
+    const previousKey = existing?.neshanMapKey?.trim() || undefined;
+    const incoming = args.neshanMapKey?.trim() || undefined;
+    const neshanMapKey = args.clearNeshanMapKey
+      ? undefined
+      : incoming || previousKey;
+
+    const data = {
+      key: "global",
+      mapProvider: args.provider,
+      neshanMapKey,
+      updatedAt: Date.now(),
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, data);
+      return existing._id;
+    }
+    return await ctx.db.insert("appSettings", data);
   },
 });
 
@@ -118,6 +205,7 @@ export const updateSettings = mutation({
     customDeals: v.optional(v.array(v.string())),
     customPropertyTypes: v.optional(v.array(v.string())),
     listingFieldConfigs: v.optional(v.array(fieldConfigValidator)),
+    mapProvider: v.optional(v.union(v.literal("neshan"), v.literal("osm"))),
     sourceUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -132,9 +220,10 @@ export const updateSettings = mutation({
       !manager &&
       (args.officeName !== undefined ||
         args.managerPhone !== undefined ||
-        args.shareFooter !== undefined)
+        args.shareFooter !== undefined ||
+        args.mapProvider !== undefined)
     ) {
-      throw new Error("فقط مدیر اصلی می‌تواند اطلاعات دفتر را تغییر دهد.");
+      throw new Error("فقط مدیر اصلی می‌تواند اطلاعات دفتر و نقشه را تغییر دهد.");
     }
     const rows = await ctx.db
       .query("appSettings")
