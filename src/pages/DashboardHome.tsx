@@ -11,6 +11,7 @@ import {
   Building2,
   FileText,
   LayoutDashboard,
+  PanelsTopLeft,
   LogOut,
   Settings,
   Sparkles,
@@ -110,6 +111,15 @@ export default function DashboardHome() {
       to: "/admin",
       icon: Settings,
       restricted: !canManageListings,
+    },
+    {
+      title: "صفحه‌ساز سایت",
+      description:
+        "ویرایش سکشن‌های لندینگ، ساخت برگه جدید، پیش‌نمایش و ساخت صفحه با هوش مصنوعی.",
+      to: "/dashboard/pages",
+      icon: PanelsTopLeft,
+      badge: "Page Builder",
+      restricted: !isManager,
     },
     {
       title: "استودیوی محتوا",
