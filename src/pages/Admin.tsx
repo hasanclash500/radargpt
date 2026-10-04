@@ -1,9 +1,7 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import IntegrationSettings from "@/components/admin/IntegrationSettings";
-import LeadInbox from "@/components/admin/LeadInbox";
 import ListingFieldConfigManager from "@/components/admin/ListingFieldConfigManager";
 import UserManagement from "@/components/admin/UserManagement";
-import ListingReminderPanel from "@/components/listings/ListingReminderPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,7 +25,6 @@ import {
   ArrowRight,
   CheckCircle2,
   CloudDownload,
-  BrainCircuit,
   Loader2,
   ShieldCheck,
   TriangleAlert,
@@ -201,7 +198,7 @@ export default function Admin() {
             <CardContent>
               <Button asChild variant="outline" className="w-full">
                 <Link to="/dashboard">
-                  بازگشت به پنل آگهی‌ها
+                  بازگشت به داشبورد
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
@@ -231,7 +228,7 @@ export default function Admin() {
             <Button asChild variant="ghost" size="sm">
               <Link to="/dashboard">
                 <ArrowRight className="size-4" />
-                پنل آگهی‌ها
+                داشبورد
               </Link>
             </Button>
             <ThemeToggle />
@@ -396,31 +393,6 @@ export default function Admin() {
             await updateSettings({ listingFieldConfigs: configs });
           }}
         />
-
-        <Card className="border-primary/20 bg-primary/[0.035]">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <BrainCircuit className="size-5 text-primary" />
-              مچ هوشمند متقاضی و آگهی
-            </CardTitle>
-            <CardDescription>
-              تطبیق خودکار درخواست‌های خرید و اجاره با فایل‌های موجود در دیتابیس مکا؛
-              بر اساس شهر، نوع ملک، متراژ و بودجه.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild className="gap-2">
-              <Link to="/admin/matches">
-                باز کردن مچ هوشمند
-                <ArrowRight className="size-4 rotate-180" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <LeadInbox />
-
-        <ListingReminderPanel />
 
         <Card>
           <CardHeader>
