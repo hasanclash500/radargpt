@@ -6,6 +6,7 @@ import {
   BrainCircuit,
   Building2,
   LayoutDashboard,
+  PanelsTopLeft,
   Settings,
   UserRoundSearch,
 } from "lucide-react";
@@ -60,6 +61,12 @@ export default function DashboardSectionNav() {
       label: "یادآوری",
       icon: BellRing,
       show: role.isPrivileged,
+    },
+    {
+      to: "/dashboard/pages",
+      label: "صفحه‌ساز",
+      icon: PanelsTopLeft,
+      show: role.canManageSite,
     },
     {
       to: "/admin",
