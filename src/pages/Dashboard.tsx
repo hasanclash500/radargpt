@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
 import FilterBar from "@/components/listings/FilterBar";
 import ListingCard from "@/components/listings/ListingCard";
 import ShareDialog from "@/components/listings/ShareDialog";
@@ -449,6 +450,8 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+
+      <DashboardSectionNav />
 
       <div className="mx-auto w-full max-w-7xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-6 sm:py-6 lg:px-8">
         {parsing && (
