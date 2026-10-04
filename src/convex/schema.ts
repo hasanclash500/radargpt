@@ -246,6 +246,37 @@ const schema = defineSchema(
       updatedAt: v.number(),
     }).index("by_key", ["key"]),
 
+    /**
+     * صفحه‌ساز مکا: هر صفحه از بلوک‌های ساختاریافته تشکیل می‌شود تا مدیر
+     * بدون ویرایش HTML بتواند سکشن‌ها را جابه‌جا و متن‌ها را ویرایش کند.
+     */
+    sitePages: defineTable({
+      title: v.string(),
+      slug: v.string(),
+      pageType: v.union(v.literal("landing"), v.literal("page")),
+      status: v.union(v.literal("draft"), v.literal("published")),
+      isHomepage: v.boolean(),
+      blocks: v.array(
+        v.object({
+          id: v.string(),
+          type: v.string(),
+          enabled: v.boolean(),
+          order: v.number(),
+          props: v.any(),
+        }),
+      ),
+      seoTitle: v.optional(v.string()),
+      seoDescription: v.optional(v.string()),
+      noIndex: v.optional(v.boolean()),
+      createdByUserId: v.string(),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+      publishedAt: v.optional(v.number()),
+    })
+      .index("by_slug", ["slug"])
+      .index("by_status_updated", ["status", "updatedAt"])
+      .index("by_homepage_status", ["isHomepage", "status"]),
+
     /** مقالات وبلاگ و تنظیمات SEO هر مقاله */
     posts: defineTable({
       title: v.string(),
