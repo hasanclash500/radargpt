@@ -10,6 +10,7 @@ import {
   Settings,
   UserRoundSearch,
   UserRound,
+  UsersRound,
   Play,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
@@ -83,8 +84,14 @@ export default function DashboardSectionNav() {
       show: role.canManageSite,
     },
     {
-      to: "/admin",
-      label: "مدیریت",
+      to: "/admin?tab=users",
+      label: "کاربران",
+      icon: UsersRound,
+      show: role.canManageSite,
+    },
+    {
+      to: "/admin?tab=source",
+      label: "تنظیمات",
       icon: Settings,
       show: role.canManageListings,
     },
@@ -97,11 +104,19 @@ export default function DashboardSectionNav() {
           .filter((item) => item.show)
           .map((item) => {
             const Icon = item.icon;
+            const [itemPath, itemQuery = ""] = item.to.split("?");
+            const itemTab = new URLSearchParams(itemQuery).get("tab");
+            const currentTab = new URLSearchParams(location.search).get("tab");
             const active =
-              item.to === "/dashboard"
+              itemPath === "/dashboard"
                 ? location.pathname === "/dashboard"
-                : location.pathname === item.to ||
-                  location.pathname.startsWith(item.to + "/");
+                : itemPath === "/admin"
+                  ? location.pathname === "/admin" &&
+                    (itemTab === "source"
+                      ? !currentTab || currentTab === "source"
+                      : currentTab === itemTab)
+                  : location.pathname === itemPath ||
+                    location.pathname.startsWith(itemPath + "/");
 
             return (
               <Link
