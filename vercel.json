@@ -35,6 +35,30 @@
     {
       "source": "/auth",
       "destination": "/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/consultants/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/request",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/assistant",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/submit-listing",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/p/:path*",
+      "destination": "/index.html"
     }
   ]
 }
