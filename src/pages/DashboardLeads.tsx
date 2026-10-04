@@ -1,4 +1,5 @@
 import LeadInbox from "@/components/admin/LeadInbox";
+import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
@@ -66,6 +67,8 @@ export default function DashboardLeads() {
           </div>
         </div>
       </header>
+
+      <DashboardSectionNav />
 
       <section className="mx-auto max-w-6xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">
         <div className="rounded-3xl border border-primary/20 bg-primary/[0.035] p-5">
