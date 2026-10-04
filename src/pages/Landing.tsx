@@ -1,5 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
 import { neshanSearchUrl } from "@/lib/neshan";
@@ -27,9 +37,12 @@ import {
   Grid3X3,
   ClipboardList,
   Bot,
+  Menu,
+  Newspaper,
+  LayoutDashboard,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 import { useState } from "react";
 
 const PHONE = "09120858095";
@@ -77,6 +90,44 @@ function BrandMark({ compact = false }: { compact?: boolean }) {
         </p>
       </div>
     </div>
+  );
+}
+
+function MenuLink({
+  to,
+  icon: Icon,
+  label,
+  highlight = false,
+}: {
+  to: string;
+  icon: typeof Search;
+  label: string;
+  highlight?: boolean;
+}) {
+  return (
+    <SheetClose asChild>
+      <Link
+        to={to}
+        className={
+          "flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-extrabold transition-colors " +
+          (highlight
+            ? "bg-primary/10 text-primary hover:bg-primary/15"
+            : "hover:bg-muted")
+        }
+      >
+        <span
+          className={
+            "flex size-9 items-center justify-center rounded-xl " +
+            (highlight
+              ? "bg-primary text-primary-foreground"
+              : "bg-primary/10 text-primary")
+          }
+        >
+          <Icon className="size-4" />
+        </span>
+        {label}
+      </Link>
+    </SheetClose>
   );
 }
 
@@ -438,7 +489,6 @@ function FeaturedPublicListings() {
 }
 
 export default function Landing() {
-  const navigate = useNavigate();
 
   useSeo({
     title: "مکا | املاک صنعتی و اداری شهریار",
@@ -481,51 +531,103 @@ export default function Landing() {
         <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-background" />
       </div>
 
-      <header className="glass sticky top-0 z-50 border-b border-border/60">
+      <header className="glass relative z-40 border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <a href="#" aria-label="مکا - صفحه اصلی">
             <BrandMark compact />
           </a>
 
-          <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-            <Link
-              to="/listings"
-              className="hidden rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground xs:block sm:block"
-            >
-              آگهی‌ها
-            </Link>
-            <Link
-              to="/assistant"
-              className="hidden rounded-xl px-2.5 py-2 text-xs font-extrabold text-primary transition-colors hover:bg-primary/10 sm:block"
-            >
-              دستیار AI
-            </Link>
-            <Link
-              to="/blog"
-              className="hidden rounded-xl px-2.5 py-2 text-xs font-extrabold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:block"
-            >
-              وبلاگ
-            </Link>
+          <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-9 gap-1 rounded-xl px-2.5 text-[11px] font-extrabold sm:px-3 sm:text-xs"
-              onClick={() => navigate("/auth?mode=signIn&returnTo=/dashboard")}
-            >
-              <LogIn className="size-3.5" />
-              ورود
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="h-9 gap-1 rounded-xl px-2.5 text-[11px] font-extrabold sm:px-3 sm:text-xs"
-              onClick={() => navigate("/auth?mode=signUp&returnTo=/dashboard")}
-            >
-              <UserPlus className="size-3.5" />
-              ثبت‌نام
-            </Button>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="size-10 rounded-xl"
+                  aria-label="باز کردن منوی اصلی"
+                >
+                  <Menu className="size-5" />
+                </Button>
+              </SheetTrigger>
+
+              <SheetContent side="right" dir="rtl" className="w-[88vw] max-w-sm p-0">
+                <SheetHeader className="border-b border-border/60 p-5 pe-12 text-right">
+                  <SheetTitle>
+                    <BrandMark compact />
+                  </SheetTitle>
+                  <SheetDescription className="pt-2 text-right leading-6">
+                    دسترسی سریع به خدمات و ابزارهای مکا
+                  </SheetDescription>
+                </SheetHeader>
+
+                <div className="flex-1 overflow-y-auto p-3">
+                  <div className="grid gap-1.5">
+                    <MenuLink to="/listings" icon={Search} label="آگهی‌ها و جستجوی ملک" />
+                    <MenuLink to="/assistant" icon={Bot} label="دستیار هوشمند مکا" highlight />
+                    <MenuLink to="/submit-listing" icon={Building2} label="ثبت آگهی ملک" />
+                    <MenuLink to="/request" icon={ClipboardList} label="ثبت متقاضی / تقاضای ملک" />
+                    <MenuLink to="/blog" icon={Newspaper} label="وبلاگ و راهنما" />
+                    <MenuLink
+                      to="/auth?mode=signIn&returnTo=/dashboard"
+                      icon={LayoutDashboard}
+                      label="ورود به داشبورد"
+                    />
+
+                    <div className="my-2 border-t border-border/60" />
+
+                    <SheetClose asChild>
+                      <a
+                        href={MAPS_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-extrabold transition-colors hover:bg-muted"
+                      >
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <Navigation className="size-4" />
+                        </span>
+                        مسیریابی با نشان
+                      </a>
+                    </SheetClose>
+
+                    <SheetClose asChild>
+                      <a
+                        href={`tel:${PHONE}`}
+                        className="flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-extrabold transition-colors hover:bg-muted"
+                      >
+                        <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          <PhoneCall className="size-4" />
+                        </span>
+                        تماس با مکا
+                      </a>
+                    </SheetClose>
+                  </div>
+                </div>
+
+                <SheetFooter className="border-t border-border/60 p-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <SheetClose asChild>
+                      <Button asChild variant="outline" className="h-11 gap-2 rounded-xl font-extrabold">
+                        <Link to="/auth?mode=signIn&returnTo=/dashboard">
+                          <LogIn className="size-4" />
+                          ورود
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Button asChild className="h-11 gap-2 rounded-xl font-extrabold">
+                        <Link to="/auth?mode=signUp&returnTo=/dashboard">
+                          <UserPlus className="size-4" />
+                          ثبت‌نام
+                        </Link>
+                      </Button>
+                    </SheetClose>
+                  </div>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
