@@ -1,7 +1,8 @@
 /**
  * لینک‌های عمومی نشان. این فایل عمداً هیچ کلید خصوصی نگه نمی‌دارد.
- * کلید Web SDK نشان فقط از VITE_NESHAN_MAP_KEY خوانده می‌شود و باید
- * در پنل نشان به دامنهٔ سایت محدود شود.
+ * کلید Web SDK نشان در تنظیمات مدیر قابل تغییر است و VITE_NESHAN_MAP_KEY
+ * فقط fallback محیطی است. Web SDK key در مرورگر قابل مشاهده است؛ آن را
+ * در پنل نشان به دامنه‌های واقعی سایت محدود کنید.
  */
 export function neshanLocationUrl(lat: number, lng: number, zoom = 16) {
   return `https://neshan.org/maps/@${lat},${lng},${zoom}.0z,0.0p`;
