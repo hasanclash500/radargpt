@@ -291,7 +291,7 @@ export default function PublicStoryStrip({
     return Array.from(map.values());
   }, [rows]);
 
-  if (!rows || groups.length === 0) return null;
+  if (!rows || rows.length === 0) return null;
 
   return (
     <>
@@ -303,36 +303,72 @@ export default function PublicStoryStrip({
       >
         <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
           <div className="flex gap-4 overflow-x-auto pb-1 [scrollbar-width:none]">
-            {groups.map((stories) => {
-              const first = stories[0];
-              return (
-                <button
-                  key={first.ownerUserId}
-                  type="button"
-                  onClick={() => setOpen({ stories, index: 0 })}
-                  className="w-[76px] shrink-0 text-center"
-                >
-                  <span className="mx-auto block rounded-full bg-gradient-to-tr from-primary via-emerald-400 to-amber-400 p-[2px]">
-                    <span className="flex size-[66px] items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted">
-                      {first.advisor.profileImageUrl ? (
-                        <img
-                          src={first.advisor.profileImageUrl}
-                          alt={first.advisor.displayName}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-lg font-black text-primary">
-                          {first.advisor.displayName.slice(0, 1)}
-                        </span>
-                      )}
+            {advisorUserId
+              ? rows.map((story, storyIndex) => (
+                  <button
+                    key={String(story.id)}
+                    type="button"
+                    onClick={() =>
+                      setOpen({ stories: rows, index: storyIndex })
+                    }
+                    className="w-[76px] shrink-0 text-center"
+                  >
+                    <span className="mx-auto block rounded-full bg-gradient-to-tr from-primary via-emerald-400 to-amber-400 p-[2px]">
+                      <span className="flex size-[66px] items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted">
+                        {story.contentType === "image" && story.mediaUrl ? (
+                          <img
+                            src={story.mediaUrl}
+                            alt={story.title || story.advisor.displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : story.advisor.profileImageUrl ? (
+                          <img
+                            src={story.advisor.profileImageUrl}
+                            alt={story.advisor.displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-lg font-black text-primary">
+                            {story.advisor.displayName.slice(0, 1)}
+                          </span>
+                        )}
+                      </span>
                     </span>
-                  </span>
-                  <span className="mt-1.5 block truncate text-[10px] font-extrabold">
-                    {first.advisor.displayName}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="mt-1.5 block truncate text-[10px] font-extrabold">
+                      {story.title || "استوری جدید"}
+                    </span>
+                  </button>
+                ))
+              : groups.map((stories) => {
+                  const first = stories[0];
+                  return (
+                    <button
+                      key={first.ownerUserId}
+                      type="button"
+                      onClick={() => setOpen({ stories, index: 0 })}
+                      className="w-[76px] shrink-0 text-center"
+                    >
+                      <span className="mx-auto block rounded-full bg-gradient-to-tr from-primary via-emerald-400 to-amber-400 p-[2px]">
+                        <span className="flex size-[66px] items-center justify-center overflow-hidden rounded-full border-2 border-background bg-muted">
+                          {first.advisor.profileImageUrl ? (
+                            <img
+                              src={first.advisor.profileImageUrl}
+                              alt={first.advisor.displayName}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-lg font-black text-primary">
+                              {first.advisor.displayName.slice(0, 1)}
+                            </span>
+                          )}
+                        </span>
+                      </span>
+                      <span className="mt-1.5 block truncate text-[10px] font-extrabold">
+                        {first.advisor.displayName}
+                      </span>
+                    </button>
+                  );
+                })}
           </div>
         </div>
       </section>
