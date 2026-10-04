@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
@@ -256,6 +257,8 @@ export default function AssistantPage() {
           </div>
         </div>
       </header>
+
+      {insideDashboard && <DashboardSectionNav />}
 
       <section className="mx-auto max-w-5xl px-3 py-5 sm:px-6 sm:py-8">
         <div className="mb-4 grid gap-3 sm:grid-cols-2">
