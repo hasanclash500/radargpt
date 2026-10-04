@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import MekaBrand from "@/components/MekaBrand";
+import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Sheet,
@@ -69,30 +71,6 @@ const services = [
   },
 ];
 
-function BrandMark({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className={`relative flex ${compact ? "size-9" : "size-11"} items-center justify-center overflow-hidden rounded-2xl border border-primary/30 bg-primary/10 text-primary`}
-      >
-        <div className="absolute inset-1 rounded-xl border border-primary/15" />
-        <Building2 className={compact ? "size-5" : "size-6"} />
-      </div>
-      <div className="leading-none">
-        <p className={`${compact ? "text-base" : "text-xl"} font-extrabold tracking-tight`}>
-          مکا
-        </p>
-        <p className="mt-1 text-[9px] font-bold tracking-[0.18em] text-primary/70" dir="ltr">
-          MEKA
-        </p>
-        <p className="mt-1 text-[10px] font-medium text-muted-foreground">
-          املاک صنعتی و اداری
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function MenuLink({
   to,
   icon: Icon,
@@ -131,112 +109,109 @@ function MenuLink({
   );
 }
 
-function IsometricScene() {
-  const buildings = [
-    { x: "12%", y: "28%", w: 82, h: 112, z: 54, label: "اداری" },
-    { x: "43%", y: "15%", w: 96, h: 150, z: 72, label: "صنعتی" },
-    { x: "61%", y: "48%", w: 118, h: 80, z: 40, label: "سوله" },
+function RadarMapScene() {
+  const pins = [
+    { x: "24%", y: "38%", label: "سوله" },
+    { x: "62%", y: "28%", label: "اداری" },
+    { x: "70%", y: "65%", label: "صنعتی" },
+    { x: "37%", y: "70%", label: "کارگاه" },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 22 }}
+      initial={{ opacity: 0, scale: 0.94, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
-      className="relative mx-auto h-[340px] w-full max-w-[420px] sm:h-[420px]"
-      style={{ perspective: "1000px" }}
-      aria-hidden="true"
+      transition={{ duration: 0.75, delay: 0.12, ease: "easeOut" }}
+      className="relative mx-auto h-[340px] w-full max-w-[430px] sm:h-[430px]"
+      aria-label="نقشه راداری فایل‌های مکا"
     >
-      <div className="absolute inset-4 rounded-[2.5rem] bg-primary/10 blur-3xl" />
-      <div className="absolute -end-8 top-6 size-36 rounded-full bg-gold/10 blur-3xl" />
+      <div className="absolute inset-6 rounded-[2.8rem] bg-primary/10 blur-3xl" />
+      <div className="absolute -start-8 top-8 size-32 rounded-full bg-amber-400/10 blur-3xl" />
 
-      <motion.div
-        animate={{ y: [0, -8, 0], rotateZ: [-0.4, 0.4, -0.4] }}
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-x-7 bottom-12 top-16"
-        style={{
-          transformStyle: "preserve-3d",
-          transform: "rotateX(58deg) rotateZ(-37deg)",
-        }}
-      >
-        <div
-          className="absolute inset-0 rounded-[2.2rem] border border-primary/25 bg-gradient-to-br from-card via-card/95 to-primary/15"
-          style={{
-            boxShadow:
-              "28px 34px 70px color-mix(in oklab, var(--primary) 18%, transparent)",
-          }}
+      <div className="absolute inset-x-5 bottom-8 top-8 overflow-hidden rounded-[2.4rem] border border-primary/25 bg-gradient-to-br from-card via-background to-primary/10 shadow-2xl">
+        <div className="absolute inset-0 grid-overlay opacity-55" />
+
+        <svg
+          className="absolute inset-0 h-full w-full opacity-70"
+          viewBox="0 0 420 380"
+          fill="none"
+          aria-hidden="true"
         >
-          <div className="absolute inset-0 rounded-[2.2rem] opacity-60 grid-overlay" />
-          <div className="absolute inset-5 rounded-[1.8rem] border border-dashed border-primary/25" />
-          <div className="absolute start-[13%] top-[65%] h-1.5 w-[69%] rounded-full bg-primary/20" />
-          <div className="absolute start-[26%] top-[18%] h-[66%] w-1.5 rounded-full bg-gold/15" />
+          <path d="M-30 78 C80 110 126 36 224 78 S360 130 460 80" stroke="currentColor" strokeWidth="7" className="text-primary/14" />
+          <path d="M30 330 C80 250 165 280 210 205 S300 95 402 120" stroke="currentColor" strokeWidth="5" className="text-amber-400/12" />
+          <path d="M82 -20 C120 72 85 130 130 196 S210 292 180 410" stroke="currentColor" strokeWidth="4" className="text-primary/14" />
+          <path d="M300 -20 C260 90 322 132 290 228 S250 324 330 410" stroke="currentColor" strokeWidth="4" className="text-primary/10" />
+        </svg>
 
-          {buildings.map((b, index) => (
-            <motion.div
-              key={b.label}
-              className="absolute"
-              style={{
-                left: b.x,
-                top: b.y,
-                width: b.w,
-                height: b.h,
-                transformStyle: "preserve-3d",
-                transform: `translateZ(${b.z}px)`,
-              }}
-              animate={{ translateZ: [b.z, b.z + 7, b.z] }}
-              transition={{
-                duration: 4.5 + index,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: index * 0.35,
-              }}
-            >
-              <div className="absolute inset-0 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/25 via-card to-card" />
-              <div
-                className="absolute end-[-18px] top-[9px] h-[calc(100%-9px)] w-[18px] rounded-e-lg bg-primary/20"
-                style={{ transform: "skewY(-28deg)", transformOrigin: "left top" }}
-              />
-              <div
-                className="absolute -top-[12px] start-[7px] h-[12px] w-[calc(100%-7px)] rounded-t-lg bg-gradient-to-r from-gold/30 to-primary/25"
-                style={{ transform: "skewX(-55deg)", transformOrigin: "left bottom" }}
-              />
-              <div className="absolute inset-x-3 top-4 grid grid-cols-3 gap-2 opacity-75">
-                {Array.from({ length: Math.min(9, index === 1 ? 9 : 6) }).map((_, i) => (
-                  <span
-                    key={i}
-                    className="h-2.5 rounded-[3px] border border-primary/20 bg-primary/15"
-                  />
-                ))}
-              </div>
-            </motion.div>
-          ))}
+        <div className="absolute left-1/2 top-1/2 size-[68%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/15" />
+        <div className="absolute left-1/2 top-1/2 size-[48%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/20" />
+        <div className="absolute left-1/2 top-1/2 size-[28%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/25" />
+        <div className="absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_24px_rgba(16,185,129,.8)]" />
 
+        <motion.div
+          className="absolute left-1/2 top-1/2 z-10 h-[2px] w-[43%] origin-left rounded-full bg-gradient-to-r from-primary/95 via-primary/55 to-transparent"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: "linear" }}
+          style={{ boxShadow: "0 0 18px rgba(16,185,129,.45)" }}
+        />
+        <motion.div
+          className="absolute left-1/2 top-1/2 z-[5] h-[42%] w-[42%] origin-top-left rounded-br-full bg-gradient-to-br from-primary/18 via-primary/5 to-transparent"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: "linear" }}
+        />
+
+        {pins.map((pin, index) => (
           <motion.div
-            animate={{ scale: [1, 1.35, 1], opacity: [0.9, 0.35, 0.9] }}
-            transition={{ duration: 2.8, repeat: Infinity }}
-            className="absolute end-[14%] top-[14%] size-5 rounded-full border-2 border-gold/60 bg-gold/15"
-            style={{ transform: "translateZ(90px)" }}
-          />
+            key={pin.label}
+            className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+            style={{ left: pin.x, top: pin.y }}
+            animate={{ y: [0, -5, 0] }}
+            transition={{
+              duration: 2.8 + index * 0.35,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <span className="relative flex size-9 items-center justify-center rounded-2xl border border-primary/30 bg-background/90 text-primary shadow-lg backdrop-blur">
+              <Building2 className="size-4" />
+              <motion.span
+                className="absolute inset-0 rounded-2xl border border-primary/40"
+                animate={{ scale: [1, 1.45], opacity: [0.6, 0] }}
+                transition={{ duration: 2.2, repeat: Infinity, delay: index * 0.3 }}
+              />
+            </span>
+            <span className="mt-1 block rounded-full bg-background/85 px-2 py-0.5 text-center text-[8px] font-black shadow-sm">
+              {pin.label}
+            </span>
+          </motion.div>
+        ))}
+
+        <div className="absolute bottom-4 end-4 rounded-2xl border border-border/70 bg-background/85 px-3 py-2 shadow-lg backdrop-blur">
+          <p className="text-[9px] text-muted-foreground">رادار فایل‌های مکا</p>
+          <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-black">
+            <span className="size-2 rounded-full bg-primary animate-pulse" />
+            جستجوی موقعیت‌های فعال
+          </p>
         </div>
-      </motion.div>
+      </div>
 
       <motion.div
-        animate={{ y: [0, -7, 0] }}
+        animate={{ y: [0, -6, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="glass absolute end-0 top-5 rounded-2xl border border-border/70 px-3.5 py-2.5"
+        className="glass absolute end-0 top-2 rounded-2xl border border-border/70 px-3.5 py-2.5"
       >
         <p className="text-[10px] text-muted-foreground">تمرکز منطقه‌ای</p>
-        <p className="mt-0.5 text-xs font-extrabold">شهریار و حومه</p>
+        <p className="mt-0.5 text-xs font-extrabold">شهریار و غرب تهران</p>
       </motion.div>
 
       <motion.div
-        animate={{ y: [0, 7, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-        className="glass absolute bottom-3 start-0 rounded-2xl border border-border/70 px-3.5 py-2.5"
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 5.4, repeat: Infinity, ease: "easeInOut", delay: 0.35 }}
+        className="glass absolute bottom-1 start-0 rounded-2xl border border-border/70 px-3.5 py-2.5"
       >
         <p className="flex items-center gap-1.5 text-xs font-extrabold">
           <BadgeCheck className="size-4 text-primary" />
-          فایل‌های تخصصی کسب‌وکار
+          رادار هوشمند فایل‌های کسب‌وکار
         </p>
       </motion.div>
     </motion.div>
@@ -534,7 +509,7 @@ export default function Landing() {
       <header className="glass relative z-40 border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <a href="#" aria-label="مکا - صفحه اصلی">
-            <BrandMark compact />
+            <MekaBrand compact />
           </a>
 
           <div className="flex items-center gap-2">
@@ -556,7 +531,7 @@ export default function Landing() {
               <SheetContent side="right" dir="rtl" className="w-[88vw] max-w-sm p-0">
                 <SheetHeader className="border-b border-border/60 p-5 pe-12 text-right">
                   <SheetTitle>
-                    <BrandMark compact />
+                    <MekaBrand compact />
                   </SheetTitle>
                   <SheetDescription className="pt-2 text-right leading-6">
                     دسترسی سریع به خدمات و ابزارهای مکا
@@ -569,7 +544,7 @@ export default function Landing() {
                     <MenuLink to="/assistant" icon={Bot} label="دستیار هوشمند مکا" highlight />
                     <MenuLink to="/submit-listing" icon={Building2} label="ثبت آگهی ملک" />
                     <MenuLink to="/request" icon={ClipboardList} label="ثبت متقاضی / تقاضای ملک" />
-                    <MenuLink to="/blog" icon={Newspaper} label="وبلاگ و راهنما" />
+                    <MenuLink to="/blog" icon={Newspaper} label="وبلاگ و راهنما" />\n                    <MenuLink to="/about" icon={BadgeCheck} label="درباره مکا" />
                     <MenuLink
                       to="/auth?mode=signIn&returnTo=/dashboard"
                       icon={LayoutDashboard}
@@ -630,9 +605,7 @@ export default function Landing() {
             </Sheet>
           </div>
         </div>
-      </header>
-
-      <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-14">
+      </header>\n\n      <PublicStoryStrip />\n\n      <MarketIntentHub />\n\n      <section className="relative mx-auto max-w-6xl px-4 pb-12 pt-8 sm:px-6 sm:pb-20 sm:pt-14">
         <div className="grid items-center gap-7 lg:grid-cols-[1.02fr_.98fr] lg:gap-10">
           <motion.div
             initial={{ opacity: 0, y: 26 }}
@@ -694,13 +667,9 @@ export default function Landing() {
             </div>
           </motion.div>
 
-          <IsometricScene />
+          <RadarMapScene />
         </div>
-      </section>
-
-      <MarketIntentHub />
-
-      <FeaturedPublicListings />
+      </section>\n\n      <FeaturedPublicListings />
 
       <section id="services" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <motion.div {...fadeUp} className="mb-7">
@@ -799,7 +768,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
           <div className="grid gap-8 md:grid-cols-[1.4fr_.8fr_.8fr]">
             <div>
-              <BrandMark compact />
+              <MekaBrand compact />
               <h2 className="mt-5 text-lg font-extrabold">
                 مکا؛ املاک صنعتی و اداری شهریار
               </h2>
