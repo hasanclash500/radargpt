@@ -379,7 +379,13 @@ function BlockRenderer({ block }: { block: PageBlock }) {
   return null;
 }
 
-export default function SitePageRenderer({ page }: { page: SitePage }) {
+export default function SitePageRenderer({
+  page,
+  hideHeader = false,
+}: {
+  page: SitePage;
+  hideHeader?: boolean;
+}) {
   useSeo({
     title: page.seoTitle || page.title,
     description: page.seoDescription || page.title,
@@ -391,7 +397,7 @@ export default function SitePageRenderer({ page }: { page: SitePage }) {
 
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
-      <PublicHeader />
+      {!hideHeader && <PublicHeader />}
       {blocks.map((block) => <BlockRenderer key={block.id} block={block} />)}
     </main>
   );
