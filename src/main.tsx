@@ -18,6 +18,9 @@ import "./index.css";
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const DashboardHome = lazy(() => import("./pages/DashboardHome.tsx"));
+const DashboardLeads = lazy(() => import("./pages/DashboardLeads.tsx"));
+const DashboardReminders = lazy(() => import("./pages/DashboardReminders.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const Blog = lazy(() => import("./pages/Blog.tsx"));
@@ -152,7 +155,48 @@ createRoot(document.getElementById("root")!).render(
                 path="/dashboard"
                 element={
                   <RequireAuth>
+                    <DashboardHome />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/listings"
+                element={
+                  <RequireAuth>
                     <Dashboard />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/leads"
+                element={
+                  <RequireAuth
+                    title="ورود به متقاضی‌ها"
+                    description="این بخش برای مدیر و ادمین آگهی است."
+                  >
+                    <DashboardLeads />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/reminders"
+                element={
+                  <RequireAuth
+                    title="ورود به یادآوری‌ها"
+                    description="این بخش برای تیم داخلی مکا است."
+                  >
+                    <DashboardReminders />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/matches"
+                element={
+                  <RequireAuth
+                    title="ورود به مچ هوشمند"
+                    description="این صفحه مخصوص مدیر و ادمین آگهی است."
+                  >
+                    <SmartMatches />
                   </RequireAuth>
                 }
               />
