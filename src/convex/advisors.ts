@@ -121,6 +121,8 @@ export const getMyProfile = query({
       allowed: true,
       exists: true,
       role,
+      profileImageStorageId: row.profileImageStorageId,
+      coverImageStorageId: row.coverImageStorageId,
       ...(await resolveProfile(ctx, row)),
     };
   },
