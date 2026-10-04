@@ -15,7 +15,9 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 
 // Lazy load route components for better code splitting
-const Landing = lazy(() => import("./pages/Landing.tsx"));
+const Homepage = lazy(() => import("./pages/Homepage.tsx"));
+const SitePage = lazy(() => import("./pages/SitePage.tsx"));
+const PageBuilder = lazy(() => import("./pages/PageBuilder.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const DashboardHome = lazy(() => import("./pages/DashboardHome.tsx"));
@@ -143,8 +145,9 @@ createRoot(document.getElementById("root")!).render(
           <RouteSyncer />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
-              <Route path="/" element={<Landing />} />
+              <Route path="/" element={<Homepage />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/p/:slug" element={<SitePage />} />
               <Route path="/blog/:slug" element={<BlogArticle />} />
               <Route path="/listings" element={<PublicListings />} />
               <Route path="/listings/:slug" element={<PublicListing />} />
@@ -209,6 +212,17 @@ createRoot(document.getElementById("root")!).render(
                     description="این صفحه مخصوص مدیر و ادمین آگهی است."
                   >
                     <SmartMatches />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/pages"
+                element={
+                  <RequireAuth
+                    title="ورود به صفحه‌ساز"
+                    description="مدیریت لندینگ‌ها و برگه‌های سایت مکا"
+                  >
+                    <PageBuilder />
                   </RequireAuth>
                 }
               />
