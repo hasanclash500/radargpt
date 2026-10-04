@@ -143,19 +143,6 @@ export const ensureHomepageDraft = mutation({
       isHomepage: true,
       blocks: normalizeBlocks([
         {
-          type: "hero",
-          props: {
-            eyebrow: "مشاور تخصصی املاک کسب‌وکار در شهریار",
-            title: "فضای مناسب کار شما",
-            highlight: "از سوله تا دفتر اداری",
-            text: "مکا برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛ با تمرکز روی موقعیت‌های واقعی کسب‌وکار و ارتباط مستقیم.",
-            primaryLabel: "مشاهده آگهی‌ها",
-            primaryHref: "/listings",
-            secondaryLabel: "ثبت آگهی ملک",
-            secondaryHref: "/submit-listing",
-          },
-        },
-        {
           type: "intentHub",
           props: {
             title: "چه کاری می‌خواهید انجام دهید؟",
@@ -168,6 +155,19 @@ export const ensureHomepageDraft = mutation({
               "زمین صنعتی",
               "دفتر اداری",
             ],
+          },
+        },
+        {
+          type: "hero",
+          props: {
+            eyebrow: "مشاور تخصصی املاک کسب‌وکار در شهریار",
+            title: "فضای مناسب کار شما",
+            highlight: "از سوله تا دفتر اداری",
+            text: "مکا برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛ با تمرکز روی موقعیت‌های واقعی کسب‌وکار و ارتباط مستقیم.",
+            primaryLabel: "مشاهده آگهی‌ها",
+            primaryHref: "/listings",
+            secondaryLabel: "ثبت آگهی ملک",
+            secondaryHref: "/submit-listing",
           },
         },
         {
