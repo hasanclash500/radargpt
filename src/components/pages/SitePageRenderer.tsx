@@ -117,6 +117,7 @@ function PublicHeader() {
                   ["/submit-listing", Building2, "ثبت آگهی ملک"],
                   ["/request", ClipboardList, "ثبت تقاضای ملک"],
                   ["/blog", Newspaper, "وبلاگ و راهنما"],
+                  ["/about", Sparkles, "درباره مکا"],
                 ].map(([href, Icon, label]: any) => (
                   <SheetClose asChild key={href}>
                     <Link to={href} className="flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-extrabold hover:bg-muted">
