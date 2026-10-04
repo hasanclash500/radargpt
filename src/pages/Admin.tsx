@@ -1,5 +1,6 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import IntegrationSettings from "@/components/admin/IntegrationSettings";
+import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
 import ListingFieldConfigManager from "@/components/admin/ListingFieldConfigManager";
 import UserManagement from "@/components/admin/UserManagement";
 import { Badge } from "@/components/ui/badge";
@@ -234,6 +235,8 @@ export default function Admin() {
             <ThemeToggle />
           </div>
         </header>
+
+        <DashboardSectionNav />
 
         <Card>
           <CardHeader>
