@@ -38,6 +38,7 @@ const About = lazy(() => import("./pages/About.tsx"));
 const AdvisorProfile = lazy(() => import("./pages/AdvisorProfile.tsx"));
 const AdvisorProfileEditor = lazy(() => import("./pages/AdvisorProfileEditor.tsx"));
 const StoryManager = lazy(() => import("./pages/StoryManager.tsx"));
+const AdvisorChat = lazy(() => import("./pages/AdvisorChat.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -229,6 +230,17 @@ createRoot(document.getElementById("root")!).render(
                     description="مدیریت صفحه عمومی مشاور مکا"
                   >
                     <AdvisorProfileEditor />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/chat"
+                element={
+                  <RequireAuth
+                    title="ورود به چت مشاوران"
+                    description="گفت‌وگوی داخلی مدیر و مشاوران مکا"
+                  >
+                    <AdvisorChat />
                   </RequireAuth>
                 }
               />
