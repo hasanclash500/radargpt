@@ -73,7 +73,7 @@ export default function DashboardHome() {
       title: "دستیار هوشمند مکا",
       description:
         "جستجوی کلامی و صوتی در آگهی‌های خود مکا و پاسخ اطلاعات ملکی و حقوقی.",
-      to: "/assistant",
+      to: "/dashboard/assistant",
       icon: Bot,
       badge: "AI",
     },
