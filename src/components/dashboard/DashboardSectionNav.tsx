@@ -9,6 +9,8 @@ import {
   PanelsTopLeft,
   Settings,
   UserRoundSearch,
+  UserRound,
+  Play,
 } from "lucide-react";
 import { Link, useLocation } from "react-router";
 
@@ -43,6 +45,18 @@ export default function DashboardSectionNav() {
       label: "دستیار",
       icon: Bot,
       show: true,
+    },
+    {
+      to: "/dashboard/profile",
+      label: "پروفایل",
+      icon: UserRound,
+      show: role.role === "manager" || role.role === "consultant",
+    },
+    {
+      to: "/dashboard/stories",
+      label: "استوری",
+      icon: Play,
+      show: role.role === "manager" || role.role === "consultant",
     },
     {
       to: "/dashboard/leads",
