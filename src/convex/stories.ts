@@ -158,7 +158,12 @@ export const listManage = query({
             .order("desc")
             .take(150);
 
-    return await Promise.all(rows.map((row) => resolveStory(ctx, row)));
+    return await Promise.all(
+      rows.map(async (row) => ({
+        ...(await resolveStory(ctx, row)),
+        storageId: row.storageId,
+      })),
+    );
   },
 });
 
