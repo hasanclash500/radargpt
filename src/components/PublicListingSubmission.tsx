@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 function n(value: string) {
@@ -31,6 +32,7 @@ const MAX_PUBLIC_IMAGES = 10;
 const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
 
 export default function PublicListingSubmission() {
+  const [searchParams] = useSearchParams();
   const settings = useQuery(api.folders.getSettings, {});
   const submit = useMutation(api.listings.submitPublicListing);
   const generateUploadUrl = useMutation(api.listings.generatePublicListingUploadUrl);
@@ -43,8 +45,8 @@ export default function PublicListingSubmission() {
   const [form, setForm] = useState({
     phone: "",
     city: "شهریار",
-    propertyType: "",
-    dealType: "فروش",
+    propertyType: searchParams.get("property") || "",
+    dealType: searchParams.get("deal") || "فروش",
     area: "",
     price: "",
     deposit: "",
