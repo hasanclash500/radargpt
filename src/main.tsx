@@ -31,6 +31,7 @@ const PublicListing = lazy(() => import("./pages/PublicListing.tsx"));
 const AssistantPage = lazy(() => import("./pages/Assistant.tsx"));
 const SmartMatches = lazy(() => import("./pages/SmartMatches.tsx"));
 const PropertyRequest = lazy(() => import("./pages/PropertyRequest.tsx"));
+const SubmitListing = lazy(() => import("./pages/SubmitListing.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -149,6 +150,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/listings/:slug" element={<PublicListing />} />
               <Route path="/assistant" element={<AssistantPage />} />
               <Route path="/request" element={<PropertyRequest />} />
+              <Route path="/submit-listing" element={<SubmitListing />} />
               <Route
                 path="/dashboard/assistant"
                 element={
