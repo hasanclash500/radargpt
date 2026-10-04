@@ -12,7 +12,6 @@ import {
   Loader2,
   MapPinned,
   Send,
-  Smartphone,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -197,18 +196,7 @@ export default function PublicListingSubmission() {
   return (
     <section id="submit-listing" className="border-y border-border/60 bg-card/30 py-14 sm:py-20">
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-xs font-extrabold text-primary">
-            <Smartphone className="size-4" />
-            بدون نیاز به ساخت حساب
-          </span>
-          <h2 className="mt-4 text-2xl font-black sm:text-3xl">آگهی ملک خود را با شماره موبایل ثبت کنید</h2>
-          <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            مشخصات، موقعیت و عکس‌های ملک را ثبت کنید. آگهی ابتدا برای مدیر و ادمین مکا ارسال می‌شود و فقط پس از بررسی و تأیید در سایت نمایش داده خواهد شد.
-          </p>
-        </div>
-
-        <div className="mx-auto mt-8 max-w-3xl rounded-3xl border border-border/70 bg-background/80 p-4 shadow-sm sm:p-7">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-border/70 bg-background/80 p-4 shadow-sm sm:p-7">
           {tracking ? (
             <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/8 p-5 text-center">
               <CheckCircle2 className="mx-auto size-9 text-emerald-600" />
