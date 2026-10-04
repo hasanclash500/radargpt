@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import PropertyLeadSection from "@/components/PropertyLeadSection";
 import PublicListingSubmission from "@/components/PublicListingSubmission";
 import { api } from "@/convex/_generated/api";
 import { formatArea, formatPrice } from "@/lib/format";
@@ -56,11 +55,6 @@ const services = [
     icon: Building2,
     title: "املاک اداری",
     text: "دفتر کار، ساختمان اداری، فضای شرکتی و موقعیت‌های مناسب کسب‌وکار.",
-  },
-  {
-    icon: Warehouse,
-    title: "فایل‌های شهریار",
-    text: "تمرکز محلی روی شهریار و محدوده‌های صنعتی و اداری اطراف.",
   },
 ];
 
@@ -319,13 +313,13 @@ function MarketIntentHub() {
           <Building2 className="mx-auto size-6 text-primary" />
           <p className="mt-2 text-xs font-extrabold sm:text-sm">ثبت آگهی ملک</p>
         </a>
-        <a
-          href="#property-leads"
+        <Link
+          to="/request"
           className="rounded-2xl border border-border/70 bg-card p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
         >
           <ClipboardList className="mx-auto size-6 text-primary" />
           <p className="mt-2 text-xs font-extrabold sm:text-sm">ثبت تقاضای ملک</p>
-        </a>
+        </Link>
       </div>
     </section>
   );
@@ -618,7 +612,7 @@ export default function Landing() {
           </div>
         </motion.div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           {services.map((service, index) => (
             <motion.article
               key={service.title}
@@ -635,8 +629,6 @@ export default function Landing() {
           ))}
         </div>
       </section>
-
-      <PropertyLeadSection />
 
       <PublicListingSubmission />
 
