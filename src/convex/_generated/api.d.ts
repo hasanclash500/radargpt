@@ -4,6 +4,7 @@
  * To regenerate from Convex, run `npx convex codegen`.
  */
 import type * as assistant from "../assistant.js";
+import type * as advisors from "../advisors.js";
 import type * as auth from "../auth.js";
 import type * as folders from "../folders.js";
 import type * as ingest from "../ingest.js";
@@ -15,6 +16,7 @@ import type * as pages from "../pages.js";
 import type * as posts from "../posts.js";
 import type * as reminders from "../reminders.js";
 import type * as roles from "../roles.js";
+import type * as stories from "../stories.js";
 import type * as users from "../users.js";
 
 import type {
@@ -25,6 +27,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   assistant: typeof assistant;
+  advisors: typeof advisors;
   auth: typeof auth;
   folders: typeof folders;
   ingest: typeof ingest;
@@ -36,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   posts: typeof posts;
   reminders: typeof reminders;
   roles: typeof roles;
+  stories: typeof stories;
   users: typeof users;
 }>;
 
