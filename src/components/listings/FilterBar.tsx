@@ -141,21 +141,22 @@ export default function FilterBar({
         {/* بازه قیمت */}
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">
-            بازه قیمت (میلیون تومان)
+            بازه قیمت
           </Label>
+          <p className="text-[9px] leading-4 text-muted-foreground">
+            میلیون تومان؛ «۴ میلیارد» یا مبلغ کامل تومان هم پذیرفته می‌شود.
+          </p>
           <div className="grid grid-cols-2 gap-2">
             <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
+              type="text"
+              inputMode="text"
               placeholder="حداقل"
               value={filters.priceMin}
               onChange={(e) => onChange({ priceMin: e.target.value })}
             />
             <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
+              type="text"
+              inputMode="text"
               placeholder="حداکثر"
               value={filters.priceMax}
               onChange={(e) => onChange({ priceMax: e.target.value })}
