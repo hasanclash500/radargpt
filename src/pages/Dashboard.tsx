@@ -6,7 +6,6 @@ import UploadZone from "@/components/listings/UploadZone";
 import ManualListingDialog from "@/components/listings/ManualListingDialog";
 import PublicContactDialog from "@/components/listings/PublicContactDialog";
 import PendingPublicationPanel from "@/components/listings/PendingPublicationPanel";
-import ListingReminderPanel from "@/components/listings/ListingReminderPanel";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
@@ -378,6 +377,12 @@ export default function Dashboard() {
             )}
           </div>
           <div className="flex w-full items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&>*]:shrink-0 sm:w-auto sm:gap-2 sm:overflow-visible sm:pb-0">
+            <Button asChild variant="outline" size="sm" className="gap-1.5">
+              <Link to="/dashboard" title="خانه داشبورد">
+                <Radar className="size-4" />
+                <span className="hidden sm:inline">داشبورد</span>
+              </Link>
+            </Button>
             {isManager && (
               <Button asChild variant="outline" size="sm" className="gap-1.5">
                 <Link to="/dashboard/blog" title="نوشتن و مدیریت مقاله‌ها">
@@ -396,10 +401,10 @@ export default function Dashboard() {
             )}
             {canSeePhone && (
               <Button asChild variant="outline" size="sm" className="gap-1.5">
-                <a href="#listing-reminders" title="یادآوری پیگیری آگهی‌ها">
+                <Link to="/dashboard/reminders" title="یادآوری پیگیری آگهی‌ها">
                   <BellRing className="size-4" />
                   <span className="hidden sm:inline">یادآوری</span>
-                </a>
+                </Link>
               </Button>
             )}
             {canSeePhone && <PublicContactDialog />}
@@ -475,11 +480,6 @@ export default function Dashboard() {
 
         {canManageListings && <PendingPublicationPanel />}
 
-        {canSeePhone && (
-          <div id="listing-reminders" className="scroll-mt-24">
-            <ListingReminderPanel />
-          </div>
-        )}
 
         {!parsing && displayListings.length === 0 && !loadingServer && (
           <section className="space-y-6">
