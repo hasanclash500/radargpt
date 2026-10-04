@@ -4,6 +4,7 @@
  * To regenerate from Convex, run `npx convex codegen`.
  */
 import type * as assistant from "../assistant.js";
+import type * as advisorChat from "../advisorChat.js";
 import type * as advisors from "../advisors.js";
 import type * as auth from "../auth.js";
 import type * as folders from "../folders.js";
@@ -27,6 +28,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   assistant: typeof assistant;
+  advisorChat: typeof advisorChat;
   advisors: typeof advisors;
   auth: typeof auth;
   folders: typeof folders;
