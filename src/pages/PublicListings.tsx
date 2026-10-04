@@ -260,9 +260,6 @@ export default function PublicListings() {
             <Factory className="size-4" />جستجوی فایل مکا
           </span>
           <h1 className="mt-4 text-2xl font-black sm:text-4xl">آگهی‌های صنعتی و اداری</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-            فیلترها برای کاربران عمومی طراحی شده‌اند؛ آدرس دقیق، محله و اطلاعات داخلی مالک همچنان خصوصی می‌مانند.
-          </p>
         </div>
       </section>
 
