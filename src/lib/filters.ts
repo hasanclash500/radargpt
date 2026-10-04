@@ -57,10 +57,38 @@ export const ROOMS_OPTIONS: { value: string; label: string }[] = [
   { value: "4+", label: "۴ خواب و بیشتر" },
 ];
 
+function normalizeDigits(value: string) {
+  return value
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+}
+
 function num(value: string): number | null {
   if (value.trim() === "") return null;
-  const n = Number(value);
+  const n = Number(normalizeDigits(value).replace(/[,،٬\s]/g, ""));
   return Number.isFinite(n) ? n : null;
+}
+
+function moneyMillion(value: string): number | null {
+  const raw = normalizeDigits(value)
+    .trim()
+    .toLowerCase()
+    .replace(/تومان|تومن/g, "")
+    .trim();
+  if (!raw) return null;
+  const hasBillion = /میلیارد/.test(raw);
+  const hasMillion = /میلیون/.test(raw);
+  const n = Number(
+    raw
+      .replace(/میلیارد|میلیون/g, "")
+      .replace(/[,،٬\s]/g, "")
+      .replace(/٫/g, "."),
+  );
+  if (!Number.isFinite(n) || n < 0) return null;
+  if (hasBillion) return n * 1000;
+  if (hasMillion) return n;
+  if (n >= 1_000_000) return n / 1_000_000;
+  return n;
 }
 
 /**
@@ -90,8 +118,8 @@ function matchesRooms(listing: Listing, rooms: string): boolean {
 /** اعمال جستجو، فیلترها و مرتب‌سازی روی لیست آگهی‌ها. */
 export function applyFilters(listings: Listing[], f: Filters): Listing[] {
   const q = f.query.trim().toLowerCase();
-  const pMin = num(f.priceMin);
-  const pMax = num(f.priceMax);
+  const pMin = moneyMillion(f.priceMin);
+  const pMax = moneyMillion(f.priceMax);
   const aMin = num(f.areaMin);
   const aMax = num(f.areaMax);
 
@@ -100,8 +128,11 @@ export function applyFilters(listings: Listing[], f: Filters): Listing[] {
     if (f.deal !== "همه" && l.dealType !== f.deal) return false;
     if (f.property !== "همه" && l.propertyType !== f.property) return false;
     if (!matchesRooms(l, f.rooms)) return false;
-    if (pMin !== null && l.priceMillion < pMin) return false;
-    if (pMax !== null && l.priceMillion > pMax) return false;
+    if (pMin !== null || pMax !== null) {
+      if (!l.priceMillion || l.priceMillion <= 0) return false;
+      if (pMin !== null && l.priceMillion < pMin) return false;
+      if (pMax !== null && l.priceMillion > pMax) return false;
+    }
     if (aMin !== null && (l.area === null || l.area < aMin)) return false;
     if (aMax !== null && (l.area === null || l.area > aMax)) return false;
     // تاریخ ثبت؛ تاریخ نامشخص با هر بازه‌ای سازگار نیست
@@ -118,7 +149,14 @@ export function applyFilters(listings: Listing[], f: Filters): Listing[] {
   const key = f.sort.split("-")[0];
 
   filtered.sort((a, b) => {
-    if (key === "price") return (a.priceMillion - b.priceMillion) * dir;
+    if (key === "price") {
+      const av = a.priceMillion > 0 ? a.priceMillion : null;
+      const bv = b.priceMillion > 0 ? b.priceMillion : null;
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1;
+      if (bv === null) return -1;
+      return (av - bv) * dir;
+    }
     if (key === "area")
       return ((a.area ?? -1) - (b.area ?? -1)) * dir;
     // تاریخ: خالی‌ها همیشه انتها
