@@ -216,12 +216,12 @@ export default function Admin() {
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold">
-              {isManager ? "مدیریت کامل مکا" : "مدیریت آگهی‌ها"}
+              {isManager ? "مدیریت و تنظیمات مکا" : "تنظیمات آگهی‌ها"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {isManager
-                ? "تنظیمات سایت، کاربران، آگهی‌ها، پیام‌رسان‌ها و محتوای دفتر"
-                : "منابع، دسته‌بندی‌ها، درخواست‌ها و تنظیمات مربوط به آگهی‌ها"}
+                ? "تنظیمات سایت، کاربران، اتصال‌ها، فیلدها و منابع سیستم"
+                : "منابع، دسته‌بندی‌ها و تنظیمات مربوط به آگهی‌ها"}
             </p>
           </div>
           <div className="flex items-center gap-2">
