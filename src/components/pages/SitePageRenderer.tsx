@@ -107,7 +107,7 @@ function PublicHeader() {
             </SheetTrigger>
             <SheetContent side="right" dir="rtl" className="w-[88vw] max-w-sm p-0">
               <SheetHeader className="border-b border-border/60 p-5 pe-12 text-right">
-                <SheetTitle><Brand /></SheetTitle>
+                <SheetTitle><MekaBrand compact /></SheetTitle>
                 <SheetDescription className="pt-2 text-right">دسترسی سریع به خدمات مکا</SheetDescription>
               </SheetHeader>
               <div className="flex-1 space-y-1 overflow-y-auto p-3">
