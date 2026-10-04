@@ -16,6 +16,8 @@ import {
   Settings,
   Sparkles,
   UserRoundSearch,
+  UserRound,
+  Play,
   Users,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
@@ -77,6 +79,24 @@ export default function DashboardHome() {
       to: "/dashboard/assistant",
       icon: Bot,
       badge: "AI",
+    },
+    {
+      title: "پروفایل مشاور",
+      description:
+        "بیوگرافی، عکس پروفایل، تلفن، واتساپ، اینستاگرام، تلگرام و صفحه عمومی خودتان.",
+      to: "/dashboard/profile",
+      icon: UserRound,
+      badge: "عمومی",
+      restricted: !(role === "manager" || role === "consultant"),
+    },
+    {
+      title: "مدیریت استوری",
+      description:
+        "ساخت استوری عکس، ویدئو ۱۵ ثانیه، متن، لینک و استیکر برای نمایش عمومی.",
+      to: "/dashboard/stories",
+      icon: Play,
+      badge: "Story",
+      restricted: !(role === "manager" || role === "consultant"),
     },
     {
       title: "متقاضی‌ها",
