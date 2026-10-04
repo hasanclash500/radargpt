@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
@@ -161,6 +162,8 @@ export default function SmartMatches() {
           <ThemeToggle />
         </div>
       </header>
+
+      <DashboardSectionNav />
 
       <section className="mx-auto max-w-6xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">
         <div className="rounded-3xl border border-primary/20 bg-primary/[0.04] p-5">
