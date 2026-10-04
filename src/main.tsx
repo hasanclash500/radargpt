@@ -34,6 +34,10 @@ const AssistantPage = lazy(() => import("./pages/Assistant.tsx"));
 const SmartMatches = lazy(() => import("./pages/SmartMatches.tsx"));
 const PropertyRequest = lazy(() => import("./pages/PropertyRequest.tsx"));
 const SubmitListing = lazy(() => import("./pages/SubmitListing.tsx"));
+const About = lazy(() => import("./pages/About.tsx"));
+const AdvisorProfile = lazy(() => import("./pages/AdvisorProfile.tsx"));
+const AdvisorProfileEditor = lazy(() => import("./pages/AdvisorProfileEditor.tsx"));
+const StoryManager = lazy(() => import("./pages/StoryManager.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
@@ -154,6 +158,8 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/assistant" element={<AssistantPage />} />
               <Route path="/request" element={<PropertyRequest />} />
               <Route path="/submit-listing" element={<SubmitListing />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/consultants/:slug" element={<AdvisorProfile />} />
               <Route
                 path="/dashboard/assistant"
                 element={
@@ -212,6 +218,28 @@ createRoot(document.getElementById("root")!).render(
                     description="این صفحه مخصوص مدیر و ادمین آگهی است."
                   >
                     <SmartMatches />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/profile"
+                element={
+                  <RequireAuth
+                    title="ورود به پروفایل مشاور"
+                    description="مدیریت صفحه عمومی مشاور مکا"
+                  >
+                    <AdvisorProfileEditor />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/stories"
+                element={
+                  <RequireAuth
+                    title="ورود به مدیریت استوری"
+                    description="ایجاد و مدیریت استوری مشاوران مکا"
+                  >
+                    <StoryManager />
                   </RequireAuth>
                 }
               />
