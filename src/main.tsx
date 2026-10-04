@@ -148,6 +148,14 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/listings/:slug" element={<PublicListing />} />
               <Route path="/assistant" element={<AssistantPage />} />
               <Route
+                path="/dashboard/assistant"
+                element={
+                  <RequireAuth>
+                    <AssistantPage />
+                  </RequireAuth>
+                }
+              />
+              <Route
                 path="/auth"
                 element={<AuthPage redirectAfterAuth="/dashboard" />}
               />
