@@ -191,6 +191,74 @@ const schema = defineSchema(
       .index("by_public_published", ["isPublic", "publishedAt"])
       .index("by_publication_status", ["publicationStatus"]),
 
+    /**
+     * پروفایل عمومی مشاور/مدیر. اطلاعات تماس و شبکه‌های اجتماعی فقط در صورت
+     * فعال بودن publicProfile در صفحه عمومی نمایش داده می‌شوند.
+     */
+    advisorProfiles: defineTable({
+      userId: v.string(),
+      slug: v.string(),
+      publicProfile: v.boolean(),
+      headline: v.optional(v.string()),
+      bio: v.optional(v.string()),
+      city: v.optional(v.string()),
+      region: v.optional(v.string()),
+      publicPhone: v.optional(v.string()),
+      whatsapp: v.optional(v.string()),
+      instagram: v.optional(v.string()),
+      telegram: v.optional(v.string()),
+      website: v.optional(v.string()),
+      specialties: v.optional(v.array(v.string())),
+      profileImageStorageId: v.optional(v.id("_storage")),
+      coverImageStorageId: v.optional(v.id("_storage")),
+      verified: v.optional(v.boolean()),
+      successfulDeals: v.optional(v.number()),
+      activeRequests: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_user", ["userId"])
+      .index("by_slug", ["slug"])
+      .index("by_public_updated", ["publicProfile", "updatedAt"]),
+
+    /**
+     * استوری‌های عمومی مشاوران. هر رکورد یک فریم استوری است و در زمان انتشار
+     * به‌طور پیش‌فرض ۲۴ ساعت فعال می‌ماند. زمان نمایش هر فریم حداکثر ۱۵ ثانیه است.
+     */
+    advisorStories: defineTable({
+      ownerUserId: v.string(),
+      createdByUserId: v.string(),
+      title: v.optional(v.string()),
+      body: v.optional(v.string()),
+      contentType: v.union(
+        v.literal("image"),
+        v.literal("video"),
+        v.literal("text"),
+      ),
+      storageId: v.optional(v.id("_storage")),
+      linkUrl: v.optional(v.string()),
+      linkLabel: v.optional(v.string()),
+      stickerText: v.optional(v.string()),
+      stickerStyle: v.optional(v.string()),
+      background: v.optional(v.string()),
+      durationSec: v.number(),
+      status: v.union(
+        v.literal("draft"),
+        v.literal("published"),
+        v.literal("archived"),
+        v.literal("scheduled"),
+      ),
+      startsAt: v.optional(v.number()),
+      expiresAt: v.optional(v.number()),
+      publishedAt: v.optional(v.number()),
+      viewCount: v.optional(v.number()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_owner_updated", ["ownerUserId", "updatedAt"])
+      .index("by_status_starts", ["status", "startsAt"])
+      .index("by_status_expires", ["status", "expiresAt"]),
+
     /** یادآوری پیگیری آگهی؛ برای هر آگهی حداکثر دو تاریخ قابل تنظیم است. */
     listingReminders: defineTable({
       listingId: v.id("listings"),
