@@ -11,6 +11,7 @@ import type * as integrations from "../integrations.js";
 import type * as leads from "../leads.js";
 import type * as listings from "../listings.js";
 import type * as matches from "../matches.js";
+import type * as pages from "../pages.js";
 import type * as posts from "../posts.js";
 import type * as reminders from "../reminders.js";
 import type * as roles from "../roles.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   leads: typeof leads;
   listings: typeof listings;
   matches: typeof matches;
+  pages: typeof pages;
   posts: typeof posts;
   reminders: typeof reminders;
   roles: typeof roles;
