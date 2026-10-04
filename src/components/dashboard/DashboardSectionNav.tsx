@@ -70,7 +70,7 @@ export default function DashboardSectionNav() {
   ];
 
   return (
-    <nav className="sticky top-16 z-40 border-b border-border/60 bg-background/92 backdrop-blur">
+    <nav className="z-30 border-b border-border/60 bg-background/92 backdrop-blur">
       <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none] sm:px-6">
         {items
           .filter((item) => item.show)
