@@ -324,6 +324,11 @@ const schema = defineSchema(
       customCities: v.optional(v.array(v.string())),
       customDeals: v.optional(v.array(v.string())),
       customPropertyTypes: v.optional(v.array(v.string())),
+      /** نقشهٔ پیش‌فرض فرم‌ها؛ کلید نشان یک Web SDK key سمت مرورگر است. */
+      mapProvider: v.optional(
+        v.union(v.literal("neshan"), v.literal("osm")),
+      ),
+      neshanMapKey: v.optional(v.string()),
       /** سن آگهی برای ورود به صف پیگیری، بر حسب ماه؛ پیش‌فرض ۱۱ ماه */
       reminderAgeMonths: v.optional(v.number()),
       /** مدت نمایش یادآوریِ سررسیدشده؛ پیش‌فرض ۱۰ روز */
