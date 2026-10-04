@@ -11,6 +11,7 @@ import {
   Building2,
   FileText,
   LayoutDashboard,
+  MessageCircle,
   PanelsTopLeft,
   LogOut,
   Settings,
@@ -79,6 +80,15 @@ export default function DashboardHome() {
       to: "/dashboard/assistant",
       icon: Bot,
       badge: "AI",
+    },
+    {
+      title: "چت مشاوران",
+      description:
+        "گفت‌وگوی خصوصی و لحظه‌ای بین مدیر و مشاوران مکا در یک صفحه مستقل.",
+      to: "/dashboard/chat",
+      icon: MessageCircle,
+      badge: "داخلی",
+      restricted: !(role === "manager" || role === "consultant"),
     },
     {
       title: "پروفایل مشاور",
