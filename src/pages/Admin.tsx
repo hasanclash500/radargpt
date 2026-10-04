@@ -26,13 +26,21 @@ import { useAction, useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
   CheckCircle2,
+  Building2,
   CloudDownload,
+  Database,
+  FolderOpen,
   Loader2,
+  MapPinned,
+  PlugZap,
   ShieldCheck,
+  SlidersHorizontal,
+  Tags,
   TriangleAlert,
+  UsersRound,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -66,6 +74,7 @@ export default function Admin() {
   const createFolder = useMutation(api.folders.createFolder);
   const deleteFolder = useMutation(api.folders.deleteFolder);
   const importNow = useAction(api.ingest.importNow);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const ensuredRef = useRef(false);
   useEffect(() => {
@@ -78,6 +87,21 @@ export default function Admin() {
   const isManager = access?.isManager ?? role === "manager";
   const canManageListings =
     access?.canManageListings ?? (role === "manager" || role === "admin");
+
+  const requestedTab = searchParams.get("tab") ?? "source";
+  const managerTabs = new Set([
+    "source",
+    "office",
+    "categories",
+    "fields",
+    "folders",
+    "map",
+    "integrations",
+    "users",
+  ]);
+  const adminTabs = new Set(["source", "categories", "fields", "folders"]);
+  const allowedTabs = isManager ? managerTabs : adminTabs;
+  const activeTab = allowedTabs.has(requestedTab) ? requestedTab : "source";
 
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -211,18 +235,67 @@ export default function Admin() {
     );
   }
 
+  const tabs = [
+    {
+      id: "source",
+      label: "ورود و منبع آگهی",
+      icon: Database,
+      show: true,
+    },
+    {
+      id: "office",
+      label: "اطلاعات دفتر",
+      icon: Building2,
+      show: isManager,
+    },
+    {
+      id: "categories",
+      label: "دسته‌بندی‌ها",
+      icon: Tags,
+      show: true,
+    },
+    {
+      id: "fields",
+      label: "فیلدهای آگهی",
+      icon: SlidersHorizontal,
+      show: true,
+    },
+    {
+      id: "folders",
+      label: "زونکن‌ها",
+      icon: FolderOpen,
+      show: true,
+    },
+    {
+      id: "map",
+      label: "نقشه",
+      icon: MapPinned,
+      show: isManager,
+    },
+    {
+      id: "integrations",
+      label: "اتصال‌ها و هوش مصنوعی",
+      icon: PlugZap,
+      show: isManager,
+    },
+    {
+      id: "users",
+      label: "کاربران و نقش‌ها",
+      icon: UsersRound,
+      show: isManager,
+    },
+  ].filter((tab) => tab.show);
+
   return (
-    <main className="min-h-screen bg-background px-3 py-5 text-foreground sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-4xl space-y-6">
+    <main className="min-h-screen bg-muted/20 px-3 py-5 text-foreground sm:px-4 sm:py-8" dir="rtl">
+      <div className="mx-auto max-w-6xl space-y-5">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-2xl font-black">
               {isManager ? "مدیریت و تنظیمات مکا" : "تنظیمات آگهی‌ها"}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isManager
-                ? "تنظیمات سایت، کاربران، اتصال‌ها، فیلدها و منابع سیستم"
-                : "منابع، دسته‌بندی‌ها و تنظیمات مربوط به آگهی‌ها"}
+            <p className="mt-1 text-sm leading-7 text-muted-foreground">
+              هر بخش به‌صورت مستقل باز می‌شود تا صفحه مدیریت شلوغ نباشد.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -239,83 +312,112 @@ export default function Admin() {
 
         <DashboardSectionNav />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <CloudDownload className="size-5" />
-              منبع و ورود گروهی آگهی‌ها
-            </CardTitle>
-            <CardDescription>
-              فایل HTML، JSON یا CSV منبع را تنظیم کنید و در صورت نیاز همین حالا
-              همگام‌سازی را اجرا کنید.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="sourceUrl">نشانی فایل منبع</Label>
-              <Input
-                id="sourceUrl"
-                dir="ltr"
-                placeholder="https://example.com/listings.csv"
-                value={draft.sourceUrl}
-                onChange={(e) =>
-                  setSourceDraft({ ...draft, sourceUrl: e.target.value })
-                }
-              />
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => void saveSource()} disabled={saving}>
-                {saving && <Loader2 className="size-4 animate-spin" />}
-                ذخیره منبع
-              </Button>
-              <Button
-                onClick={() => void runImport()}
-                disabled={importing || !draft.sourceUrl.trim()}
-                variant="secondary"
-              >
-                {importing ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <CloudDownload className="size-4" />
-                )}
-                همین حالا همگام کن
-              </Button>
-            </div>
+        <nav className="overflow-x-auto rounded-2xl border border-border/70 bg-card p-2 [scrollbar-width:none]">
+          <div className="flex min-w-max gap-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const selected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    const next = new URLSearchParams(searchParams);
+                    next.set("tab", tab.id);
+                    setSearchParams(next);
+                  }}
+                  className={
+                    "inline-flex min-h-11 items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-extrabold transition-colors " +
+                    (selected
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-muted-foreground hover:bg-muted hover:text-foreground")
+                  }
+                >
+                  <Icon className="size-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
 
-            <dl className="grid gap-2 rounded-lg border border-border/60 p-3 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-muted-foreground">آخرین اجرا</dt>
-                <dd><Stamp value={status?.lastImportAt} /></dd>
+        {activeTab === "source" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CloudDownload className="size-5" />
+                منبع و ورود گروهی آگهی‌ها
+              </CardTitle>
+              <CardDescription>
+                فایل HTML، JSON یا CSV منبع را تنظیم کنید و در صورت نیاز همین حالا همگام‌سازی را اجرا کنید.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="sourceUrl">نشانی فایل منبع</Label>
+                <Input
+                  id="sourceUrl"
+                  dir="ltr"
+                  placeholder="https://example.com/listings.csv"
+                  value={draft.sourceUrl}
+                  onChange={(e) =>
+                    setSourceDraft({ ...draft, sourceUrl: e.target.value })
+                  }
+                />
               </div>
-              <div>
-                <dt className="text-muted-foreground">نتیجه</dt>
-                <dd>
-                  {status?.lastImportError ? (
-                    <span className="flex items-center gap-1 text-destructive">
-                      <TriangleAlert className="size-4" />
-                      {status.lastImportError}
-                    </span>
-                  ) : status?.lastImportAt ? (
-                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="size-4" />
-                      {status.lastImportAdded ?? 0} جدید، {status.lastImportUpdated ?? 0} بروزرسانی
-                    </span>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => void saveSource()} disabled={saving}>
+                  {saving && <Loader2 className="size-4 animate-spin" />}
+                  ذخیره منبع
+                </Button>
+                <Button
+                  onClick={() => void runImport()}
+                  disabled={importing || !draft.sourceUrl.trim()}
+                  variant="secondary"
+                >
+                  {importing ? (
+                    <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    <span className="text-muted-foreground">—</span>
+                    <CloudDownload className="size-4" />
                   )}
-                </dd>
+                  همین حالا همگام کن
+                </Button>
               </div>
-            </dl>
-          </CardContent>
-        </Card>
 
-        {isManager && (
+              <dl className="grid gap-2 rounded-lg border border-border/60 p-3 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="text-muted-foreground">آخرین اجرا</dt>
+                  <dd><Stamp value={status?.lastImportAt} /></dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">نتیجه</dt>
+                  <dd>
+                    {status?.lastImportError ? (
+                      <span className="flex items-center gap-1 text-destructive">
+                        <TriangleAlert className="size-4" />
+                        {status.lastImportError}
+                      </span>
+                    ) : status?.lastImportAt ? (
+                      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle2 className="size-4" />
+                        {status.lastImportAdded ?? 0} جدید، {status.lastImportUpdated ?? 0} بروزرسانی
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </dd>
+                </div>
+              </dl>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "office" && isManager && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">تنظیمات اصلی دفتر</CardTitle>
               <CardDescription>
-                فقط مدیر اصلی می‌تواند نام دفتر، شماره مرکزی و متن پایانی پیام‌ها
-                را تغییر دهد.
+                نام دفتر، شماره مرکزی و متن پایانی پیام‌ها را از این بخش مستقل مدیریت کنید.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -361,96 +463,114 @@ export default function Admin() {
           </Card>
         )}
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <CategoryList
-            title="شهرها"
-            values={settings?.customCities ?? []}
-            draft={newCity}
-            setDraft={setNewCity}
-            onAdd={() => addToList("customCities", newCity, () => setNewCity(""))}
-            onRemove={(value) => removeFromList("customCities", value)}
-          />
-          <CategoryList
-            title="نوع معامله"
-            values={settings?.customDeals ?? []}
-            draft={newDeal}
-            setDraft={setNewDeal}
-            onAdd={() => addToList("customDeals", newDeal, () => setNewDeal(""))}
-            onRemove={(value) => removeFromList("customDeals", value)}
-          />
-          <CategoryList
-            title="نوع ملک"
-            values={settings?.customPropertyTypes ?? []}
-            draft={newType}
-            setDraft={setNewType}
-            onAdd={() => addToList("customPropertyTypes", newType, () => setNewType(""))}
-            onRemove={(value) => removeFromList("customPropertyTypes", value)}
-          />
-        </div>
-
-        <ListingFieldConfigManager
-          configs={
-            (settings?.listingFieldConfigs ??
-              DEFAULT_LISTING_FIELD_CONFIGS) as ListingFieldConfig[]
-          }
-          onSave={async (configs) => {
-            await updateSettings({ listingFieldConfigs: configs });
-          }}
-        />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">زونکن‌ها و پرونده‌ها</CardTitle>
-            <CardDescription>
-              دسته‌بندی داخلی فایل‌ها برای مدیریت سریع آگهی‌ها.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {(folders ?? []).map((folder) => (
-                <span
-                  key={folder._id}
-                  className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-sm"
-                >
-                  {folder.name}
-                  <button
-                    type="button"
-                    aria-label={`حذف ${folder.name}`}
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => void deleteFolder({ folderId: folder._id })}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-              {(folders ?? []).length === 0 && (
-                <span className="text-sm text-muted-foreground">هنوز زونکنی ساخته نشده است.</span>
-              )}
+        {activeTab === "categories" && (
+          <section>
+            <div className="mb-3 flex items-center gap-2">
+              <Tags className="size-5 text-primary" />
+              <div>
+                <h2 className="font-black">دسته‌بندی‌های آگهی</h2>
+                <p className="text-xs text-muted-foreground">شهر، نوع معامله و نوع ملک را مستقل مدیریت کنید.</p>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Input
-                value={newFolder}
-                placeholder="نام زونکن جدید"
-                onChange={(e) => setNewFolder(e.target.value)}
+            <div className="grid gap-4 md:grid-cols-3">
+              <CategoryList
+                title="شهرها"
+                values={settings?.customCities ?? []}
+                draft={newCity}
+                setDraft={setNewCity}
+                onAdd={() => addToList("customCities", newCity, () => setNewCity(""))}
+                onRemove={(value) => removeFromList("customCities", value)}
               />
-              <Button
-                variant="secondary"
-                onClick={async () => {
-                  const name = newFolder.trim();
-                  if (!name) return;
-                  await createFolder({ name });
-                  setNewFolder("");
-                }}
-              >
-                افزودن
-              </Button>
+              <CategoryList
+                title="نوع معامله"
+                values={settings?.customDeals ?? []}
+                draft={newDeal}
+                setDraft={setNewDeal}
+                onAdd={() => addToList("customDeals", newDeal, () => setNewDeal(""))}
+                onRemove={(value) => removeFromList("customDeals", value)}
+              />
+              <CategoryList
+                title="نوع ملک"
+                values={settings?.customPropertyTypes ?? []}
+                draft={newType}
+                setDraft={setNewType}
+                onAdd={() => addToList("customPropertyTypes", newType, () => setNewType(""))}
+                onRemove={(value) => removeFromList("customPropertyTypes", value)}
+              />
             </div>
-          </CardContent>
-        </Card>
+          </section>
+        )}
 
-        {isManager && <MapSettings />}
-        {isManager && <IntegrationSettings />}
-        {isManager && <UserManagement />}
+        {activeTab === "fields" && (
+          <ListingFieldConfigManager
+            configs={
+              (settings?.listingFieldConfigs ??
+                DEFAULT_LISTING_FIELD_CONFIGS) as ListingFieldConfig[]
+            }
+            onSave={async (configs) => {
+              await updateSettings({ listingFieldConfigs: configs });
+            }}
+          />
+        )}
+
+        {activeTab === "folders" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FolderOpen className="size-5 text-primary" />
+                زونکن‌ها و پرونده‌ها
+              </CardTitle>
+              <CardDescription>
+                دسته‌بندی داخلی فایل‌ها برای مدیریت سریع آگهی‌ها.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {(folders ?? []).map((folder) => (
+                  <span
+                    key={folder._id}
+                    className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1 text-sm"
+                  >
+                    {folder.name}
+                    <button
+                      type="button"
+                      aria-label={"حذف " + folder.name}
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => void deleteFolder({ folderId: folder._id })}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+                {(folders ?? []).length === 0 && (
+                  <span className="text-sm text-muted-foreground">هنوز زونکنی ساخته نشده است.</span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newFolder}
+                  placeholder="نام زونکن جدید"
+                  onChange={(e) => setNewFolder(e.target.value)}
+                />
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    const name = newFolder.trim();
+                    if (!name) return;
+                    await createFolder({ name });
+                    setNewFolder("");
+                  }}
+                >
+                  افزودن
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "map" && isManager && <MapSettings />}
+        {activeTab === "integrations" && isManager && <IntegrationSettings />}
+        {activeTab === "users" && isManager && <UserManagement />}
       </div>
     </main>
   );
