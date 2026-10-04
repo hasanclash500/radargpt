@@ -1,4 +1,5 @@
 import ListingReminderPanel from "@/components/listings/ListingReminderPanel";
+import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
@@ -61,6 +62,8 @@ export default function DashboardReminders() {
           </div>
         </div>
       </header>
+
+      <DashboardSectionNav />
 
       <section className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-8">
         <ListingReminderPanel />
