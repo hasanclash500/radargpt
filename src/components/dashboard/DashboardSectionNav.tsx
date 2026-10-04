@@ -6,6 +6,7 @@ import {
   BrainCircuit,
   Building2,
   LayoutDashboard,
+  MessageCircle,
   PanelsTopLeft,
   Settings,
   UserRoundSearch,
@@ -51,6 +52,12 @@ export default function DashboardSectionNav() {
       to: "/dashboard/profile",
       label: "پروفایل",
       icon: UserRound,
+      show: role.role === "manager" || role.role === "consultant",
+    },
+    {
+      to: "/dashboard/chat",
+      label: "چت مشاوران",
+      icon: MessageCircle,
       show: role.role === "manager" || role.role === "consultant",
     },
     {
