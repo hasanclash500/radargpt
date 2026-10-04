@@ -157,10 +157,12 @@ function toListing(row: Doc<"listings">, contactPhone: string): ListingRow {
 async function publicContext(ctx: Ctx) {
   const settings = await globalSettings(ctx);
   const profiles = await ctx.db.query("userProfiles").collect();
+  const advisorProfiles = await ctx.db.query("advisorProfiles").collect();
   return {
     officeName: settings?.officeName || "مکا",
     managerPhone: settings?.managerPhone || "09120858095",
     profiles,
+    advisorProfiles,
   };
 }
 
@@ -204,7 +206,7 @@ async function toPublicListing(
   row: Doc<"listings">,
   context: Awaited<ReturnType<typeof publicContext>>,
 ) {
-  const contacts: { name: string; phone: string; role: string }[] = [];
+  const contacts: { name: string; phone: string; role: string; profileSlug?: string }[] = [];
   if (context.managerPhone) {
     contacts.push({
       name: context.officeName || "مکا",
@@ -218,11 +220,16 @@ async function toPublicListing(
       (profile) => profile.userId === row.createdByUserId,
     );
     const phone = creator?.publicPhone ?? "";
+    const advisorProfile = context.advisorProfiles.find(
+      (profile) =>
+        profile.userId === row.createdByUserId && profile.publicProfile,
+    );
     if (phone && !contacts.some((item) => item.phone === phone)) {
       contacts.push({
         name: creator?.displayName || "مشاور مکا",
         phone,
         role: "مشاور ثبت‌کننده",
+        profileSlug: advisorProfile?.slug,
       });
     }
   }
