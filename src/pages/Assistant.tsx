@@ -19,7 +19,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { toast } from "sonner";
 
 type AssistantListing = {
@@ -129,6 +129,10 @@ function ListingResultCard({ item }: { item: AssistantListing }) {
 }
 
 export default function AssistantPage() {
+  const location = useLocation();
+  const insideDashboard = location.pathname.startsWith("/dashboard/");
+  const backHref = insideDashboard ? "/dashboard" : "/";
+  const listingsHref = insideDashboard ? "/dashboard/listings" : "/listings";
   const ask = useAction(api.assistant.ask);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -237,7 +241,7 @@ export default function AssistantPage() {
     <main dir="rtl" className="min-h-screen bg-muted/30">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-2.5 font-extrabold">
+          <Link to={backHref} className="flex items-center gap-2.5 font-extrabold">
             <ArrowRight className="size-4" />
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Bot className="size-5" />
@@ -246,7 +250,7 @@ export default function AssistantPage() {
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
-              <Link to="/listings">آگهی‌ها</Link>
+              <Link to={listingsHref}>آگهی‌ها</Link>
             </Button>
             <ThemeToggle />
           </div>
