@@ -80,10 +80,7 @@ export default function Dashboard() {
   const syncListings = useMutation(api.listings.upsertListings);
   const createListing = useMutation(api.listings.createListing);
   const claimImportedListing = useMutation(api.listings.claimImportedListing);
-  const migrateLegacyListingKinds = useMutation(api.listings.migrateLegacyListingKinds);
-  const backfillListingSearch = useMutation(api.listings.backfillListingSearch);
-  const backfillLandingFlags = useMutation(api.listings.backfillLandingFlags);
-  const rebuildListingCounts = useMutation(api.listings.rebuildListingCounts);
+  const startListingMaintenance = useMutation(api.listings.startListingMaintenance);
   const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
   const approvePublication = useMutation(api.listings.approvePublication);
   const rejectPublication = useMutation(api.listings.rejectPublication);
@@ -151,89 +148,39 @@ export default function Dashboard() {
   const canManageListings =
     roleData?.canManageListings ?? (role === "manager" || role === "admin");
 
-  const counterRebuildStartedRef = useRef(false);
-  useEffect(() => {
-    if (
-      !canManageListings ||
-      settingsRow === undefined ||
-      !settingsRow?.listingKindMigrationDone ||
-      settingsRow?.listingCountsReady ||
-      counterRebuildStartedRef.current
-    ) {
-      return;
-    }
-
-    counterRebuildStartedRef.current = true;
-    const timer = window.setTimeout(() => {
-      void rebuildListingCounts().catch((error) => {
-        counterRebuildStartedRef.current = false;
-        console.error("listing counter rebuild failed", error);
-      });
-    }, 2200);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    canManageListings,
-    settingsRow,
-    rebuildListingCounts,
-  ]);
   const migrationPending =
     canManageListings &&
     Boolean(settingsRow) &&
     (!settingsRow?.listingKindMigrationDone ||
       !settingsRow?.listingSearchBackfillDone ||
-      !settingsRow?.landingVisibilityMigrationDone);
+      !settingsRow?.landingVisibilityMigrationDone ||
+      !settingsRow?.listingCountsReady);
 
-  const migrationStartedRef = useRef(false);
+  const maintenanceStartedRef = useRef(false);
   useEffect(() => {
     if (
       !canManageListings ||
-      settingsRow === undefined ||
-      migrationStartedRef.current
+      !settingsRow ||
+      !migrationPending ||
+      maintenanceStartedRef.current
     ) {
       return;
     }
 
-    const needsKindMigration = !settingsRow.listingKindMigrationDone;
-    const needsSearchBackfill = !settingsRow.listingSearchBackfillDone;
-    const needsLandingBackfill = !settingsRow.landingVisibilityMigrationDone;
-    if (!needsKindMigration && !needsSearchBackfill && !needsLandingBackfill) {
-      migrationStartedRef.current = true;
-      return;
-    }
-
-    migrationStartedRef.current = true;
-    let cancelled = false;
-
+    maintenanceStartedRef.current = true;
     const timer = window.setTimeout(() => {
-      void (async () => {
-        try {
-          // هر بار ورود فقط یک بسته کوچک پردازش می‌شود تا بانک چند هزار تایی
-          // صف Mutation را اشغال نکند و ۶۰ آگهی اول فوری نمایش داده شوند.
-          if (cancelled) return;
-          if (needsKindMigration) {
-            await migrateLegacyListingKinds({ limit: 200 });
-          } else if (needsSearchBackfill) {
-            await backfillListingSearch({ limit: 200 });
-          } else if (needsLandingBackfill) {
-            await backfillLandingFlags({ limit: 200 });
-          }
-        } catch (error) {
-          console.error("listing data migration failed", error);
-        }
-      })();
-    }, 1800);
+      void startListingMaintenance().catch((error) => {
+        maintenanceStartedRef.current = false;
+        console.error("listing maintenance start failed", error);
+      });
+    }, 1400);
 
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
+    return () => window.clearTimeout(timer);
   }, [
     canManageListings,
+    migrationPending,
     settingsRow,
-    migrateLegacyListingKinds,
-    backfillListingSearch,
-    backfillLandingFlags,
+    startListingMaintenance,
   ]);
 
   const [listings, setListings] = useState<Listing[]>([]);
