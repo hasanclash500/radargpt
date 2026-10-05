@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
@@ -280,12 +281,8 @@ export default function PublicListing() {
       )}
       {images.length === 0 ? (
         <section aria-label="تصویر آگهی" className="mx-auto max-w-5xl px-4 pt-7 sm:px-6">
-          <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-muted">
-            <img
-              src="/listing-placeholder.svg"
-              alt="تصویر پیش‌فرض آگهی دیوساز"
-              className="aspect-[16/9] w-full object-cover"
-            />
+          <div className="aspect-[16/9] overflow-hidden rounded-[2rem] border border-border/70 bg-muted">
+            <ListingPlaceholder />
           </div>
         </section>
       ) : null}
