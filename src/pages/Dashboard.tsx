@@ -361,7 +361,7 @@ export default function Dashboard() {
       let cursor: string | null = null;
       let done = false;
       while (!done) {
-        const page = await convex.query(api.listings.listListings, {
+        const page: any = await convex.query(api.listings.listListings, {
           view: listingView,
           paginationOpts: { numItems: 300, cursor },
         });
