@@ -588,17 +588,17 @@ export const dashboardListingTrend = query({
     const rows = ownsOnlyListings(r.role)
       ? await ctx.db
           .query("listings")
-          .withIndex("by_owner_kind_created", (q) =>
+          .withIndex("by_owner_kind_updated", (q) =>
             q
               .eq("createdByUserId", r.userId)
               .eq("listingKind", "member")
-              .gte("createdAt", startAt),
+              .gte("updatedAt", startAt),
           )
           .collect()
       : await ctx.db
           .query("listings")
-          .withIndex("by_kind_created", (q) =>
-            q.eq("listingKind", "member").gte("createdAt", startAt),
+          .withIndex("by_kind_updated", (q) =>
+            q.eq("listingKind", "member").gte("updatedAt", startAt),
           )
           .collect();
 
@@ -610,9 +610,9 @@ export const dashboardListingTrend = query({
     }
 
     for (const row of rows) {
-      const createdAt = row.createdAt ?? row.updatedAt;
-      if (!createdAt || createdAt < startAt) continue;
-      const key = new Date(createdAt).toISOString().slice(0, 10);
+      const activityAt = row.updatedAt ?? row.createdAt;
+      if (!activityAt || activityAt < startAt) continue;
+      const key = new Date(activityAt).toISOString().slice(0, 10);
       if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
     }
 
