@@ -571,6 +571,55 @@ export const rebuildListingCounts = mutation({
   },
 });
 
+export const dashboardListingTrend = query({
+  args: { days: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canWorkListings(r.role)) return [];
+
+    const days = Math.max(7, Math.min(Math.floor(args.days ?? 30), 60));
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const start = now - (days - 1) * dayMs;
+    const startDate = new Date(start);
+    startDate.setHours(0, 0, 0, 0);
+    const startAt = startDate.getTime();
+
+    const rows = ownsOnlyListings(r.role)
+      ? await ctx.db
+          .query("listings")
+          .withIndex("by_owner_kind_created", (q) =>
+            q
+              .eq("createdByUserId", r.userId)
+              .eq("listingKind", "member")
+              .gte("createdAt", startAt),
+          )
+          .collect()
+      : await ctx.db
+          .query("listings")
+          .withIndex("by_kind_created", (q) =>
+            q.eq("listingKind", "member").gte("createdAt", startAt),
+          )
+          .collect();
+
+    const counts = new Map<string, number>();
+    for (let index = 0; index < days; index += 1) {
+      const date = new Date(startAt + index * dayMs);
+      const key = date.toISOString().slice(0, 10);
+      counts.set(key, 0);
+    }
+
+    for (const row of rows) {
+      const createdAt = row.createdAt ?? row.updatedAt;
+      if (!createdAt || createdAt < startAt) continue;
+      const key = new Date(createdAt).toISOString().slice(0, 10);
+      if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    return Array.from(counts, ([date, count]) => ({ date, count }));
+  },
+});
+
 export const listDashboardRecentListings = query({
   args: { limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
