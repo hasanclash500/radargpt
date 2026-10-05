@@ -687,6 +687,19 @@ export const restoreListings = mutation({
       }
     }
 
+    const settings = (
+      await ctx.db
+        .query("appSettings")
+        .withIndex("by_key", (q: any) => q.eq("key", "global"))
+        .take(1)
+    )[0];
+    if (settings) {
+      await ctx.db.patch(settings._id, {
+        listingCountsReady: false,
+        listingCountsUpdatedAt: Date.now(),
+      });
+    }
+
     return { added, updated, skipped };
   },
 });
