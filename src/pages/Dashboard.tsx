@@ -1030,19 +1030,6 @@ export default function Dashboard() {
         </Button>
       )}
 
-      {showBackToTop && (
-        <Button
-          type="button"
-          size="icon"
-          className="fixed bottom-24 start-4 z-40 size-11 rounded-full shadow-xl md:bottom-6 md:start-6"
-          aria-label="برگشت به بالای صفحه"
-          title="برگشت به بالا"
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        >
-          <ArrowUp className="size-5" />
-        </Button>
-      )}
-
       <ShareDialog open={shareOpen} onOpenChange={setShareOpen}
         listings={shareList} settings={shareSettings}
         initialCount={selected.size || 1}
