@@ -67,7 +67,7 @@ function blockId() {
 function defaultProps(type: string) {
   if (type === "hero") {
     return {
-      eyebrow: "مکا",
+      eyebrow: "دیوساز",
       title: "عنوان اصلی صفحه",
       highlight: "تیتر برجسته",
       text: "توضیح کوتاه و واضح برای این صفحه.",
@@ -85,11 +85,11 @@ function defaultProps(type: string) {
     };
   }
   if (type === "listings") {
-    return { eyebrow: "فایل‌های منتخب", title: "ویترین آگهی‌های مکا", text: "", limit: 8 };
+    return { eyebrow: "فایل‌های منتخب", title: "ویترین آگهی‌های دیوساز", text: "", limit: 8 };
   }
   if (type === "services") {
     return {
-      title: "خدمات مکا",
+      title: "خدمات دیوساز",
       text: "",
       items: [
         { title: "املاک صنعتی", text: "سوله، کارخانه، کارگاه و انبار." },
@@ -117,12 +117,12 @@ function defaultProps(type: string) {
       text: "از مسیر مناسب ادامه دهید.",
       primaryLabel: "مشاهده آگهی‌ها",
       primaryHref: "/listings",
-      secondaryLabel: "تماس با مکا",
+      secondaryLabel: "تماس با دیوساز",
       secondaryHref: "tel:09120858095",
     };
   }
   return {
-    title: "ارتباط با مکا",
+    title: "ارتباط با دیوساز",
     text: "برای مشاوره با دفتر تماس بگیرید.",
     phone: "09120858095",
     address: "شهریار، روبروی شهرک اداری تجربه",
@@ -495,7 +495,7 @@ export default function PageBuilder() {
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Sparkles className="size-5" />
             </span>
-            <strong>صفحه‌ساز حرفه‌ای مکا</strong>
+            <strong>صفحه‌ساز حرفه‌ای دیوساز</strong>
           </div>
           <ThemeToggle />
         </div>
@@ -630,7 +630,7 @@ export default function PageBuilder() {
                   <h2 className="font-black">ساخت صفحه با هوش مصنوعی</h2>
                 </div>
                 <p className="mt-1 text-[11px] leading-6 text-muted-foreground">
-                  پرامپت بدهید؛ AI فقط بلوک‌های استاندارد مکا می‌سازد. نتیجه ابتدا پیش‌نویس است و بدون تأیید شما منتشر نمی‌شود.
+                  پرامپت بدهید؛ AI فقط بلوک‌های استاندارد دیوساز می‌سازد. نتیجه ابتدا پیش‌نویس است و بدون تأیید شما منتشر نمی‌شود.
                 </p>
                 <Textarea
                   rows={4}
