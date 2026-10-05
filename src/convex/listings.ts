@@ -1084,10 +1084,12 @@ export const updatePublicSettings = mutation({
 
     const now = Date.now();
     const publicSlug = row.publicSlug || makePublicSlug(row);
+    const showOnLanding =
+      args.isPublic && (args.featuredOnHome || args.showOnLanding);
     const common = {
       createdByUserId: row.createdByUserId ?? r.userId,
       listingKind: "member" as const,
-      showOnLanding: args.isPublic ? args.showOnLanding : false,
+      showOnLanding,
       featuredOnHome: args.isPublic ? args.featuredOnHome : false,
       publicSlug,
       seoTitle: args.seoTitle?.trim() || undefined,
@@ -1117,7 +1119,7 @@ export const updatePublicSettings = mutation({
       await ctx.db.patch(row._id, {
         ...common,
         isPublic: true,
-        showOnLanding: args.showOnLanding,
+        showOnLanding,
         publicationStatus: "approved",
         publicationRequestedAt: row.publicationRequestedAt ?? now,
         publicationReviewedAt: now,
@@ -1127,7 +1129,7 @@ export const updatePublicSettings = mutation({
       });
       return {
         isPublic: true,
-        showOnLanding: args.showOnLanding,
+        showOnLanding,
         featuredOnHome: args.featuredOnHome,
         publicSlug,
         publicationStatus: "approved" as const,
@@ -1137,7 +1139,7 @@ export const updatePublicSettings = mutation({
     await ctx.db.patch(row._id, {
       ...common,
       isPublic: false,
-      showOnLanding: args.showOnLanding,
+      showOnLanding,
       publicationStatus: "pending",
       publicationRequestedAt: now,
       publicationReviewedAt: undefined,
@@ -1176,7 +1178,7 @@ export const updatePublicSettings = mutation({
 
     return {
       isPublic: false,
-      showOnLanding: args.showOnLanding,
+      showOnLanding,
       featuredOnHome: args.featuredOnHome,
       publicSlug,
       publicationStatus: "pending" as const,
