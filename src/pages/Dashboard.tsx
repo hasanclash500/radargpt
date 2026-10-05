@@ -240,7 +240,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setServerSearch(filters.query.trim());
+      const term = filters.query.trim();
+      setServerSearch(term.length >= 2 ? term : "");
       setVisibleCount(PAGE_SIZE);
       setSelected(new Set());
     }, 280);
@@ -414,10 +415,16 @@ export default function Dashboard() {
 
   const filtered = useMemo(
     () =>
-      localTouched || Boolean(serverSearch)
+      localTouched || Boolean(serverSearch) || filters.query.trim().length === 1
         ? applyFilters(displayListings, deferredFilters)
         : displayListings,
-    [displayListings, deferredFilters, localTouched, serverSearch],
+    [
+      displayListings,
+      deferredFilters,
+      filters.query,
+      localTouched,
+      serverSearch,
+    ],
   );
   const visible = filtered.slice(0, visibleCount);
 
