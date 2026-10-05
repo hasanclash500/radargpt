@@ -522,21 +522,16 @@ export const listFeaturedPublic = query({
   handler: async (ctx) => {
     const rows = await ctx.db
       .query("listings")
-      .withIndex("by_public_published", (q) => q.eq("isPublic", true))
+      .withIndex("by_landing_featured_published", (q) =>
+        q.eq("showOnLanding", true),
+      )
       .order("desc")
-      .take(120);
+      .take(6);
     const context = await publicContext(ctx);
-    const landing = rows
-      .filter((row) => row.showOnLanding ?? row.featuredOnHome ?? false)
-      .sort((a, b) => {
-        const featuredDelta =
-          Number(Boolean(b.featuredOnHome)) - Number(Boolean(a.featuredOnHome));
-        if (featuredDelta !== 0) return featuredDelta;
-        return (b.publishedAt ?? b.updatedAt ?? 0) - (a.publishedAt ?? a.updatedAt ?? 0);
-      })
-      .slice(0, 6);
     return await Promise.all(
-      landing.map((row) => toPublicListing(ctx, row, context)),
+      rows
+        .filter((row) => row.isPublic)
+        .map((row) => toPublicListing(ctx, row, context)),
     );
   },
 });
@@ -751,6 +746,33 @@ export const backfillListingSearch = mutation({
     for (const row of rows) {
       await ctx.db.patch(row._id, {
         searchText: listingSearchText(row),
+      });
+    }
+
+    return {
+      processed: rows.length,
+      done: rows.length < limit,
+    };
+  },
+});
+
+export const backfillLandingFlags = mutation({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("دسترسی بروزرسانی نمایش لندینگ ندارید.");
+    }
+
+    const limit = Math.max(50, Math.min(Math.floor(args.limit ?? 400), 800));
+    const rows = await ctx.db
+      .query("listings")
+      .filter((q) => q.eq(q.field("showOnLanding"), undefined))
+      .take(limit);
+
+    for (const row of rows) {
+      await ctx.db.patch(row._id, {
+        showOnLanding: Boolean(row.featuredOnHome && row.isPublic),
       });
     }
 
