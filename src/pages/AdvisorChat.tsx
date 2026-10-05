@@ -4,13 +4,16 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
+  History,
   Loader2,
   MessageCircle,
   Search,
   Send,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
@@ -56,18 +59,26 @@ function PersonAvatar({
 }
 
 export default function AdvisorChat() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const role = useQuery(api.roles.myRole, {});
   const conversations = useQuery(api.advisorChat.listConversations, {}) ?? [];
+  const allConversations = useQuery(
+    api.advisorChat.listAllConversations,
+    role?.role === "manager" ? {} : "skip",
+  );
   const contacts = useQuery(api.advisorChat.listContacts, {}) ?? [];
   const startConversation = useMutation(api.advisorChat.startConversation);
   const sendMessage = useMutation(api.advisorChat.sendMessage);
   const markRead = useMutation(api.advisorChat.markRead);
+  const deleteConversation = useMutation(api.advisorChat.deleteConversation);
 
   const [selectedId, setSelectedId] = useState<any>(null);
   const [selectedPerson, setSelectedPerson] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [historyReadOnly, setHistoryReadOnly] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const messages = useQuery(
@@ -75,8 +86,7 @@ export default function AdvisorChat() {
     selectedId ? { conversationId: selectedId } : "skip",
   );
 
-  const allowed =
-    role?.role === "manager" || role?.role === "consultant";
+  const allowed = isAuthenticated;
 
   const filteredContacts = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -90,9 +100,9 @@ export default function AdvisorChat() {
   }, [contacts, search]);
 
   useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedId || historyReadOnly) return;
     void markRead({ conversationId: selectedId }).catch(() => undefined);
-  }, [selectedId, messages?.length]);
+  }, [selectedId, messages?.length, historyReadOnly]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
@@ -106,7 +116,7 @@ export default function AdvisorChat() {
     if (existing) setSelectedPerson(existing.other);
   }, [selectedId, selectedPerson, conversations]);
 
-  if (role === undefined) {
+  if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="size-6 animate-spin text-primary" />
@@ -123,10 +133,10 @@ export default function AdvisorChat() {
         <div className="max-w-md rounded-3xl border border-border bg-card p-6 text-center">
           <MessageCircle className="mx-auto size-10 text-muted-foreground" />
           <h1 className="mt-4 text-xl font-black">
-            چت مشاوران برای این حساب فعال نیست
+            برای استفاده از پنل چت وارد حساب شوید
           </h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            این بخش فقط برای مدیر و مشاوران دیوساز در دسترس است.
+            چت شناور عمومی بدون ورود هم در همه صفحات سایت در دسترس است.
           </p>
           <Button asChild className="mt-5">
             <Link to="/dashboard">بازگشت به داشبورد</Link>
@@ -145,6 +155,7 @@ export default function AdvisorChat() {
       const id =
         existing?.id ??
         (await startConversation({ otherUserId: person.userId }));
+      setHistoryReadOnly(false);
       setSelectedPerson(person);
       setSelectedId(id);
     } catch (error) {
@@ -202,9 +213,9 @@ export default function AdvisorChat() {
               <MessageCircle className="size-5" />
             </span>
             <div>
-              <h1 className="text-xl font-black">چت داخلی مشاوران دیوساز</h1>
+              <h1 className="text-xl font-black">چت خصوصی دیوساز</h1>
               <p className="mt-1 text-xs leading-6 text-muted-foreground">
-                گفت‌وگوی خصوصی و لحظه‌ای بین مدیر و مشاوران عضو دیوساز.
+                گفت‌وگوی خصوصی کاربران، ادمین‌ها و مشاوران با مدیر یا مدیر و مشاوران دیوساز.
               </p>
             </div>
           </div>
@@ -223,7 +234,7 @@ export default function AdvisorChat() {
                 <Input
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="جستجوی مشاور…"
+                  placeholder="جستجوی مدیر یا مشاور…"
                   className="pe-9"
                 />
               </div>
@@ -240,6 +251,7 @@ export default function AdvisorChat() {
                       key={String(conversation.id)}
                       type="button"
                       onClick={() => {
+                        setHistoryReadOnly(false);
                         setSelectedId(conversation.id);
                         setSelectedPerson(conversation.other);
                       }}
@@ -272,7 +284,7 @@ export default function AdvisorChat() {
               )}
 
               <p className="px-4 pb-2 pt-4 text-[10px] font-extrabold text-muted-foreground">
-                مشاوران دیوساز
+                مدیر و مشاوران دیوساز
               </p>
               {filteredContacts.length === 0 ? (
                 <p className="px-4 py-8 text-center text-xs text-muted-foreground">
