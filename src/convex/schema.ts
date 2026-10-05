@@ -549,6 +549,11 @@ const schema = defineSchema(
       listingKindMigrationDone: v.optional(v.boolean()),
       listingSearchBackfillDone: v.optional(v.boolean()),
       landingVisibilityMigrationDone: v.optional(v.boolean()),
+      /** شمارنده‌های سریع آگهی‌ها؛ برای نمایش عدد واقعی بدون خواندن هزاران رکورد */
+      listingCountsReady: v.optional(v.boolean()),
+      listingImportedCount: v.optional(v.number()),
+      listingMemberCount: v.optional(v.number()),
+      listingCountsUpdatedAt: v.optional(v.number()),
       /** گزارش آخرین اجرای افزودن روزانه */
       lastImportAt: v.optional(v.number()),
       lastImportAdded: v.optional(v.number()),
