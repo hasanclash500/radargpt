@@ -21,6 +21,7 @@ import { toast } from "sonner";
 
 type PublicSettings = {
   isPublic: boolean;
+  showOnLanding: boolean;
   featuredOnHome: boolean;
   seoTitle?: string;
   seoDescription?: string;
@@ -37,6 +38,7 @@ export default function PublicListingDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
+  const [showOnLanding, setShowOnLanding] = useState(false);
   const [featuredOnHome, setFeaturedOnHome] = useState(false);
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
@@ -89,6 +91,7 @@ export default function PublicListingDialog({
   useEffect(() => {
     if (!open) return;
     setIsPublic(Boolean(listing.isPublic || listing.publicationStatus === "pending"));
+    setShowOnLanding(listing.showOnLanding ?? listing.featuredOnHome ?? false);
     setFeaturedOnHome(listing.featuredOnHome ?? false);
     setSeoTitle(listing.seoTitle?.trim() || autoTitle);
     setSeoDescription(listing.seoDescription?.trim() || autoDescription);
@@ -120,6 +123,7 @@ export default function PublicListingDialog({
     try {
       await onSave({
         isPublic,
+        showOnLanding: isPublic ? showOnLanding : false,
         featuredOnHome: isPublic ? featuredOnHome : false,
         seoTitle: seoTitle.trim() || undefined,
         seoDescription: seoDescription.trim() || undefined,
@@ -167,25 +171,39 @@ export default function PublicListingDialog({
         </DialogHeader>
 
         <div className="space-y-5">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <div className="flex items-center justify-between rounded-2xl border border-border/70 p-4">
               <div>
                 <p className="text-sm font-extrabold">انتشار عمومی</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">ساخت صفحه اختصاصی برای این ملک</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">صفحه اختصاصی این ملک فعال باشد</p>
               </div>
               <Switch checked={isPublic} onCheckedChange={setIsPublic} />
             </div>
             <div className="flex items-center justify-between rounded-2xl border border-border/70 p-4">
               <div>
+                <p className="text-sm font-extrabold">نمایش در لندینگ</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">در صفحه اصلی سایت دیده شود</p>
+              </div>
+              <Switch
+                checked={showOnLanding}
+                onCheckedChange={setShowOnLanding}
+                disabled={!isPublic}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-2xl border border-border/70 p-4">
+              <div>
                 <p className="flex items-center gap-1.5 text-sm font-extrabold">
                   <Star className="size-4 text-gold" />
-                  صفحه اصلی
+                  آگهی ویژه
                 </p>
-                <p className="mt-1 text-[11px] text-muted-foreground">در بخش آگهی‌های منتخب لندینگ</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">اولویت بیشتر و برچسب ویژه</p>
               </div>
               <Switch
                 checked={featuredOnHome}
-                onCheckedChange={setFeaturedOnHome}
+                onCheckedChange={(checked) => {
+                  setFeaturedOnHome(checked);
+                  if (checked) setShowOnLanding(true);
+                }}
                 disabled={!isPublic}
               />
             </div>
