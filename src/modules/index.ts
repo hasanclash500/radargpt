@@ -1,4 +1,8 @@
-import type { DivosazModule, ModuleRoute } from "./contract";
+import type {
+  DivosazModule,
+  ModuleAdminPanel,
+  ModuleRoute,
+} from "./contract";
 import { getInstalledModules, registerDivosazModule } from "./registry";
 
 /**
@@ -15,6 +19,21 @@ export function getModuleRoutes(enabledIds: string[]): ModuleRoute[] {
   return getInstalledModules()
     .filter((module) => enabled.has(module.id))
     .flatMap((module) => module.routes ?? []);
+}
+
+export function getModuleAdminPanels(
+  enabledIds: string[],
+): Array<ModuleAdminPanel & { moduleId: string; moduleLabel: string }> {
+  const enabled = new Set(enabledIds);
+  return getInstalledModules()
+    .filter((module) => enabled.has(module.id))
+    .flatMap((module) =>
+      (module.adminPanels ?? []).map((panel) => ({
+        ...panel,
+        moduleId: module.id,
+        moduleLabel: module.label,
+      })),
+    );
 }
 
 export { getInstalledModules };
