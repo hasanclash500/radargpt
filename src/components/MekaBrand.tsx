@@ -22,18 +22,13 @@ export default function MekaBrand({
 
       <span className="min-w-0">
         <span
-          dir="ltr"
           className={
-            "block whitespace-nowrap font-black leading-none tracking-[-0.045em] " +
-            (compact ? "text-[22px]" : "text-[30px]")
+            "block whitespace-nowrap font-black leading-none tracking-[-0.035em] text-foreground " +
+            (compact ? "text-[21px]" : "text-[29px]")
           }
-          aria-label="MEKA"
+          aria-label="دیوساز"
         >
-          <span className="text-foreground">MEK</span>
-          <span className="relative ms-[1px] inline-block text-primary">
-            A
-            <span className="absolute -start-[1px] top-[45%] h-[3px] w-[72%] -rotate-[53deg] rounded-full bg-[color:var(--gold,#c99b3b)]" />
-          </span>
+          دیوساز
         </span>
         <span
           className={
@@ -48,7 +43,7 @@ export default function MekaBrand({
   );
 
   return link ? (
-    <Link to="/" aria-label="مکا - صفحه اصلی">
+    <Link to="/" aria-label="دیوساز - صفحه اصلی">
       {content}
     </Link>
   ) : (
