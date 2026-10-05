@@ -795,7 +795,7 @@ export default function BlogAdmin() {
                     </div>
                   )}
                   <div className="p-4">
-                    <p className="text-[10px] uppercase text-muted-foreground">MEKA.IR</p>
+                    <p className="text-[10px] uppercase text-muted-foreground">DIVOSAZ</p>
                     <p className="mt-1 line-clamp-2 text-base font-extrabold">{form.ogTitle || seoTitle}</p>
                     <p className="mt-2 line-clamp-2 text-xs leading-6 text-muted-foreground">{form.ogDescription || seoDescription}</p>
                   </div>
