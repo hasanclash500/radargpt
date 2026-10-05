@@ -3,7 +3,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
-import { neshanSearchUrl } from "@/lib/neshan";
 import { useQuery } from "convex/react";
 import {
   ArrowRight,
@@ -70,7 +69,7 @@ export default function BlogArticle() {
             address: {
               "@type": "PostalAddress",
               addressLocality: "شهریار",
-              streetAddress: "روبروی شهرک اداری تجربه",
+              streetAddress: "روبروی شهرک اداری، مجتمع تجاری اداری شهریار",
               addressCountry: "IR",
             },
           },
@@ -194,7 +193,7 @@ export default function BlogArticle() {
                 </Button>
                 <Button variant="outline" asChild className="gap-2 rounded-xl">
                   <a
-                    href={neshanSearchUrl("شهریار، روبروی شهرک اداری تجربه")}
+                    href="https://nshn.ir/2bveXP_xCgqA"
                     target="_blank"
                     rel="noreferrer"
                   >
