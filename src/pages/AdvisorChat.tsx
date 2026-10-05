@@ -126,7 +126,7 @@ export default function AdvisorChat() {
             چت مشاوران برای این حساب فعال نیست
           </h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            این بخش فقط برای مدیر و مشاوران مکا در دسترس است.
+            این بخش فقط برای مدیر و مشاوران دیوساز در دسترس است.
           </p>
           <Button asChild className="mt-5">
             <Link to="/dashboard">بازگشت به داشبورد</Link>
@@ -202,9 +202,9 @@ export default function AdvisorChat() {
               <MessageCircle className="size-5" />
             </span>
             <div>
-              <h1 className="text-xl font-black">چت داخلی مشاوران مکا</h1>
+              <h1 className="text-xl font-black">چت داخلی مشاوران دیوساز</h1>
               <p className="mt-1 text-xs leading-6 text-muted-foreground">
-                گفت‌وگوی خصوصی و لحظه‌ای بین مدیر و مشاوران عضو مکا.
+                گفت‌وگوی خصوصی و لحظه‌ای بین مدیر و مشاوران عضو دیوساز.
               </p>
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function AdvisorChat() {
               )}
 
               <p className="px-4 pb-2 pt-4 text-[10px] font-extrabold text-muted-foreground">
-                مشاوران مکا
+                مشاوران دیوساز
               </p>
               {filteredContacts.length === 0 ? (
                 <p className="px-4 py-8 text-center text-xs text-muted-foreground">
@@ -294,8 +294,8 @@ export default function AdvisorChat() {
                       <span className="mt-1 block truncate text-[10px] text-muted-foreground">
                         {contact.headline ||
                           (contact.role === "manager"
-                            ? "مدیر مکا"
-                            : "مشاور مکا")}
+                            ? "مدیر دیوساز"
+                            : "مشاور دیوساز")}
                       </span>
                     </span>
                     <MessageCircle className="size-4 text-primary" />
@@ -335,8 +335,8 @@ export default function AdvisorChat() {
                     <p className="mt-1 truncate text-[10px] text-muted-foreground">
                       {selectedPerson.headline ||
                         (selectedPerson.role === "manager"
-                          ? "مدیر مکا"
-                          : "مشاور مکا")}
+                          ? "مدیر دیوساز"
+                          : "مشاور دیوساز")}
                     </p>
                   </div>
                   {selectedPerson.profileSlug && (
@@ -450,7 +450,7 @@ export default function AdvisorChat() {
                   <MessageCircle className="mx-auto size-12 text-muted-foreground/25" />
                   <h2 className="mt-4 font-black">یک مشاور را انتخاب کنید</h2>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    گفت‌وگوهای داخلی مکا به‌صورت لحظه‌ای بروزرسانی می‌شوند.
+                    گفت‌وگوهای داخلی دیوساز به‌صورت لحظه‌ای بروزرسانی می‌شوند.
                   </p>
                 </div>
               </div>
