@@ -55,6 +55,26 @@ export const createLead = mutation({
     if (!propertyType) throw new Error("نوع ملک را انتخاب کنید.");
 
     const now = Date.now();
+    const authUserId = await getAuthUserId(ctx);
+    let registeredBy = "ثبت عمومی سایت";
+    let createdByUserId: string | undefined;
+
+    if (authUserId !== null) {
+      createdByUserId = String(authUserId);
+      const profile = (
+        await ctx.db
+          .query("userProfiles")
+          .withIndex("by_user", (q) => q.eq("userId", createdByUserId!))
+          .take(1)
+      )[0];
+      const authUser = await ctx.db.get(authUserId);
+      registeredBy =
+        profile?.displayName?.trim() ||
+        authUser?.name?.trim() ||
+        authUser?.email?.trim() ||
+        "عضو تیم دیوساز";
+    }
+
     const id = await ctx.db.insert("propertyLeads", {
       intent: args.intent,
       name,
@@ -64,6 +84,8 @@ export const createLead = mutation({
       area: args.area,
       budget,
       details,
+      createdByUserId,
+      source: createdByUserId ? "dashboard" : "public",
       status: "new",
       createdAt: now,
       updatedAt: now,
@@ -78,6 +100,7 @@ export const createLead = mutation({
       ...(args.area != null ? { area: args.area } : {}),
       ...(budget ? { budget } : {}),
       ...(details ? { details } : {}),
+      registeredBy,
     });
 
     return { ok: true, id };
