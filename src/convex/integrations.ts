@@ -81,7 +81,7 @@ export const saveIntegrationSettings = mutation({
     clearOpenRouterApiKey: v.boolean(),
     notifyLeads: v.boolean(),
     notifyPublicationRequests: v.boolean(),
-    notifyChatMessages: v.boolean(),
+    notifyChatMessages: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const role = await currentRole(ctx);
@@ -110,7 +110,7 @@ export const saveIntegrationSettings = mutation({
       openRouterModel: args.openRouterModel.trim() || "openrouter/free",
       notifyLeads: args.notifyLeads,
       notifyPublicationRequests: args.notifyPublicationRequests,
-      notifyChatMessages: args.notifyChatMessages,
+      notifyChatMessages: args.notifyChatMessages ?? existing?.notifyChatMessages ?? true,
       updatedAt: Date.now(),
     };
 
