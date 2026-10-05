@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PersianDatePicker } from "@/components/ui/persian-date-picker";
 import {
   Select,
   SelectContent,
@@ -189,28 +190,20 @@ export default function FilterBar({
         </div>
 
         {/* بازه تاریخ ثبت (شمسی) */}
-        <div className="space-y-1.5">
+        <div className="space-y-1.5 sm:col-span-2">
           <Label className="text-xs text-muted-foreground">
-            بازه تاریخ ثبت (شمسی، مثل ۱۴۰۴/۰۷/۰۱)
+            بازه تاریخ ثبت (شمسی)
           </Label>
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              type="text"
-              inputMode="numeric"
-              dir="ltr"
-              placeholder="1404/07/01"
-              aria-label="از تاریخ"
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <PersianDatePicker
               value={filters.dateFrom}
-              onChange={(e) => onChange({ dateFrom: e.target.value })}
+              onChange={(dateFrom) => onChange({ dateFrom })}
+              placeholder="از تاریخ"
             />
-            <Input
-              type="text"
-              inputMode="numeric"
-              dir="ltr"
-              placeholder="1404/07/31"
-              aria-label="تا تاریخ"
+            <PersianDatePicker
               value={filters.dateTo}
-              onChange={(e) => onChange({ dateTo: e.target.value })}
+              onChange={(dateTo) => onChange({ dateTo })}
+              placeholder="تا تاریخ"
             />
           </div>
         </div>
