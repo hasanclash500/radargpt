@@ -206,6 +206,11 @@ export default function PublicListing() {
             <span className="rounded-full border border-border/70 px-3 py-1.5 text-muted-foreground">
               {listing.propertyType}
             </span>
+            {listing.featuredOnHome && (
+              <span className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 font-black text-gold">
+                ویژه
+              </span>
+            )}
           </div>
 
           <h1 className="mt-5 max-w-4xl text-3xl font-extrabold leading-[1.45] tracking-tight sm:text-4xl">
