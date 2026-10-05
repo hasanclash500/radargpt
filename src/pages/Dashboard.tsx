@@ -998,7 +998,7 @@ export default function Dashboard() {
         <Button
           type="button"
           size="icon"
-          className="fixed bottom-24 end-4 z-40 size-12 rounded-full shadow-xl md:bottom-6 md:end-24"
+          className="fixed bottom-40 end-4 z-40 size-12 rounded-full shadow-xl md:bottom-6 md:end-24"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="بازگشت به بالای صفحه"
           title="بازگشت به بالا"
