@@ -67,6 +67,11 @@ export const canManageSite = (role: OfficeRole) =>
 export const canManageListings = (role: OfficeRole) =>
   LISTING_ADMIN_ROLES.includes(role);
 
+export const canManageLeads = (role: OfficeRole) =>
+  role === OFFICE_ROLES.MANAGER ||
+  role === OFFICE_ROLES.ADMIN ||
+  role === OFFICE_ROLES.CONSULTANT;
+
 export const canWorkListings = (role: OfficeRole) =>
   PRIVILEGED_ROLES.includes(role);
 
