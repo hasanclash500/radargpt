@@ -174,14 +174,7 @@ createRoot(document.getElementById("root")!).render(
                 path="/auth"
                 element={<AuthPage redirectAfterAuth="/dashboard" />}
               />
-              <Route
-                path="/dashboard"
-                element={
-                  <RequireAuth>
-                    <DashboardHome />
-                  </RequireAuth>
-                }
-              />
+              <Route path="/dashboard" element={<DashboardHome />} />
               <Route
                 path="/dashboard/listings"
                 element={
@@ -216,8 +209,8 @@ createRoot(document.getElementById("root")!).render(
                 path="/dashboard/matches"
                 element={
                   <RequireAuth
-                    title="ورود به مچ هوشمند"
-                    description="این صفحه مخصوص مدیر و ادمین آگهی است."
+                    title="ورود به تطبیق فایل و متقاضی"
+                    description="این بخش برای مدیر و ادمین در دسترس است."
                   >
                     <SmartMatches />
                   </RequireAuth>
