@@ -93,6 +93,7 @@ export const exportCore = query({
         openRouterModel: row.openRouterModel,
         notifyLeads: row.notifyLeads,
         notifyPublicationRequests: row.notifyPublicationRequests,
+        notifyListingActivity: row.notifyListingActivity,
         notifyChatMessages: row.notifyChatMessages,
         updatedAt: row.updatedAt,
       })),
