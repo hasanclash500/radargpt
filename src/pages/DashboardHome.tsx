@@ -120,7 +120,7 @@ export default function DashboardHome() {
     api.folders.getSettings,
     isAuthenticated ? {} : "skip",
   );
-  const rebuildListingCounts = useMutation(api.listings.rebuildListingCounts);
+  const startListingMaintenance = useMutation(api.listings.startListingMaintenance);
   const [now] = useState(() => Date.now());
   const [today] = useState(() => todayJalaliString());
   const navigate = useNavigate();
@@ -131,30 +131,36 @@ export default function DashboardHome() {
   const isConsultant = role === "consultant";
   const isStaff = isManager || isAdmin || isConsultant;
 
-  const counterRebuildStartedRef = useRef(false);
+  const maintenanceStartedRef = useRef(false);
   useEffect(() => {
+    const needsMaintenance =
+      !settingsRow?.listingKindMigrationDone ||
+      !settingsRow?.listingSearchBackfillDone ||
+      !settingsRow?.landingVisibilityMigrationDone ||
+      !settingsRow?.listingCountsReady;
+
     if (
       !(isManager || isAdmin) ||
-      !settingsRow?.listingKindMigrationDone ||
-      settingsRow?.listingCountsReady ||
-      counterRebuildStartedRef.current
+      !settingsRow ||
+      !needsMaintenance ||
+      maintenanceStartedRef.current
     ) {
       return;
     }
-    counterRebuildStartedRef.current = true;
+
+    maintenanceStartedRef.current = true;
     const timer = window.setTimeout(() => {
-      void rebuildListingCounts().catch((error) => {
-        counterRebuildStartedRef.current = false;
-        console.error("dashboard listing counter rebuild failed", error);
+      void startListingMaintenance().catch((error) => {
+        maintenanceStartedRef.current = false;
+        console.error("dashboard listing maintenance start failed", error);
       });
-    }, 1400);
+    }, 1200);
     return () => window.clearTimeout(timer);
   }, [
     isManager,
     isAdmin,
-    settingsRow?.listingKindMigrationDone,
-    settingsRow?.listingCountsReady,
-    rebuildListingCounts,
+    settingsRow,
+    startListingMaintenance,
   ]);
 
   const leadRows = useQuery(api.leads.listLeads, isStaff ? {} : "skip");
