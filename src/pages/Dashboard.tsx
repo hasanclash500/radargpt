@@ -807,11 +807,11 @@ export default function Dashboard() {
                       : role === "consultant"
                         ? "کل فایل‌های من"
                         : "کل آگهی‌های اعضا",
-                  value: faNum(exactViewCount ?? stats.count),
+                  value: exactViewCount == null ? "…" : faNum(exactViewCount),
                 },
-                { icon: MapPinned, label: "شهرها", value: faNum(stats.cities) },
-                { icon: Coins, label: "میانگین قیمت", value: stats.avgPrice ? formatPrice(stats.avgPrice) : "—" },
-                { icon: Ruler, label: "میانگین متراژ", value: stats.avgArea ? `${faNum(stats.avgArea)} متر` : "—" },
+                { icon: MapPinned, label: "شهرها در فایل‌های لودشده", value: faNum(stats.cities) },
+                { icon: Coins, label: "میانگین قیمت لودشده", value: stats.avgPrice ? formatPrice(stats.avgPrice) : "—" },
+                { icon: Ruler, label: "میانگین متراژ لودشده", value: stats.avgArea ? `${faNum(stats.avgArea)} متر` : "—" },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card/70 p-3.5 shadow-sm">
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/25">
@@ -831,7 +831,7 @@ export default function Dashboard() {
             {/* نوار انتخاب و ارسال */}
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/70 bg-card/70 px-4 py-2.5">
               <p className="text-sm text-muted-foreground">
-                <span className="font-extrabold text-foreground">{faNum(filtered.length)}</span> آگهی در داده‌های بارگذاری‌شده
+                <span className="font-extrabold text-foreground">{faNum(filtered.length)}</span> آگهی بارگذاری‌شده روی این صفحه
                 {filtersActive && " (با اعمال فیلترها)"}
               </p>
               {syncing && syncProgress && (
