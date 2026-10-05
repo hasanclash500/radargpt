@@ -131,7 +131,7 @@ export default function SmartMatches() {
       <main dir="rtl" className="flex min-h-screen items-center justify-center bg-background p-4">
         <div className="max-w-md rounded-3xl border border-border p-6 text-center">
           <Target className="mx-auto size-9 text-muted-foreground" />
-          <h1 className="mt-4 font-black">دسترسی به مچ هوشمند ندارید</h1>
+          <h1 className="mt-4 font-black">دسترسی به تطبیق فایل و متقاضی ندارید</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             این بخش فقط برای مدیر و ادمین آگهی فعال است.
           </p>
@@ -157,7 +157,7 @@ export default function SmartMatches() {
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <BrainCircuit className="size-5" />
             </span>
-            <strong>مچ هوشمند دیوساز</strong>
+            <strong>تطبیق فایل و متقاضی</strong>
           </div>
           <ThemeToggle />
         </div>
