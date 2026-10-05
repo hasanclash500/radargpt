@@ -536,7 +536,7 @@ export default function DashboardHome() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background text-foreground">
+    <main dir="rtl" className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl lg:hidden">
         <div className="flex h-16 items-center justify-between px-3 sm:px-5">
           <MekaBrand compact link />
@@ -1026,6 +1026,47 @@ export default function DashboardHome() {
           </section>
         </section>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
+          <Link
+            to="/dashboard"
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl bg-primary/10 text-[10px] font-black text-primary"
+          >
+            <Home className="size-5" />
+            خانه
+          </Link>
+
+          <Link
+            to={isStaff ? "/dashboard/listings" : "/listings"}
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <Building2 className="size-5" />
+            آگهی‌ها
+          </Link>
+
+          <Link
+            to={isStaff ? "/dashboard/leads" : "/request"}
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            {isStaff ? (
+              <UserRoundSearch className="size-5" />
+            ) : (
+              <ClipboardList className="size-5" />
+            )}
+            {isStaff ? "متقاضی‌ها" : "درخواست ملک"}
+          </Link>
+
+          <button
+            type="button"
+            onClick={openSiteChat}
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <MessageCircle className="size-5" />
+            گفتگو
+          </button>
+        </div>
+      </nav>
     </main>
   );
 }
