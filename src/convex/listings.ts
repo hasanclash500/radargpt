@@ -853,6 +853,7 @@ export const continueListingMaintenance = internalMutation({
     };
 
     const batch = 150;
+    const countBatch = 500;
     let needsMore = false;
 
     if (!settings?.listingKindMigrationDone) {
@@ -939,7 +940,7 @@ export const continueListingMaintenance = internalMutation({
       const page = await ctx.db
         .query("listings")
         .withIndex("by_kind_date", (q) => q.eq("listingKind", view))
-        .paginate({ numItems: batch, cursor });
+        .paginate({ numItems: countBatch, cursor });
 
       const importedTotal =
         (settings?.listingCountRebuildImported ?? 0) +
