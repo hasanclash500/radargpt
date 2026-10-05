@@ -211,8 +211,9 @@ const schema = defineSchema(
       .index("by_submitter_created", ["submittedByPhone", "createdAt"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"])
-      .index("by_landing_featured_published", [
+      .index("by_landing_public_featured_published", [
         "showOnLanding",
+        "isPublic",
         "featuredOnHome",
         "publishedAt",
       ])
