@@ -696,6 +696,10 @@ export const restoreListings = mutation({
     if (settings) {
       await ctx.db.patch(settings._id, {
         listingCountsReady: false,
+        listingCountRebuildView: "imported",
+        listingCountRebuildCursor: undefined,
+        listingCountRebuildImported: 0,
+        listingCountRebuildMember: 0,
         listingCountsUpdatedAt: Date.now(),
       });
     }
