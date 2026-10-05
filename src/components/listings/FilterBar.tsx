@@ -15,7 +15,6 @@ import {
   type SortKey,
 } from "@/lib/filters";
 import { RotateCcw, Search } from "lucide-react";
-import { normalizeDateInput } from "@/lib/filters";
 
 interface FilterBarProps {
   filters: Filters;
@@ -202,7 +201,7 @@ export default function FilterBar({
               placeholder="1404/07/01"
               aria-label="از تاریخ"
               value={filters.dateFrom}
-              onChange={(e) => onChange({ dateFrom: normalizeDateInput(e.target.value) })}
+              onChange={(e) => onChange({ dateFrom: e.target.value })}
             />
             <Input
               type="text"
@@ -211,7 +210,7 @@ export default function FilterBar({
               placeholder="1404/07/31"
               aria-label="تا تاریخ"
               value={filters.dateTo}
-              onChange={(e) => onChange({ dateTo: normalizeDateInput(e.target.value) })}
+              onChange={(e) => onChange({ dateTo: e.target.value })}
             />
           </div>
         </div>
