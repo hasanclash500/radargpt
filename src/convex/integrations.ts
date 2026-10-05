@@ -288,13 +288,15 @@ export const notifyLead = internalAction({
     area: v.optional(v.number()),
     budget: v.optional(v.string()),
     details: v.optional(v.string()),
+    registeredBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const config = await ctx.runQuery(internal.integrations.getSecretsInternal, {});
     if (!config?.notifyLeads) return { skipped: true };
 
     const lines = [
-      "🔔 درخواست جدید از سایت دیوساز",
+      "#متقاضی_ثبت_شده",
+      "🔔 متقاضی جدید در دیوساز ثبت شد",
       "",
       `نوع درخواست: ${INTENT_LABELS[args.intent] || args.intent}`,
       `نام: ${args.name}`,
@@ -304,8 +306,53 @@ export const notifyLead = internalAction({
       args.area != null ? `متراژ حدودی: ${args.area} متر` : "",
       args.budget ? `بودجه/شرایط: ${args.budget}` : "",
       args.details ? `توضیحات: ${args.details}` : "",
+      args.registeredBy ? `ثبت‌کننده: ${args.registeredBy}` : "",
       "",
       "📌 این درخواست در پنل مدیریت دیوساز ذخیره شده است.",
+    ].filter(Boolean);
+
+    return await sendConfigured(ctx, lines.join("\n"));
+  },
+});
+
+export const notifyListingActivity = internalAction({
+  args: {
+    event: v.union(v.literal("claimed"), v.literal("registered")),
+    consultant: v.string(),
+    key: v.string(),
+    radarCode: v.optional(v.string()),
+    title: v.string(),
+    city: v.string(),
+    propertyType: v.string(),
+    dealType: v.string(),
+    phone: v.optional(v.string()),
+    area: v.optional(v.number()),
+    priceMillion: v.optional(v.number()),
+    depositMillion: v.optional(v.number()),
+    rentMillion: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const config = await ctx.runQuery(internal.integrations.getSecretsInternal, {});
+    if (!config?.notifyListingActivity) return { skipped: true };
+
+    const claimed = args.event === "claimed";
+    const lines = [
+      claimed ? "#آگهی_برداشته_شده" : "#آگهی_ثبت_شده",
+      claimed ? "📥 آگهی از بانک ایمپورت برداشته شد" : "📝 آگهی جدید توسط عضو تیم ثبت شد",
+      "",
+      `مشاور/ثبت‌کننده: ${args.consultant}`,
+      `عنوان: ${args.title}`,
+      `نوع: ${args.dealType} / ${args.propertyType}`,
+      `شهر: ${args.city}`,
+      args.radarCode ? `کد رادار: ${args.radarCode}` : "",
+      args.area != null ? `متراژ: ${args.area} متر` : "",
+      args.phone ? `تلفن فایل: ${args.phone}` : "",
+      args.depositMillion != null ? `ودیعه: ${args.depositMillion} میلیون تومان` : "",
+      args.rentMillion != null ? `اجاره: ${args.rentMillion} میلیون تومان` : "",
+      args.rentMillion == null && args.priceMillion != null && args.priceMillion > 0
+        ? `قیمت: ${args.priceMillion} میلیون تومان`
+        : "",
+      `کد داخلی: ${args.key}`,
     ].filter(Boolean);
 
     return await sendConfigured(ctx, lines.join("\n"));
