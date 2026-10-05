@@ -113,6 +113,123 @@ function DashboardLinkCard({ card }: { card: DashboardCard }) {
   );
 }
 
+function ListingTrendChart({
+  data,
+}: {
+  data: Array<{ date: string; count: number }>;
+}) {
+  const width = 760;
+  const height = 220;
+  const padX = 28;
+  const padY = 24;
+  const max = Math.max(1, ...data.map((item) => item.count));
+  const usableW = width - padX * 2;
+  const usableH = height - padY * 2;
+  const points = data.map((item, index) => {
+    const x =
+      padX +
+      (data.length <= 1 ? 0 : (index / (data.length - 1)) * usableW);
+    const y = padY + usableH - (item.count / max) * usableH;
+    return { ...item, x, y };
+  });
+  const polyline = points.map((point) => `${point.x},${point.y}`).join(" ");
+  const area =
+    points.length > 0
+      ? `${padX},${height - padY} ${polyline} ${width - padX},${height - padY}`
+      : "";
+  const labels = points.filter(
+    (_, index) =>
+      index === 0 ||
+      index === points.length - 1 ||
+      index % Math.max(1, Math.floor(points.length / 4)) === 0,
+  );
+
+  const dateLabel = (value: string) =>
+    new Date(value + "T12:00:00").toLocaleDateString(
+      "fa-IR-u-ca-persian",
+      { day: "numeric", month: "short" },
+    );
+
+  return (
+    <div className="mt-4">
+      <div className="overflow-x-auto [scrollbar-width:none]">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="h-[220px] min-w-[620px] w-full"
+          role="img"
+          aria-label="نمودار فعالیت آگهی‌های ۳۰ روز اخیر"
+        >
+          <g className="text-border">
+            {[0, 1, 2, 3, 4].map((line) => {
+              const y = padY + (line / 4) * usableH;
+              return (
+                <line
+                  key={line}
+                  x1={padX}
+                  x2={width - padX}
+                  y1={y}
+                  y2={y}
+                  stroke="currentColor"
+                  strokeWidth="1"
+                />
+              );
+            })}
+          </g>
+
+          {area && (
+            <polygon
+              points={area}
+              fill="currentColor"
+              className="text-primary opacity-[0.08]"
+            />
+          )}
+          {polyline && (
+            <polyline
+              points={polyline}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-primary"
+            />
+          )}
+
+          {points.map((point, index) => (
+            <circle
+              key={point.date}
+              cx={point.x}
+              cy={point.y}
+              r={index === points.length - 1 ? 4 : 2.3}
+              fill="currentColor"
+              className="text-[color:var(--gold)]"
+            />
+          ))}
+
+          {labels.map((point) => (
+            <text
+              key={"label-" + point.date}
+              x={point.x}
+              y={height - 4}
+              textAnchor="middle"
+              className="fill-muted-foreground text-[10px]"
+            >
+              {dateLabel(point.date)}
+            </text>
+          ))}
+        </svg>
+      </div>
+
+      <div className="mt-2 flex items-center justify-between gap-3 text-[10px] text-muted-foreground">
+        <span>بیشترین فعالیت روزانه: {faNum(max)}</span>
+        <span>
+          مجموع ۳۰ روز: {faNum(data.reduce((sum, item) => sum + item.count, 0))}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardHome() {
   const { isAuthenticated, isLoading: authLoading, signOut } = useAuth();
   const roleData = useQuery(api.roles.myRole, isAuthenticated ? {} : "skip");
@@ -192,6 +309,10 @@ export default function DashboardHome() {
   const recentListings = useQuery(
     api.listings.listDashboardRecentListings,
     isStaff ? { limit: 5 } : "skip",
+  );
+  const listingTrend = useQuery(
+    api.listings.dashboardListingTrend,
+    isStaff ? { days: 30 } : "skip",
   );
 
   const activeLeads = Array.isArray(leadRows)
@@ -766,6 +887,23 @@ export default function DashboardHome() {
                   </div>
                 );
               })}
+            </section>
+          )}
+
+          {isStaff && (
+            <section className="mt-4 rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 className="font-black">روند فعالیت آگهی‌ها در ۳۰ روز اخیر</h2>
+                  <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                    ثبت، تکمیل و برداشتن فایل‌های اعضا؛ بر اساس داده واقعی پنل.
+                  </p>
+                </div>
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black text-primary">
+                  ۳۰ روز
+                </span>
+              </div>
+              <ListingTrendChart data={listingTrend ?? []} />
             </section>
           )}
 
