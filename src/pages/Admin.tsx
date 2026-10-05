@@ -115,6 +115,7 @@ export default function Admin() {
     officeName: string;
     managerPhone: string;
     shareFooter: string;
+    siteTheme: "navy" | "emerald" | "light";
   } | null>(null);
 
   const draft = sourceDraft ?? {
@@ -122,6 +123,7 @@ export default function Admin() {
     officeName: "",
     managerPhone: "",
     shareFooter: "",
+    siteTheme: "navy",
   };
 
   if (settings && !hydrated) {
@@ -131,6 +133,7 @@ export default function Admin() {
       officeName: settings.officeName ?? "",
       managerPhone: settings.managerPhone ?? "",
       shareFooter: settings.shareFooter ?? "",
+      siteTheme: (settings.siteTheme ?? "navy") as "navy" | "emerald" | "light",
     });
   }
 
@@ -153,6 +156,7 @@ export default function Admin() {
         officeName: draft.officeName.trim(),
         managerPhone: draft.managerPhone.trim(),
         shareFooter: draft.shareFooter,
+        siteTheme: draft.siteTheme,
       });
       toast.success("اطلاعات دفتر ذخیره شد.");
     } catch (error) {
@@ -444,6 +448,33 @@ export default function Admin() {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>تم پیش‌فرض سایت</Label>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {[
+                    { value: "navy" as const, label: "سرمه‌ای دیوساز", note: "تاریک · سرمه‌ای و طلایی", swatch: "bg-[#082f54]" },
+                    { value: "emerald" as const, label: "سبز تیره", note: "تاریک · سبز و طلایی", swatch: "bg-[#12382f]" },
+                    { value: "light" as const, label: "روشن", note: "روشن · سفید و سرمه‌ای", swatch: "bg-white" },
+                  ].map((theme) => (
+                    <button
+                      key={theme.value}
+                      type="button"
+                      onClick={() => setSourceDraft({ ...draft, siteTheme: theme.value })}
+                      className={
+                        "rounded-2xl border p-3 text-right transition-all " +
+                        (draft.siteTheme === theme.value
+                          ? "border-primary ring-2 ring-primary/15"
+                          : "border-border/70 hover:border-primary/35")
+                      }
+                    >
+                      <span className={"mb-2 block h-10 rounded-xl border border-border/50 " + theme.swatch} />
+                      <strong className="block text-xs">{theme.label}</strong>
+                      <span className="mt-1 block text-[10px] text-muted-foreground">{theme.note}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="shareFooter">متن پایانی پیام‌ها</Label>
                 <Textarea
