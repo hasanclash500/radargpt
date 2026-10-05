@@ -63,7 +63,7 @@ async function resolveProfile(ctx: any, row: any) {
     displayName:
       userProfile?.displayName ||
       user?.name ||
-      "مشاور مکا",
+      "مشاور دیوساز",
     headline: row.headline ?? "مشاور املاک صنعتی و اداری",
     bio: row.bio ?? "",
     city: row.city ?? "شهریار",
@@ -279,7 +279,7 @@ export const listStoryAuthors = query({
         userId: profile.userId,
         role,
         displayName:
-          resolved?.displayName || profile.displayName || "مشاور مکا",
+          resolved?.displayName || profile.displayName || "مشاور دیوساز",
         profileImageUrl: resolved?.profileImageUrl ?? null,
         slug: resolved?.slug ?? "",
       });
