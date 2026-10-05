@@ -484,7 +484,15 @@ export const upsertListings = mutation({
     for (const item of args.items) {
       const existing = await byKey(ctx, item.key);
       if (existing) {
-        if (existing.listingKind === "member") {
+        const existingLooksMember =
+          existing.listingKind === "member" ||
+          existing.submissionSource === "public_mobile" ||
+          Boolean(existing.isPublic) ||
+          existing.publicationStatus === "pending" ||
+          existing.publicationStatus === "approved" ||
+          (existing.listingImages?.length ?? 0) > 0 ||
+          (existing.customFields?.length ?? 0) > 0;
+        if (existingLooksMember) {
           skippedMember++;
           continue;
         }
