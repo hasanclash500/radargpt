@@ -23,14 +23,14 @@ export default function DashboardLeads() {
     );
   }
 
-  if (!role?.canManageListings) {
+  if (!(role?.role === "manager" || role?.role === "admin" || role?.role === "consultant")) {
     return (
       <main dir="rtl" className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
         <div className="max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-sm">
           <UserRoundSearch className="mx-auto size-10 text-muted-foreground" />
           <h1 className="mt-4 font-black">دسترسی به متقاضی‌ها ندارید</h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            این بخش برای مدیر و ادمین آگهی فعال است.
+            این بخش برای مدیر، ادمین و مشاوران فعال است.
           </p>
           <Button asChild className="mt-5">
             <Link to="/dashboard">بازگشت به داشبورد</Link>
