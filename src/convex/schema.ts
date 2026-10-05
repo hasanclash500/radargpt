@@ -145,7 +145,16 @@ const schema = defineSchema(
           }),
         ),
       ),
-      /** کاربری که اولین بار این آگهی را در سیستم ثبت کرده است */
+      /** نوع رکورد: بانک ایمپورت یا فایل ثبت‌شده اعضای تیم */
+      listingKind: v.optional(
+        v.union(v.literal("imported"), v.literal("member")),
+      ),
+      /** شناسه دسته ورود فایل برای گزارش و بازیابی */
+      importBatchId: v.optional(v.string()),
+      /** اگر فایل از بانک ایمپورت به نام یک مشاور منتقل شده باشد */
+      claimedFromImport: v.optional(v.boolean()),
+      claimedAt: v.optional(v.number()),
+      /** کاربری که اولین بار این آگهی را در سیستم ثبت/تحویل گرفته است */
       createdByUserId: v.optional(v.string()),
       /** ثبت مستقیم عمومی بدون حساب */
       submissionSource: v.optional(v.string()),
@@ -186,6 +195,8 @@ const schema = defineSchema(
       .index("by_date", ["date"])
       .index("by_city", ["city"])
       .index("by_created_by", ["createdByUserId"])
+      .index("by_kind_updated", ["listingKind", "updatedAt"])
+      .index("by_owner_kind_updated", ["createdByUserId", "listingKind", "updatedAt"])
       .index("by_submitter_created", ["submittedByPhone", "createdAt"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"])
