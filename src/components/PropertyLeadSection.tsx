@@ -53,7 +53,7 @@ const INTENTS: Array<{
   {
     id: "sell",
     title: "می‌فروشم",
-    text: "ملک خودت را برای بررسی و معرفی به مشتریان مکا ثبت کن.",
+    text: "ملک خودت را برای بررسی و معرفی به مشتریان دیوساز ثبت کن.",
     icon: HandCoins,
   },
   {
@@ -121,7 +121,7 @@ export default function PropertyLeadSection() {
         website: form.website,
       });
       toast.success("درخواست شما ثبت شد", {
-        description: "کارشناس مکا برای بررسی جزئیات با شما تماس می‌گیرد.",
+        description: "کارشناس دیوساز برای بررسی جزئیات با شما تماس می‌گیرد.",
       });
       setIntent(null);
       setForm({
@@ -149,7 +149,7 @@ export default function PropertyLeadSection() {
           دنبال ملک هستی یا می‌خواهی ملکت را معرفی کنی؟
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-          نوع درخواست را انتخاب کن؛ اطلاعات مستقیماً برای تیم مکا ارسال می‌شود.
+          نوع درخواست را انتخاب کن؛ اطلاعات مستقیماً برای تیم دیوساز ارسال می‌شود.
         </p>
       </div>
 
