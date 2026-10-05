@@ -262,6 +262,86 @@ export default function AdvisorChat() {
           </div>
         </div>
 
+        {role?.role === "manager" && (
+          <section className="mb-4 rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <History className="size-5 text-primary" />
+                <div>
+                  <h2 className="text-sm font-black">تاریخچه همه گفتگوها</h2>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    مدیر می‌تواند تاریخچه خصوصی گفتگوها را برای پشتیبانی بررسی و در صورت نیاز حذف کند.
+                  </p>
+                </div>
+              </div>
+              <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-bold text-primary">
+                {(allConversations?.length ?? 0).toLocaleString("fa-IR")}
+              </span>
+            </div>
+
+            {allConversations === undefined ? (
+              <div className="flex justify-center py-5">
+                <Loader2 className="size-5 animate-spin text-primary" />
+              </div>
+            ) : allConversations.length === 0 ? (
+              <p className="py-5 text-center text-xs text-muted-foreground">
+                هنوز گفتگویی ثبت نشده است.
+              </p>
+            ) : (
+              <div className="mt-3 max-h-56 space-y-2 overflow-y-auto pe-1">
+                {allConversations.map((conversation: any) => (
+                  <div
+                    key={String(conversation.id)}
+                    className="flex items-center gap-2 rounded-2xl border border-border/60 bg-background/60 p-2.5"
+                  >
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 text-right"
+                      onClick={() => openHistoryConversation(conversation)}
+                    >
+                      <strong className="block truncate text-xs">
+                        {conversation.participantA?.displayName || "—"}
+                        <span className="mx-1.5 text-muted-foreground">↔</span>
+                        {conversation.participantB?.displayName || "—"}
+                      </strong>
+                      <span className="mt-1 block truncate text-[10px] text-muted-foreground">
+                        {conversation.lastMessage || "بدون پیام"}
+                      </span>
+                    </button>
+                    <span className="hidden shrink-0 text-[9px] text-muted-foreground sm:block">
+                      {formatTime(conversation.updatedAt)}
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-8 gap-1 text-[10px]"
+                      onClick={() => openHistoryConversation(conversation)}
+                    >
+                      مشاهده
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="size-8 shrink-0 text-destructive"
+                      disabled={deletingId === String(conversation.id)}
+                      onClick={() => void removeHistory(conversation.id)}
+                      aria-label="حذف تاریخچه گفتگو"
+                    >
+                      {deletingId === String(conversation.id) ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-4" />
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         <div className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm lg:grid lg:h-[calc(100dvh-210px)] lg:min-h-[620px] lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside
             className={
