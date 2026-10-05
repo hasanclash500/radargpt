@@ -33,7 +33,7 @@ function ListingMatchCard({ match }: { match: any }) {
               {match.score.toLocaleString("fa-IR")}٪ · {match.label}
             </Badge>
             <span className="text-[10px] font-bold text-muted-foreground">
-              {item.publicationStatus === "approved" ? "منتشرشده" : "فایل داخلی مکا"}
+              {item.publicationStatus === "approved" ? "منتشرشده" : "فایل داخلی دیوساز"}
             </span>
           </div>
 
@@ -157,7 +157,7 @@ export default function SmartMatches() {
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <BrainCircuit className="size-5" />
             </span>
-            <strong>مچ هوشمند مکا</strong>
+            <strong>مچ هوشمند دیوساز</strong>
           </div>
           <ThemeToggle />
         </div>
@@ -171,10 +171,10 @@ export default function SmartMatches() {
             <Sparkles className="mt-1 size-6 shrink-0 text-primary" />
             <div>
               <h1 className="text-xl font-black sm:text-2xl">
-                تطبیق متقاضیان با فایل‌های خود مکا
+                تطبیق متقاضیان با فایل‌های خود دیوساز
               </h1>
               <p className="mt-2 max-w-3xl text-xs leading-6 text-muted-foreground sm:text-sm">
-                موتور تطبیق فقط آگهی‌های ذخیره‌شده در دیتابیس مکا را بررسی می‌کند.
+                موتور تطبیق فقط آگهی‌های ذخیره‌شده در دیتابیس دیوساز را بررسی می‌کند.
                 شهر، نوع معامله، نوع ملک، متراژ، بودجه، ودیعه و اجاره در امتیاز
                 تطبیق لحاظ می‌شوند و برای هر متقاضی نزدیک‌ترین فایل‌ها نمایش داده
                 می‌شوند.
@@ -188,7 +188,7 @@ export default function SmartMatches() {
             <UserRoundSearch className="mx-auto size-10 text-muted-foreground" />
             <h2 className="mt-4 font-black">تطبیق قابل‌نمایشی پیدا نشد</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              ابتدا درخواست خرید یا اجاره از بخش متقاضیان ثبت کنید یا فایل‌های مکا را تکمیل کنید.
+              ابتدا درخواست خرید یا اجاره از بخش متقاضیان ثبت کنید یا فایل‌های دیوساز را تکمیل کنید.
             </p>
           </div>
         ) : (
