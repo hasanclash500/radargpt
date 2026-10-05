@@ -97,6 +97,7 @@ export const saveIngested = internalMutation({
     let added = 0;
     let updated = 0;
     let skippedMember = 0;
+    let reclassifiedImported = 0;
     const now = Date.now();
     const importBatchId = "scheduled-" + new Date(now).toISOString().slice(0, 10);
 
@@ -118,6 +119,7 @@ export const saveIngested = internalMutation({
           skippedMember++;
           continue;
         }
+        if (existing.listingKind !== "imported") reclassifiedImported++;
         await ctx.db.patch(existing._id, {
           ...item,
           searchText: listingSearchText(item),
@@ -159,6 +161,15 @@ export const saveIngested = internalMutation({
         lastImportAdded: added,
         lastImportUpdated: updated,
         lastImportError: undefined,
+        ...(settings.listingCountsReady
+          ? {
+              listingImportedCount:
+                (settings.listingImportedCount ?? 0) +
+                added +
+                reclassifiedImported,
+              listingCountsUpdatedAt: now,
+            }
+          : {}),
       });
     } else {
       await ctx.db.insert("appSettings", {
