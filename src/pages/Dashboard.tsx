@@ -42,12 +42,21 @@ import { toast } from "sonner";
 const PAGE_SIZE = 60;
 
 const HINTS = [
-  { icon: FileCode2, title: "استخراج خودکار",
-    body: "هر آگهی با یک عبارت باقاعده از فایل HTML خام یا خروجی JSON بیرون کشیده می‌شود." },
-  { icon: SearchX, title: "جستجو و فیلتر دقیق",
-    body: "فیلتر بر اساس شهر، نوع معامله، نوع ملک، تعداد اتاق، بازه قیمت و متراژ همراه مرتب‌سازی." },
-  { icon: FileSpreadsheet, title: "خروجی سه‌گانه",
-    body: "CSV با حروف فارسی، اکسل واقعی و JSON از همان مجموعه‌ای که روی صفحه می‌بینید." },
+  {
+    icon: FileCode2,
+    title: "ورود فایل",
+    body: "فایل‌های HTML، CSV، JSON و اکسل را وارد کنید تا در بانک ایمپورت قرار بگیرند.",
+  },
+  {
+    icon: SearchX,
+    title: "پیدا کردن سریع فایل",
+    body: "با شماره، کد رادار، شهر، نوع ملک، قیمت، متراژ یا تاریخ فایل را پیدا کنید.",
+  },
+  {
+    icon: FileSpreadsheet,
+    title: "خروجی اکسل",
+    body: "از نتایج فعلی یا کل بانک آگهی‌ها فایل اکسل دسته‌جمعی بگیرید.",
+  },
 ];
 
 export default function Dashboard() {
