@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { OFFICE_ROLES } from "./schema";
 import { currentRole } from "./permissions";
+import { listingSearchText } from "../lib/listing-search";
 
 async function requireManager(ctx: any) {
   const current = await currentRole(ctx);
@@ -386,6 +387,10 @@ export const restoreListings = mutation({
             : data.radarCode || data.divarUrl
               ? "imported"
               : "member";
+      }
+      data.searchText = listingSearchText(data);
+      if (data.showOnLanding === undefined) {
+        data.showOnLanding = Boolean(data.featuredOnHome && data.isPublic);
       }
 
       const existing = (
