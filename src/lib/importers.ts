@@ -6,7 +6,6 @@
  * می‌شوند (فارسی/لاتین، فاصله/زیرخط). ارقام فارسی/عربی خودکار تبدیل می‌شوند.
  */
 
-import * as XLSX from "xlsx";
 import { CSV_HEADERS } from "./exporters";
 import { neshanSearchUrl } from "./neshan";
 import { parsePriceMillion, toEnglishDigits, type Listing } from "./parser";
@@ -306,6 +305,7 @@ async function rowsFromFile(file: File): Promise<{
     return { rows: arr, source: "json" };
   }
   if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+    const XLSX = await import("xlsx");
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, { type: "array" });
     const sheet = wb.Sheets[wb.SheetNames[0]];
