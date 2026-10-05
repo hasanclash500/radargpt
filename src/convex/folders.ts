@@ -19,6 +19,7 @@ const fieldDefinitionValidator = v.object({
     v.literal("boolean"),
     v.literal("select"),
     v.literal("textarea"),
+    v.literal("date"),
   ),
   required: v.boolean(),
   public: v.boolean(),
