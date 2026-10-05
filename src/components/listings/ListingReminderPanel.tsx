@@ -1,7 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PersianDatePicker } from "@/components/ui/persian-date-picker";
 import { api } from "@/convex/_generated/api";
 import { formatArea } from "@/lib/format";
+import {
+  formatJalaliDate,
+  jalaliDateToTimestamp,
+  timestampToJalaliString,
+  todayJalaliString,
+} from "@/lib/jalali";
 import { useMutation, useQuery } from "convex/react";
 import {
   BellRing,
@@ -16,42 +23,8 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
-function todayJalali() {
-  const parts = new Intl.DateTimeFormat("en-US-u-ca-persian", {
-    timeZone: "Asia/Tehran",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("year")}-${get("month")}-${get("day")}`;
-}
-
-function toInputDate(value?: number) {
-  if (!value) return "";
-  const date = new Date(value);
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Tehran",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  return formatter.format(date);
-}
-
-function toTimestamp(value: string) {
-  if (!value) return undefined;
-  const timestamp = new Date(`${value}T00:00:00+03:30`).getTime();
-  return Number.isFinite(timestamp) ? timestamp : undefined;
-}
-
 function faDate(value: number) {
-  return new Date(value).toLocaleDateString("fa-IR", {
-    timeZone: "Asia/Tehran",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  return formatJalaliDate(timestampToJalaliString(value));
 }
 
 function CandidateCard({
@@ -63,13 +36,21 @@ function CandidateCard({
 }) {
   const setReminders = useMutation(api.reminders.setListingReminders);
   const clearReminders = useMutation(api.reminders.clearListingReminders);
-  const [first, setFirst] = useState(() => toInputDate(item.planned?.[0]?.remindAt));
-  const [second, setSecond] = useState(() => toInputDate(item.planned?.[1]?.remindAt));
+  const [first, setFirst] = useState(() =>
+    item.planned?.[0]?.remindAt
+      ? timestampToJalaliString(item.planned[0].remindAt)
+      : "",
+  );
+  const [second, setSecond] = useState(() =>
+    item.planned?.[1]?.remindAt
+      ? timestampToJalaliString(item.planned[1].remindAt)
+      : "",
+  );
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    const firstAt = toTimestamp(first);
-    const secondAt = toTimestamp(second);
+    const firstAt = jalaliDateToTimestamp(first);
+    const secondAt = jalaliDateToTimestamp(second);
     if (!firstAt && !secondAt) {
       toast.error("حداقل یک تاریخ یادآوری انتخاب کنید.");
       return;
@@ -122,20 +103,18 @@ function CandidateCard({
         <div className="grid gap-2 sm:grid-cols-2 lg:w-[420px]">
           <label className="space-y-1 text-[11px] font-bold text-muted-foreground">
             یادآوری اول
-            <Input
-              type="date"
-              dir="ltr"
+            <PersianDatePicker
               value={first}
-              onChange={(event) => setFirst(event.target.value)}
+              onChange={setFirst}
+              placeholder="انتخاب تاریخ"
             />
           </label>
           <label className="space-y-1 text-[11px] font-bold text-muted-foreground">
             یادآوری دوم
-            <Input
-              type="date"
-              dir="ltr"
+            <PersianDatePicker
               value={second}
-              onChange={(event) => setSecond(event.target.value)}
+              onChange={setSecond}
+              placeholder="انتخاب تاریخ"
             />
           </label>
           <div className="flex gap-2 sm:col-span-2">
@@ -159,7 +138,7 @@ function CandidateCard({
 export default function ListingReminderPanel() {
   const role = useQuery(api.roles.myRole, {});
   const [now, setNow] = useState(() => Date.now());
-  const today = useMemo(() => todayJalali(), [now]);
+  const today = useMemo(() => todayJalaliString(), [now]);
   const data = useQuery(api.reminders.listPanel, {
     todayJalali: today,
     now,
