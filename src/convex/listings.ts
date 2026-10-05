@@ -43,7 +43,7 @@ async function globalSettings(ctx: Ctx) {
 }
 
 async function adjustListingCounts(
-  ctx: Ctx,
+  ctx: any,
   importedDelta: number,
   memberDelta: number,
 ) {
