@@ -376,10 +376,10 @@ export default function Dashboard() {
 
   const filtered = useMemo(
     () =>
-      localTouched
+      localTouched || Boolean(serverSearch)
         ? applyFilters(displayListings, deferredFilters)
         : displayListings,
-    [displayListings, deferredFilters, localTouched],
+    [displayListings, deferredFilters, localTouched, serverSearch],
   );
   const visible = filtered.slice(0, visibleCount);
 
