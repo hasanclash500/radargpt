@@ -53,6 +53,41 @@ async function byKey(ctx: Ctx, key: string): Promise<Doc<"listings"> | null> {
   return rows[0] ?? null;
 }
 
+function listingSearchText(row: {
+  radarCode?: string;
+  city?: string;
+  neighborhood?: string;
+  title?: string;
+  description?: string;
+  phone?: string;
+  dealType?: string;
+  propertyType?: string;
+  address?: string;
+}) {
+  const parts = [
+    row.radarCode,
+    row.city,
+    row.neighborhood,
+    row.title,
+    row.description,
+    row.phone,
+    row.dealType,
+    row.propertyType,
+    row.address,
+  ]
+    .filter((value): value is string => Boolean(value && value.trim()))
+    .map((value) => value.trim());
+
+  const raw = parts.join(" ");
+  const latinDigits = toEnglishDigits(raw);
+  return Array.from(new Set([raw, latinDigits]))
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 12000);
+}
+
 function cleanSlug(value: string) {
   return value
     .trim()
@@ -345,6 +380,50 @@ export const listListings = query({
   },
 });
 
+export const searchListings = query({
+  args: {
+    view: v.union(v.literal("member"), v.literal("imported")),
+    query: v.string(),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canWorkListings(r.role)) return [];
+
+    const term = toEnglishDigits(args.query)
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 180);
+    if (term.length < 2) return [];
+
+    const limit = Math.max(1, Math.min(Math.floor(args.limit ?? 120), 200));
+
+    let search = ctx.db
+      .query("listings")
+      .withSearchIndex("search_listings", (q) =>
+        q.search("searchText", term).eq("listingKind", args.view),
+      );
+
+    const rows =
+      args.view === "member" && ownsOnlyListings(r.role)
+        ? await ctx.db
+            .query("listings")
+            .withSearchIndex("search_listings", (q) =>
+              q
+                .search("searchText", term)
+                .eq("listingKind", "member")
+                .eq("createdByUserId", r.userId),
+            )
+            .take(limit)
+        : await search.take(limit);
+
+    const fallback = r.privileged ? "" : await managerPhone(ctx);
+    return rows.map((row) =>
+      toListing(row, r.privileged ? (row.phone ?? "") : fallback),
+    );
+  },
+});
+
 export const listPendingPublications = query({
   args: {},
   handler: async (ctx) => {
@@ -498,6 +577,7 @@ export const upsertListings = mutation({
         }
         await ctx.db.patch(existing._id, {
           ...item,
+          searchText: listingSearchText(item),
           listingKind: "imported",
           importBatchId: existing.importBatchId || importBatchId,
           createdByUserId: undefined,
@@ -513,6 +593,7 @@ export const upsertListings = mutation({
       } else {
         await ctx.db.insert("listings", {
           ...item,
+          searchText: listingSearchText(item),
           listingKind: "imported",
           importBatchId,
           isPublic: false,
@@ -570,6 +651,7 @@ export const migrateLegacyListingKinds = mutation({
       if (looksImported) {
         await ctx.db.patch(row._id, {
           listingKind: "imported",
+          searchText: listingSearchText(row),
           importBatchId: row.importBatchId || "legacy-import",
           createdByUserId: undefined,
           updatedAt: row.updatedAt ?? row.createdAt ?? now,
@@ -578,6 +660,7 @@ export const migrateLegacyListingKinds = mutation({
       } else {
         await ctx.db.patch(row._id, {
           listingKind: "member",
+          searchText: listingSearchText(row),
           updatedAt: row.updatedAt ?? row.createdAt ?? now,
         });
         member++;
@@ -735,7 +818,12 @@ export const updateListing = mutation({
     if (!canEditListing(r.role, r.userId, row.createdByUserId)) {
       throw new Error("اجازهٔ تغییر این آگهی را ندارید.");
     }
-    await ctx.db.patch(row._id, { ...args.patch, updatedAt: Date.now() });
+    const next = { ...row, ...args.patch };
+    await ctx.db.patch(row._id, {
+      ...args.patch,
+      searchText: listingSearchText(next),
+      updatedAt: Date.now(),
+    });
     return args.patch;
   },
 });
@@ -1143,6 +1231,14 @@ export const submitPublicListing = mutation({
       title,
       description,
       phone,
+      searchText: listingSearchText({
+        city,
+        propertyType,
+        dealType,
+        title,
+        description,
+        phone,
+      }),
       latitude: args.latitude,
       longitude: args.longitude,
       mapsUrl:
@@ -1318,6 +1414,7 @@ export const createListing = mutation({
       ...rest,
       key: stableKey,
       phone,
+      searchText: listingSearchText({ ...rest, phone }),
       listingKind: "member",
       createdByUserId: r.userId,
       isPublic: false,
