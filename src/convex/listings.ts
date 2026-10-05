@@ -517,6 +517,114 @@ export const upsertListings = mutation({
   },
 });
 
+export const migrateLegacyListingKinds = mutation({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("دسترسی مهاجرت آگهی‌ها ندارید.");
+    }
+
+    const limit = Math.max(50, Math.min(Math.floor(args.limit ?? 400), 800));
+    const rows = await ctx.db
+      .query("listings")
+      .withIndex("by_kind_updated", (q) => q.eq("listingKind", undefined))
+      .take(limit);
+
+    let imported = 0;
+    let member = 0;
+    const now = Date.now();
+
+    for (const row of rows) {
+      const publicSubmission = row.submissionSource === "public_mobile";
+      const hasEditedContent =
+        (row.listingImages?.length ?? 0) > 0 ||
+        (row.customFields?.length ?? 0) > 0 ||
+        Boolean(row.isPublic) ||
+        row.publicationStatus === "pending" ||
+        row.publicationStatus === "approved";
+
+      const looksImported =
+        !publicSubmission &&
+        !hasEditedContent &&
+        Boolean(row.radarCode || row.divarUrl);
+
+      if (looksImported) {
+        await ctx.db.patch(row._id, {
+          listingKind: "imported",
+          importBatchId: row.importBatchId || "legacy-import",
+          createdByUserId: undefined,
+          updatedAt: row.updatedAt ?? row.createdAt ?? now,
+        });
+        imported++;
+      } else {
+        await ctx.db.patch(row._id, {
+          listingKind: "member",
+          updatedAt: row.updatedAt ?? row.createdAt ?? now,
+        });
+        member++;
+      }
+    }
+
+    if (rows.length < limit) {
+      const settings = await globalSettings(ctx);
+      if (settings) {
+        await ctx.db.patch(settings._id, { listingKindMigrationDone: true });
+      } else {
+        await ctx.db.insert("appSettings", {
+          key: "global",
+          listingKindMigrationDone: true,
+        });
+      }
+    }
+
+    return {
+      processed: rows.length,
+      imported,
+      member,
+      done: rows.length < limit,
+    };
+  },
+});
+
+export const claimImportedListing = mutation({
+  args: { key: v.string() },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canWorkListings(r.role)) {
+      throw new Error("برای برداشتن فایل باید وارد حساب کاری شوید.");
+    }
+
+    const row = await byKey(ctx, args.key);
+    if (!row) throw new Error("آگهی یافت نشد.");
+    if (row.listingKind !== "imported") {
+      throw new Error("این فایل قبلاً از بانک ایمپورت خارج شده است.");
+    }
+
+    const now = Date.now();
+    await ctx.db.patch(row._id, {
+      listingKind: "member",
+      createdByUserId: r.userId,
+      claimedFromImport: true,
+      claimedAt: now,
+      isPublic: false,
+      featuredOnHome: false,
+      publicationStatus: "private",
+      publicationRequestedAt: undefined,
+      publicationReviewedAt: undefined,
+      publicationReviewedBy: undefined,
+      publicationRejectReason: undefined,
+      updatedAt: now,
+    });
+
+    return {
+      key: row.key,
+      claimedAt: now,
+      ownerUserId: r.userId,
+    };
+  },
+});
+
 export const saveNotes = mutation({
   args: { key: v.string(), notes: v.string() },
   handler: async (ctx, args) => {
