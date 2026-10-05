@@ -408,6 +408,7 @@ const schema = defineSchema(
       openRouterModel: v.optional(v.string()),
       notifyLeads: v.optional(v.boolean()),
       notifyPublicationRequests: v.optional(v.boolean()),
+      notifyListingActivity: v.optional(v.boolean()),
       notifyChatMessages: v.optional(v.boolean()),
       updatedAt: v.number(),
     }).index("by_key", ["key"]),
