@@ -233,8 +233,7 @@ export default function PublicListing() {
         </div>
       </section>
 
-      {images.length > 0 && (
-        <section
+      <section
           aria-label="گالری تصاویر ملک"
           className="mx-auto max-w-5xl px-4 pt-7 sm:px-6"
         >
@@ -272,7 +271,17 @@ export default function PublicListing() {
             </div>
           )}
         </section>
-      )}
+      {images.length === 0 ? (
+        <section aria-label="تصویر آگهی" className="mx-auto max-w-5xl px-4 pt-7 sm:px-6">
+          <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-muted">
+            <img
+              src="/listing-placeholder.svg"
+              alt="تصویر پیش‌فرض آگهی دیوساز"
+              className="aspect-[16/9] w-full object-cover"
+            />
+          </div>
+        </section>
+      ) : null}
 
       <div className="mx-auto grid max-w-5xl gap-7 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_300px] lg:py-10">
         <article className="min-w-0">
