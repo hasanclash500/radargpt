@@ -53,6 +53,34 @@ const FIELDS = {
 
 const itemValidator = v.object({ key: v.string(), ...FIELDS });
 
+function buildSearchText(value: any) {
+  return [
+    value.radarCode,
+    value.city,
+    value.neighborhood,
+    value.title,
+    value.description,
+    value.address,
+    value.phone,
+    value.propertyType,
+    value.dealType,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .replace(/[۰-۹]/g, (digit) =>
+      String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)),
+    )
+    .replace(/[٠-٩]/g, (digit) =>
+      String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)),
+    )
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+    .slice(0, 12000);
+}
+
 type SaveResult = { added: number; updated: number; skippedMember?: number; total: number };
 type ImportOutcome =
   | ({ skipped: true; reason: string } & Partial<SaveResult>)
