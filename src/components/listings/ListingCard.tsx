@@ -25,6 +25,7 @@ import {
   Ruler,
   Send,
   UserRound,
+  UserCheck,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -71,6 +72,7 @@ interface ListingCardProps {
   isAdmin?: boolean;
   onApprovePublication?: () => Promise<void>;
   onRejectPublication?: (reason?: string) => Promise<void>;
+  onClaimImported?: () => Promise<void>;
 }
 
 /** کارت نمایش یک آگهی با اکشن‌های کپی تلفن، تماس، دیوار، نقشه و ارسال. */
@@ -78,7 +80,7 @@ export default function ListingCard({
   listing: l, canSeePhone, managerPhone, selected, onToggleSelect,
   onShare, folders = [], onSaveNotes, onToggleFolder, onSaveLocation,
   onEditListing, onDeleteListing, onSavePublic,
-  isAdmin = false, onApprovePublication, onRejectPublication,
+  isAdmin = false, onApprovePublication, onRejectPublication, onClaimImported,
 }: ListingCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -131,6 +133,11 @@ export default function ListingCard({
             DEAL_STYLES[l.dealType] ?? DEAL_STYLES["سایر"])}>{l.dealType}</span>
           <span className="rounded-full border border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground">
             {l.propertyType}</span>
+          {l.listingKind === "imported" && (
+            <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-0.5 text-[10px] font-black text-sky-700 dark:text-sky-300">
+              بانک ایمپورت
+            </span>
+          )}
         </div>
         {l.radarCode && (
           <span dir="auto" className="shrink-0 rounded-md border border-border/70 bg-muted/50 px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
@@ -221,6 +228,30 @@ export default function ListingCard({
           <MapPin className="mt-0.5 size-3.5 shrink-0 text-primary/70" />
           <span dir="auto">{l.address}</span>
         </p>
+      )}
+
+      {l.listingKind === "imported" && onClaimImported && (
+        <div className="rounded-2xl border border-sky-500/25 bg-sky-500/[0.06] p-3">
+          <p className="text-[11px] leading-6 text-muted-foreground">
+            با برداشتن این فایل، از بانک مشترک خارج می‌شود و فقط در فایل‌های شما قرار می‌گیرد تا تکمیل و منتشر شود.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            className="mt-2 w-full gap-1.5"
+            onClick={async () => {
+              try {
+                await onClaimImported();
+                toast.success("فایل به نام شما منتقل شد");
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "انتقال فایل انجام نشد");
+              }
+            }}
+          >
+            <UserCheck className="size-4" />
+            برداشتن و انتقال به فایل‌های من
+          </Button>
+        </div>
       )}
 
       {/* ویرایش کامل + یادداشت و بایگانی */}
