@@ -109,6 +109,12 @@ export default function FloatingSiteChat() {
   );
 
   useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener("divsaz-open-chat", handleOpen);
+    return () => window.removeEventListener("divsaz-open-chat", handleOpen);
+  }, []);
+
+  useEffect(() => {
     if (!open || !selectedId) return;
     void markRead({
       conversationId: selectedId,
@@ -458,7 +464,7 @@ export default function FloatingSiteChat() {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className="relative flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl transition-transform hover:scale-105"
+        className="relative flex size-14 items-center justify-center rounded-full bg-[#082f54] text-white shadow-xl ring-1 ring-white/10 transition-transform hover:scale-105"
         aria-label={open ? "بستن چت دیوساز" : "باز کردن چت دیوساز"}
       >
         {open ? <X className="size-6" /> : <MessageCircle className="size-6" />}
