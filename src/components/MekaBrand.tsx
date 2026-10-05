@@ -1,4 +1,3 @@
-import { Building2 } from "lucide-react";
 import { Link } from "react-router";
 
 export default function MekaBrand({
@@ -10,16 +9,15 @@ export default function MekaBrand({
 }) {
   const content = (
     <div className="flex items-center gap-2.5" dir="rtl">
-      <span
+      <img
+        src="/divsaz-icon.svg"
+        alt=""
+        aria-hidden="true"
         className={
-          "relative flex shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-primary/25 bg-primary/8 text-primary " +
+          "shrink-0 rounded-2xl object-cover shadow-sm ring-1 ring-border/50 " +
           (compact ? "size-9" : "size-11")
         }
-      >
-        <span className="absolute inset-1 rounded-xl border border-primary/15" />
-        <Building2 className={compact ? "size-5" : "size-6"} />
-      </span>
-
+      />
       <span className="min-w-0">
         <span
           className={
@@ -36,7 +34,7 @@ export default function MekaBrand({
             (compact ? "text-[9px]" : "text-[11px]")
           }
         >
-          مرجع املاک صنعتی و اداری
+          املاک صنعتی و اداری
         </span>
       </span>
     </div>
