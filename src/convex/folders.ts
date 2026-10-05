@@ -112,6 +112,18 @@ export const getSettings = query({
       landingVisibilityMigrationDone: canSeeImportSettings
         ? Boolean(settings?.landingVisibilityMigrationDone)
         : true,
+      listingCountsReady: canSeeImportSettings
+        ? Boolean(settings?.listingCountsReady)
+        : true,
+      listingImportedCount: canSeeImportSettings
+        ? settings?.listingImportedCount
+        : undefined,
+      listingMemberCount: canSeeImportSettings
+        ? settings?.listingMemberCount
+        : undefined,
+      listingCountsUpdatedAt: canSeeImportSettings
+        ? settings?.listingCountsUpdatedAt
+        : undefined,
       lastImportAt: canSeeImportSettings ? settings?.lastImportAt : undefined,
       lastImportAdded: canSeeImportSettings ? settings?.lastImportAdded : undefined,
       lastImportUpdated: canSeeImportSettings ? settings?.lastImportUpdated : undefined,
