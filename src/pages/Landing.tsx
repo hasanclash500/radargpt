@@ -122,7 +122,7 @@ function RadarMapScene() {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.75, delay: 0.12, ease: "easeOut" }}
       className="relative mx-auto h-[340px] w-full max-w-[430px] sm:h-[430px]"
-      aria-label="نقشه راداری فایل‌های مکا"
+      aria-label="نقشه راداری فایل‌های دیوساز"
     >
       <div className="absolute inset-6 rounded-[2.8rem] bg-primary/10 blur-3xl" />
       <div className="absolute -start-8 top-8 size-32 rounded-full bg-amber-400/10 blur-3xl" />
@@ -186,7 +186,7 @@ function RadarMapScene() {
         ))}
 
         <div className="absolute bottom-4 end-4 rounded-2xl border border-border/70 bg-background/85 px-3 py-2 shadow-lg backdrop-blur">
-          <p className="text-[9px] text-muted-foreground">رادار فایل‌های مکا</p>
+          <p className="text-[9px] text-muted-foreground">رادار فایل‌های دیوساز</p>
           <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-black">
             <span className="size-2 rounded-full bg-primary animate-pulse" />
             جستجوی موقعیت‌های فعال
@@ -326,7 +326,7 @@ function MarketIntentHub() {
           className="rounded-2xl border border-primary/25 bg-primary/[0.045] p-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:p-4"
         >
           <Bot className="mx-auto size-6 text-primary" />
-          <p className="mt-2 text-xs font-extrabold sm:text-sm">دستیار هوشمند مکا</p>
+          <p className="mt-2 text-xs font-extrabold sm:text-sm">دستیار هوشمند دیوساز</p>
         </Link>
         <Link
           to="/listings"
@@ -371,7 +371,7 @@ function FeaturedPublicListings() {
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
           <span className="text-xs font-extrabold text-primary">فایل‌های منتخب</span>
-          <h2 className="mt-1 text-2xl font-black">ویترین آگهی‌های مکا</h2>
+          <h2 className="mt-1 text-2xl font-black">ویترین آگهی‌های دیوساز</h2>
         </div>
         <Button variant="outline" asChild className="hidden gap-1.5 sm:inline-flex">
           <Link to="/listings">
@@ -465,21 +465,21 @@ function FeaturedPublicListings() {
 export default function Landing() {
 
   useSeo({
-    title: "مکا | املاک صنعتی و اداری شهریار",
+    title: "دیوساز | املاک صنعتی و اداری شهریار",
     description:
-      "مکا؛ مشاور تخصصی خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار. فایل‌های سوله، کارخانه، کارگاه و دفتر اداری با تماس مستقیم.",
+      "دیوساز؛ مشاور تخصصی خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار. فایل‌های سوله، کارخانه، کارگاه و دفتر اداری با تماس مستقیم.",
     keywords: [
       "املاک صنعتی شهریار",
       "املاک اداری شهریار",
       "اجاره سوله شهریار",
       "اجاره دفتر اداری شهریار",
-      "مکا",
+      "دیوساز",
     ],
     type: "website",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "RealEstateAgent",
-      name: "مکا",
+      name: "دیوساز",
       alternateName: "MEKA",
       telephone: PHONE,
       description: "مشاور تخصصی املاک صنعتی و اداری شهریار",
@@ -507,7 +507,7 @@ export default function Landing() {
 
       <header className="glass relative z-40 border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <a href="#" aria-label="مکا - صفحه اصلی">
+          <a href="#" aria-label="دیوساز - صفحه اصلی">
             <MekaBrand compact />
           </a>
 
@@ -533,18 +533,18 @@ export default function Landing() {
                     <MekaBrand compact />
                   </SheetTitle>
                   <SheetDescription className="pt-2 text-right leading-6">
-                    دسترسی سریع به خدمات و ابزارهای مکا
+                    دسترسی سریع به خدمات و ابزارهای دیوساز
                   </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex-1 overflow-y-auto p-3">
                   <div className="grid gap-1.5">
                     <MenuLink to="/listings" icon={Search} label="آگهی‌ها و جستجوی ملک" />
-                    <MenuLink to="/assistant" icon={Bot} label="دستیار هوشمند مکا" highlight />
+                    <MenuLink to="/assistant" icon={Bot} label="دستیار هوشمند دیوساز" highlight />
                     <MenuLink to="/submit-listing" icon={Building2} label="ثبت آگهی ملک" />
                     <MenuLink to="/request" icon={ClipboardList} label="ثبت متقاضی / تقاضای ملک" />
                     <MenuLink to="/blog" icon={Newspaper} label="وبلاگ و راهنما" />
-                    <MenuLink to="/about" icon={BadgeCheck} label="درباره مکا" />
+                    <MenuLink to="/about" icon={BadgeCheck} label="درباره دیوساز" />
                     <MenuLink
                       to="/auth?mode=signIn&returnTo=/dashboard"
                       icon={LayoutDashboard}
@@ -575,7 +575,7 @@ export default function Landing() {
                         <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
                           <PhoneCall className="size-4" />
                         </span>
-                        تماس با مکا
+                        تماس با دیوساز
                       </a>
                     </SheetClose>
                   </div>
@@ -632,7 +632,7 @@ export default function Landing() {
             </h1>
 
             <p className="mt-5 max-w-xl text-sm leading-8 text-muted-foreground sm:text-base">
-              مکا برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛
+              دیوساز برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛
               با تمرکز روی موقعیت‌های واقعی کسب‌وکار و ارتباط مستقیم.
             </p>
 
@@ -681,14 +681,14 @@ export default function Landing() {
 
       <section id="services" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
         <motion.div {...fadeUp} className="mb-7">
-          <span className="text-xs font-extrabold text-primary">حوزه تخصصی مکا</span>
+          <span className="text-xs font-extrabold text-primary">حوزه تخصصی دیوساز</span>
           <div className="mt-2 flex items-end justify-between gap-5">
             <div>
               <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
                 ملک برای کسب‌وکار، نه فقط یک آدرس
               </h2>
               <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">
-                نیازهای صنعتی و اداری متفاوت‌اند؛ مکا فایل‌ها را با نگاه کاربردی به
+                نیازهای صنعتی و اداری متفاوت‌اند؛ دیوساز فایل‌ها را با نگاه کاربردی به
                 دسترسی، موقعیت و نوع فعالیت بررسی می‌کند.
               </p>
             </div>
@@ -726,7 +726,7 @@ export default function Landing() {
                 مراجعه حضوری
               </span>
               <h2 className="mt-2 text-xl font-extrabold sm:text-2xl">
-                مکا در شهریار
+                دیوساز در شهریار
               </h2>
               <p className="mt-3 flex items-start gap-2 text-sm leading-7 text-muted-foreground">
                 <MapPin className="mt-1 size-4 shrink-0 text-primary" />
@@ -778,10 +778,10 @@ export default function Landing() {
             <div>
               <MekaBrand compact />
               <h2 className="mt-5 text-lg font-extrabold">
-                مکا؛ املاک صنعتی و اداری شهریار
+                دیوساز؛ املاک صنعتی و اداری شهریار
               </h2>
               <p className="mt-3 max-w-xl text-sm leading-8 text-muted-foreground">
-                مکا مرجع تخصصی بررسی فایل‌های خرید، فروش، رهن و اجاره سوله، کارخانه،
+                دیوساز مرجع تخصصی بررسی فایل‌های خرید، فروش، رهن و اجاره سوله، کارخانه،
                 کارگاه، انبار، زمین صنعتی، دفتر و واحد اداری در شهریار و محدوده غرب
                 استان تهران است. هدف ما ارائه اطلاعات شفاف، مشخصات فنی کاربردی و
                 ارتباط مستقیم برای انتخاب بهتر فضای کسب‌وکار است.
@@ -802,7 +802,7 @@ export default function Landing() {
                 <Link to="/blog" className="hover:text-primary">مقالات و راهنمای معاملات</Link>
                 <Link to="/submit-listing" className="hover:text-primary">ثبت آگهی بدون حساب</Link>
                 <Link to="/auth?mode=signIn&returnTo=/dashboard" className="hover:text-primary">ورود پرسنل</Link>
-                <a href="#services" className="hover:text-primary">خدمات مکا</a>
+                <a href="#services" className="hover:text-primary">خدمات دیوساز</a>
               </div>
             </nav>
 
@@ -819,14 +819,14 @@ export default function Landing() {
                 </p>
                 <a href={MAPS_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-bold text-primary">
                   <Navigation className="size-4" />
-                  مسیریابی دفتر مکا
+                  مسیریابی دفتر دیوساز
                 </a>
               </div>
             </div>
           </div>
 
           <div className="mt-9 flex flex-col gap-3 border-t border-border/60 pt-5 text-[11px] leading-6 text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>© مکا · مشاور تخصصی املاک صنعتی و اداری شهریار</p>
+            <p>© دیوساز · مشاور تخصصی املاک صنعتی و اداری شهریار</p>
             <p>اطلاعات هر فایل پیش از معامله باید توسط طرفین بررسی و احراز شود.</p>
           </div>
         </div>
