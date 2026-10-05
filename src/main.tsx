@@ -4,12 +4,14 @@ import "@fontsource/vazirmatn/500.css";
 import "@fontsource/vazirmatn/700.css";
 import "@fontsource/vazirmatn/800.css";
 import { Toaster } from "@/components/ui/sonner";
+import { api } from "@/convex/_generated/api";
+import { getModuleRoutes } from "@/modules";
 import { RequireAuth } from "@/components/RequireAuth";
 import FloatingSiteChat from "@/components/chat/FloatingSiteChat";
 import SiteThemeSync from "@/components/SiteThemeSync";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
-import { ConvexReactClient } from "convex/react";
+import { ConvexReactClient, useQuery } from "convex/react";
 import { ThemeProvider } from "next-themes";
 import React, { StrictMode, useEffect, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
@@ -50,6 +52,35 @@ function RouteLoading() {
     </div>
   );
 }
+function OptionalModuleRoutes() {
+  const settings = useQuery(api.folders.getSettings, {});
+  const routes = getModuleRoutes(settings?.enabledModules ?? []);
+  if (routes.length === 0) return null;
+
+  return (
+    <Routes>
+      {routes.map((route) => {
+        const Component = route.component;
+        return (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={
+              route.requiresAuth ? (
+                <RequireAuth>
+                  <Component />
+                </RequireAuth>
+              ) : (
+                <Component />
+              )
+            }
+          />
+        );
+      })}
+    </Routes>
+  );
+}
+
 
 /** Silent error boundary — if VlyToolbar crashes it renders nothing instead of
  *  crashing the whole app (e.g. hook errors in the browser runtime). */
@@ -297,6 +328,7 @@ createRoot(document.getElementById("root")!).render(
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <OptionalModuleRoutes />
           </Suspense>
           <FloatingSiteChat />
         </BrowserRouter>
