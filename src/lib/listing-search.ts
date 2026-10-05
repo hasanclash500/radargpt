@@ -28,12 +28,12 @@ export function listingSearchText(row: SearchableListingFields) {
     .map((value) => value.trim());
 
   const raw = parts.join(" ");
-  const latinDigits = toEnglishDigits(raw);
-
-  return Array.from(new Set([raw, latinDigits]))
-    .filter(Boolean)
-    .join(" ")
+  const normalized = toEnglishDigits(raw)
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 12000);
+    .toLowerCase();
+
+  return normalized.slice(0, 12000);
 }
