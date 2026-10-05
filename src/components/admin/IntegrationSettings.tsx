@@ -85,7 +85,7 @@ export default function IntegrationSettings() {
           اتصال‌ها و دستیار هوشمند
         </CardTitle>
         <CardDescription>
-          توکن‌ها فقط سمت سرور نگهداری می‌شوند. OpenRouter برای پاسخ مولد دستیار مکا و تلگرام/بله برای اعلان‌ها استفاده می‌شوند.
+          توکن‌ها فقط سمت سرور نگهداری می‌شوند. OpenRouter برای پاسخ مولد دستیار دیوساز و تلگرام/بله برای اعلان‌ها استفاده می‌شوند.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -93,13 +93,13 @@ export default function IntegrationSettings() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <BrainCircuit className="size-5 text-primary" />
-              <strong className="text-sm">هوش مصنوعی دستیار مکا</strong>
+              <strong className="text-sm">هوش مصنوعی دستیار دیوساز</strong>
             </div>
             {status.aiConfigured && <CheckCircle2 className="size-4 text-emerald-500" />}
           </div>
           <p className="mt-2 text-[10px] leading-5 text-muted-foreground">
             کلید OpenRouter سمت سرور ذخیره می‌شود. می‌توانید از مدل/Router رایگان استفاده کنید؛
-            جستجو و کارت‌های ملک مستقل از مدل هستند و فقط از آگهی‌های خود مکا می‌آیند.
+            جستجو و کارت‌های ملک مستقل از مدل هستند و فقط از آگهی‌های خود دیوساز می‌آیند.
           </p>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <Input
