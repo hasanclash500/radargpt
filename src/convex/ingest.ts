@@ -9,6 +9,7 @@ import {
 } from "./_generated/server";
 import { v } from "convex/values";
 import { parseHtmlFile } from "../lib/parser";
+import { listingSearchText } from "../lib/listing-search";
 import {
   listingKey,
   parseCsvText,
@@ -91,6 +92,7 @@ export const saveIngested = internalMutation({
         }
         await ctx.db.patch(existing._id, {
           ...item,
+          searchText: listingSearchText(item),
           listingKind: "imported",
           importBatchId: existing.importBatchId || importBatchId,
           createdByUserId: undefined,
@@ -104,6 +106,7 @@ export const saveIngested = internalMutation({
       } else {
         await ctx.db.insert("listings", {
           ...item,
+          searchText: listingSearchText(item),
           listingKind: "imported",
           importBatchId,
           isPublic: false,
