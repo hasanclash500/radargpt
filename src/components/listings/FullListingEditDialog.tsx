@@ -49,11 +49,15 @@ function numberOrUndefined(value: string) {
 export default function FullListingEditDialog({
   listing,
   onSave,
+  defaultOpen = false,
+  onOpenChange,
 }: {
   listing: Listing;
   onSave: (patch: ListingEditPatch) => Promise<void>;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState({
     city: listing.city ?? "",
@@ -70,6 +74,14 @@ export default function FullListingEditDialog({
     rentMillion: toText(listing.rentMillion),
     pricePerMeter: toText(listing.pricePerMeter),
   });
+
+  useEffect(() => {
+    if (defaultOpen) setOpen(true);
+  }, [defaultOpen]);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     if (!open) return;
