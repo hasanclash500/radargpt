@@ -5,6 +5,7 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toEnglishDigits, type Listing as ListingRow } from "../lib/parser";
+import { listingSearchText } from "../lib/listing-search";
 import { neshanAppLocationUrl } from "../lib/neshan";
 import { OFFICE_ROLES, type OfficeRole } from "./schema";
 import {
@@ -51,41 +52,6 @@ async function byKey(ctx: Ctx, key: string): Promise<Doc<"listings"> | null> {
     .withIndex("by_key", (q) => q.eq("key", key))
     .take(2);
   return rows[0] ?? null;
-}
-
-function listingSearchText(row: {
-  radarCode?: string;
-  city?: string;
-  neighborhood?: string;
-  title?: string;
-  description?: string;
-  phone?: string;
-  dealType?: string;
-  propertyType?: string;
-  address?: string;
-}) {
-  const parts = [
-    row.radarCode,
-    row.city,
-    row.neighborhood,
-    row.title,
-    row.description,
-    row.phone,
-    row.dealType,
-    row.propertyType,
-    row.address,
-  ]
-    .filter((value): value is string => Boolean(value && value.trim()))
-    .map((value) => value.trim());
-
-  const raw = parts.join(" ");
-  const latinDigits = toEnglishDigits(raw);
-  return Array.from(new Set([raw, latinDigits]))
-    .filter(Boolean)
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 12000);
 }
 
 function cleanSlug(value: string) {
@@ -683,6 +649,33 @@ export const migrateLegacyListingKinds = mutation({
       processed: rows.length,
       imported,
       member,
+      done: rows.length < limit,
+    };
+  },
+});
+
+export const backfillListingSearch = mutation({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("دسترسی بروزرسانی ایندکس جستجو ندارید.");
+    }
+
+    const limit = Math.max(50, Math.min(Math.floor(args.limit ?? 400), 800));
+    const rows = await ctx.db
+      .query("listings")
+      .filter((q) => q.eq(q.field("searchText"), undefined))
+      .take(limit);
+
+    for (const row of rows) {
+      await ctx.db.patch(row._id, {
+        searchText: listingSearchText(row),
+      });
+    }
+
+    return {
+      processed: rows.length,
       done: rows.length < limit,
     };
   },
