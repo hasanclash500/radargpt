@@ -122,6 +122,40 @@
   --sidebar-ring: #d8ad58;
 }
 
+html[data-site-theme="emerald"].dark {
+  --background: #0b1916;
+  --foreground: #f2f6f4;
+  --card: #10241f;
+  --card-foreground: #f2f6f4;
+  --popover: #10241f;
+  --popover-foreground: #f2f6f4;
+  --primary: #79c7aa;
+  --primary-foreground: #0c241c;
+  --secondary: #17332b;
+  --secondary-foreground: #e7f2ed;
+  --muted: #173028;
+  --muted-foreground: #9eb9ae;
+  --accent: #1f4438;
+  --accent-foreground: #f1c971;
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 14%);
+  --ring: #d8ad58;
+  --gold: #e0b458;
+  --brand: #79c7aa;
+  --sidebar: #0e201b;
+  --sidebar-foreground: #f2f6f4;
+  --sidebar-primary: #79c7aa;
+  --sidebar-primary-foreground: #0c241c;
+  --sidebar-accent: #1f4438;
+  --sidebar-accent-foreground: #f1c971;
+  --sidebar-border: rgb(255 255 255 / 10%);
+  --sidebar-ring: #d8ad58;
+}
+
+html[data-site-theme="light"] {
+  color-scheme: light;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
