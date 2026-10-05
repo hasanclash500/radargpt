@@ -495,43 +495,6 @@ export const restoreCore = mutation({
       else await ctx.db.insert("advisorConversationReads", data);
     }
 
-    let restoredReminders = 0;
-    for (const reminder of Array.isArray(core.reminders) ? core.reminders : []) {
-      const listingKey = String(reminder?.listingKey || "").trim();
-      if (!listingKey) continue;
-      const listing = (
-        await ctx.db
-          .query("listings")
-          .withIndex("by_key", (q: any) => q.eq("key", listingKey))
-          .take(1)
-      )[0];
-      if (!listing) continue;
-
-      const slot = reminder?.slot === 2 ? 2 : 1;
-      const existing = (
-        await ctx.db
-          .query("listingReminders")
-          .withIndex("by_listing_slot", (q: any) =>
-            q.eq("listingId", listing._id).eq("slot", slot),
-          )
-          .take(1)
-      )[0];
-      const data: any = {
-        listingId: listing._id,
-        listingKey,
-        slot,
-        remindAt: Number(reminder?.remindAt || Date.now()),
-        createdByUserId:
-          userIdMap[String(reminder?.createdByUserId || "")] ||
-          manager.userId,
-        createdAt: Number(reminder?.createdAt || Date.now()),
-        updatedAt: Number(reminder?.updatedAt || Date.now()),
-      };
-      if (existing) await ctx.db.patch(existing._id, data);
-      else await ctx.db.insert("listingReminders", data);
-      restoredReminders++;
-    }
-
     const restoredPages = await restoreBySlug(
       "sitePages",
       Array.isArray(core.pages) ? core.pages : [],
@@ -552,8 +515,59 @@ export const restoreCore = mutation({
       restoredStories,
       restoredConversations,
       restoredMessages,
-      restoredReminders,
     };
+  },
+});
+
+export const restoreDependentData = mutation({
+  args: {
+    reminders: v.array(v.any()),
+    userIdMap: v.any(),
+  },
+  handler: async (ctx, args) => {
+    const manager = await requireManager(ctx);
+    const userIdMap = cleanObject(args.userIdMap) as Record<string, string>;
+    let restoredReminders = 0;
+
+    for (const reminder of args.reminders) {
+      const listingKey = String(reminder?.listingKey || "").trim();
+      if (!listingKey) continue;
+      const listing = (
+        await ctx.db
+          .query("listings")
+          .withIndex("by_key", (q: any) => q.eq("key", listingKey))
+          .take(1)
+      )[0];
+      if (!listing) continue;
+
+      const slot = reminder?.slot === 2 ? 2 : 1;
+      const existing = (
+        await ctx.db
+          .query("listingReminders")
+          .withIndex("by_listing_slot", (q: any) =>
+            q.eq("listingId", listing._id).eq("slot", slot),
+          )
+          .take(1)
+      )[0];
+
+      const data: any = {
+        listingId: listing._id,
+        listingKey,
+        slot,
+        remindAt: Number(reminder?.remindAt || Date.now()),
+        createdByUserId:
+          userIdMap[String(reminder?.createdByUserId || "")] ||
+          manager.userId,
+        createdAt: Number(reminder?.createdAt || Date.now()),
+        updatedAt: Number(reminder?.updatedAt || Date.now()),
+      };
+
+      if (existing) await ctx.db.patch(existing._id, data);
+      else await ctx.db.insert("listingReminders", data);
+      restoredReminders++;
+    }
+
+    return { restoredReminders };
   },
 });
 
