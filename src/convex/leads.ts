@@ -3,7 +3,7 @@ import { internal } from "./_generated/api";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { OFFICE_ROLES, type OfficeRole } from "./schema";
-import { canManageListings, roleForUser } from "./permissions";
+import { canManageLeads, roleForUser } from "./permissions";
 
 async function role(ctx: Pick<QueryCtx, "db" | "auth">): Promise<OfficeRole> {
   const userId = await getAuthUserId(ctx);
@@ -88,7 +88,7 @@ export const listLeads = query({
   args: {},
   handler: async (ctx) => {
     const r = await role(ctx);
-    if (!canManageListings(r)) return [];
+    if (!canManageLeads(r)) return [];
     return await ctx.db.query("propertyLeads").withIndex("by_created").order("desc").take(300);
   },
 });
@@ -100,7 +100,7 @@ export const setLeadStatus = mutation({
   },
   handler: async (ctx, args) => {
     const r = await role(ctx);
-    if (!canManageListings(r)) {
+    if (!canManageLeads(r)) {
       throw new Error("دسترسی کافی ندارید.");
     }
     await ctx.db.patch(args.id, {
