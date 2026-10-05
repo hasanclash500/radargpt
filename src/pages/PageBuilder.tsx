@@ -125,7 +125,9 @@ function defaultProps(type: string) {
     title: "ارتباط با دیوساز",
     text: "برای مشاوره با دفتر تماس بگیرید.",
     phone: "09120858095",
-    address: "شهریار، روبروی شهرک اداری تجربه",
+    address: "شهریار، روبروی شهرک اداری، مجتمع تجاری اداری شهریار",
+    mapLocation: "جاده شهریار–شهدای اندیشه",
+    mapUrl: "https://nshn.ir/2bveXP_xCgqA",
   };
 }
 
@@ -339,7 +341,11 @@ function BlockPropsEditor({
       <TextField label="عنوان" value={p.title || ""} onChange={(v) => set("title", v)} />
       <div className="sm:col-span-2"><AreaField label="توضیح" value={p.text || ""} onChange={(v) => set("text", v)} rows={2} /></div>
       <TextField label="شماره تماس" value={p.phone || ""} onChange={(v) => set("phone", v)} />
-      <TextField label="آدرس" value={p.address || ""} onChange={(v) => set("address", v)} />
+      <TextField label="آدرس دفتر" value={p.address || ""} onChange={(v) => set("address", v)} />
+      <TextField label="عنوان موقعیت روی نقشه" value={p.mapLocation || ""} onChange={(v) => set("mapLocation", v)} />
+      <div className="sm:col-span-2">
+        <TextField label="لینک نشان" value={p.mapUrl || ""} onChange={(v) => set("mapUrl", v)} placeholder="https://nshn.ir/..." />
+      </div>
     </div>
   );
 }
