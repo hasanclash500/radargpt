@@ -522,16 +522,14 @@ export const listFeaturedPublic = query({
   handler: async (ctx) => {
     const rows = await ctx.db
       .query("listings")
-      .withIndex("by_landing_featured_published", (q) =>
-        q.eq("showOnLanding", true),
+      .withIndex("by_landing_public_featured_published", (q) =>
+        q.eq("showOnLanding", true).eq("isPublic", true),
       )
       .order("desc")
       .take(6);
     const context = await publicContext(ctx);
     return await Promise.all(
-      rows
-        .filter((row) => row.isPublic)
-        .map((row) => toPublicListing(ctx, row, context)),
+      rows.map((row) => toPublicListing(ctx, row, context)),
     );
   },
 });
