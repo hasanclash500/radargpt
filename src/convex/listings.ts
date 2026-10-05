@@ -146,6 +146,7 @@ function toListing(row: Doc<"listings">, contactPhone: string): ListingRow {
     claimedAt: row.claimedAt,
     createdByUserId: row.createdByUserId,
     isPublic: row.isPublic ?? false,
+    showOnLanding: row.showOnLanding ?? row.featuredOnHome ?? false,
     featuredOnHome: row.featuredOnHome ?? false,
     publicSlug: row.publicSlug,
     seoTitle: row.seoTitle,
@@ -260,6 +261,7 @@ async function toPublicListing(
     dateRaw: row.dateRaw ?? "",
     publishedAt: row.publishedAt ?? row.createdAt ?? Date.now(),
     updatedAt: row.updatedAt ?? row.createdAt ?? Date.now(),
+    showOnLanding: row.showOnLanding ?? row.featuredOnHome ?? false,
     featuredOnHome: row.featuredOnHome ?? false,
     seoTitle: row.seoTitle || autoSeoTitle(row),
     seoDescription: row.seoDescription || autoSeoDescription(row),
@@ -397,13 +399,19 @@ export const listFeaturedPublic = query({
       .query("listings")
       .withIndex("by_public_published", (q) => q.eq("isPublic", true))
       .order("desc")
-      .take(60);
+      .take(120);
     const context = await publicContext(ctx);
+    const landing = rows
+      .filter((row) => row.showOnLanding ?? row.featuredOnHome ?? false)
+      .sort((a, b) => {
+        const featuredDelta =
+          Number(Boolean(b.featuredOnHome)) - Number(Boolean(a.featuredOnHome));
+        if (featuredDelta !== 0) return featuredDelta;
+        return (b.publishedAt ?? b.updatedAt ?? 0) - (a.publishedAt ?? a.updatedAt ?? 0);
+      })
+      .slice(0, 6);
     return await Promise.all(
-      rows
-        .filter((row) => row.featuredOnHome)
-        .slice(0, 6)
-        .map((row) => toPublicListing(ctx, row, context)),
+      landing.map((row) => toPublicListing(ctx, row, context)),
     );
   },
 });
@@ -488,6 +496,7 @@ export const upsertListings = mutation({
           claimedFromImport: undefined,
           claimedAt: undefined,
           isPublic: false,
+          showOnLanding: false,
           featuredOnHome: false,
           publicationStatus: "private",
           updatedAt: now,
@@ -499,6 +508,7 @@ export const upsertListings = mutation({
           listingKind: "imported",
           importBatchId,
           isPublic: false,
+          showOnLanding: false,
           featuredOnHome: false,
           publicationStatus: "private",
           createdAt: now,
@@ -608,6 +618,7 @@ export const claimImportedListing = mutation({
       claimedFromImport: true,
       claimedAt: now,
       isPublic: false,
+      showOnLanding: false,
       featuredOnHome: false,
       publicationStatus: "private",
       publicationRequestedAt: undefined,
@@ -833,6 +844,7 @@ export const updatePublicSettings = mutation({
   args: {
     key: v.string(),
     isPublic: v.boolean(),
+    showOnLanding: v.boolean(),
     featuredOnHome: v.boolean(),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
@@ -854,6 +866,8 @@ export const updatePublicSettings = mutation({
     const publicSlug = row.publicSlug || makePublicSlug(row);
     const common = {
       createdByUserId: row.createdByUserId ?? r.userId,
+      listingKind: "member" as const,
+      showOnLanding: args.isPublic ? args.showOnLanding : false,
       featuredOnHome: args.isPublic ? args.featuredOnHome : false,
       publicSlug,
       seoTitle: args.seoTitle?.trim() || undefined,
@@ -872,6 +886,7 @@ export const updatePublicSettings = mutation({
       });
       return {
         isPublic: false,
+        showOnLanding: false,
         featuredOnHome: false,
         publicSlug,
         publicationStatus: "private" as const,
@@ -882,6 +897,7 @@ export const updatePublicSettings = mutation({
       await ctx.db.patch(row._id, {
         ...common,
         isPublic: true,
+        showOnLanding: args.showOnLanding,
         publicationStatus: "approved",
         publicationRequestedAt: row.publicationRequestedAt ?? now,
         publicationReviewedAt: now,
@@ -891,6 +907,7 @@ export const updatePublicSettings = mutation({
       });
       return {
         isPublic: true,
+        showOnLanding: args.showOnLanding,
         featuredOnHome: args.featuredOnHome,
         publicSlug,
         publicationStatus: "approved" as const,
@@ -900,6 +917,7 @@ export const updatePublicSettings = mutation({
     await ctx.db.patch(row._id, {
       ...common,
       isPublic: false,
+      showOnLanding: args.showOnLanding,
       publicationStatus: "pending",
       publicationRequestedAt: now,
       publicationReviewedAt: undefined,
@@ -938,6 +956,7 @@ export const updatePublicSettings = mutation({
 
     return {
       isPublic: false,
+      showOnLanding: args.showOnLanding,
       featuredOnHome: args.featuredOnHome,
       publicSlug,
       publicationStatus: "pending" as const,
@@ -1129,6 +1148,7 @@ export const submitPublicListing = mutation({
       publicSubmissionExpiresAt: now + 30 * 60 * 1000,
       publicUploadCount: 0,
       isPublic: false,
+      showOnLanding: false,
       featuredOnHome: false,
       publicationStatus: "pending",
       publicationRequestedAt: now,
@@ -1293,6 +1313,7 @@ export const createListing = mutation({
       listingKind: "member",
       createdByUserId: r.userId,
       isPublic: false,
+      showOnLanding: false,
       featuredOnHome: false,
       publicationStatus: "private",
       createdAt: now,
