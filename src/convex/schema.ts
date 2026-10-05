@@ -289,6 +289,15 @@ const schema = defineSchema(
       lastReadAt: v.number(),
     }).index("by_conversation_user", ["conversationId", "userId"]),
 
+    /** هویت محلی مهمان برای ادامه چت بدون ثبت‌نام در همان مرورگر. */
+    chatGuests: defineTable({
+      token: v.string(),
+      name: v.string(),
+      phone: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }).index("by_token", ["token"]),
+
     /** یادآوری پیگیری آگهی؛ برای هر آگهی حداکثر دو تاریخ قابل تنظیم است. */
     listingReminders: defineTable({
       listingId: v.id("listings"),
@@ -345,6 +354,7 @@ const schema = defineSchema(
       openRouterModel: v.optional(v.string()),
       notifyLeads: v.optional(v.boolean()),
       notifyPublicationRequests: v.optional(v.boolean()),
+      notifyChatMessages: v.optional(v.boolean()),
       updatedAt: v.number(),
     }).index("by_key", ["key"]),
 
