@@ -12,6 +12,7 @@ import {
   Bot,
   Building2,
   ClipboardList,
+  DatabaseBackup,
   FileText,
   Globe2,
   HandCoins,
@@ -179,6 +180,12 @@ export default function DashboardHome() {
       description: "جستجوی سریع فایل‌ها و پاسخ به پرسش‌های ملکی.",
       to: "/dashboard/assistant",
       icon: Bot,
+    },
+    {
+      title: "پشتیبان‌گیری",
+      description: "دانلود پشتیبان محلی و بازیابی آگهی‌ها، کاربران، متقاضیان و تنظیمات.",
+      to: "/admin?tab=backup",
+      icon: DatabaseBackup,
     },
     {
       title: "تنظیمات",
