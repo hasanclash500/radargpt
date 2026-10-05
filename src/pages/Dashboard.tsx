@@ -28,7 +28,7 @@ import {
   type Filters,
 } from "@/lib/filters";
 import { faNum, formatPrice } from "@/lib/format";
-import { DEAL_TYPES, PROPERTY_TYPES, parseHtmlFile, type DealType, type Listing, type PropertyType } from "@/lib/parser";
+import { DEAL_TYPES, PROPERTY_TYPES, parseHtmlFile, type Listing } from "@/lib/parser";
 import { SAMPLE_HTML } from "@/lib/sample";
 import { DEFAULT_SHARE_SETTINGS, type ShareSettings, type ShareableListing } from "@/lib/share";
 import {
@@ -429,17 +429,30 @@ export default function Dashboard() {
   const visible = filtered.slice(0, visibleCount);
 
   const cities = useMemo(() => {
-    const set = new Set(displayListings.map((l) => l.city));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "fa"));
-  }, [displayListings]);
+    const set = new Set([
+      ...(settingsRow?.customCities ?? []),
+      ...displayListings.map((l) => l.city),
+    ]);
+    return Array.from(set)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, "fa"));
+  }, [displayListings, settingsRow?.customCities]);
   const dealTypes = useMemo(() => {
-    const present = new Set(displayListings.map((l) => l.dealType));
-    return [...DEAL_TYPES.filter((d) => present.has(d)), ...Array.from(present).filter((d) => !DEAL_TYPES.includes(d as DealType))];
-  }, [displayListings]);
+    const present = new Set([
+      ...DEAL_TYPES,
+      ...(settingsRow?.customDeals ?? []),
+      ...displayListings.map((l) => l.dealType),
+    ]);
+    return Array.from(present).filter(Boolean);
+  }, [displayListings, settingsRow?.customDeals]);
   const propertyTypes = useMemo(() => {
-    const present = new Set(displayListings.map((l) => l.propertyType));
-    return [...PROPERTY_TYPES.filter((p) => present.has(p)), ...Array.from(present).filter((p) => !PROPERTY_TYPES.includes(p as PropertyType))];
-  }, [displayListings]);
+    const present = new Set([
+      ...PROPERTY_TYPES,
+      ...(settingsRow?.customPropertyTypes ?? []),
+      ...displayListings.map((l) => l.propertyType),
+    ]);
+    return Array.from(present).filter(Boolean);
+  }, [displayListings, settingsRow?.customPropertyTypes]);
 
   const stats = useMemo(() => {
     const withPrice = displayListings.filter((l) => l.priceMillion > 0);
