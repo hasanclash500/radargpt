@@ -550,32 +550,24 @@ export const rebuildListingCounts = mutation({
       throw new Error("فقط مدیر یا ادمین می‌تواند شمارنده آگهی‌ها را بازسازی کند.");
     }
 
-    const [importedRows, memberRows] = await Promise.all([
-      ctx.db
-        .query("listings")
-        .withIndex("by_kind_date", (q) => q.eq("listingKind", "imported"))
-        .collect(),
-      ctx.db
-        .query("listings")
-        .withIndex("by_kind_date", (q) => q.eq("listingKind", "member"))
-        .collect(),
-    ]);
-
     const settings = await globalSettings(ctx);
     const payload = {
-      listingCountsReady: true,
-      listingImportedCount: importedRows.length,
-      listingMemberCount: memberRows.length,
+      listingCountsReady: false,
+      listingCountRebuildView: "imported" as const,
+      listingCountRebuildCursor: undefined,
+      listingCountRebuildImported: 0,
+      listingCountRebuildMember: 0,
       listingCountsUpdatedAt: Date.now(),
     };
     if (settings) await ctx.db.patch(settings._id, payload);
     else await ctx.db.insert("appSettings", { key: "global", ...payload });
 
-    return {
-      imported: importedRows.length,
-      member: memberRows.length,
-      total: importedRows.length + memberRows.length,
-    };
+    await ctx.scheduler.runAfter(
+      0,
+      internal.listings.continueListingMaintenance,
+      {},
+    );
+    return { queued: true };
   },
 });
 
@@ -888,23 +880,53 @@ export const continueListingMaintenance = internalMutation({
         needsMore = true;
       }
     } else if (!settings?.listingCountsReady) {
-      const [importedRows, memberRows] = await Promise.all([
-        ctx.db
-          .query("listings")
-          .withIndex("by_kind_date", (q) => q.eq("listingKind", "imported"))
-          .collect(),
-        ctx.db
-          .query("listings")
-          .withIndex("by_kind_date", (q) => q.eq("listingKind", "member"))
-          .collect(),
-      ]);
       const row = await ensureSettings();
-      await ctx.db.patch(row._id, {
-        listingCountsReady: true,
-        listingImportedCount: importedRows.length,
-        listingMemberCount: memberRows.length,
-        listingCountsUpdatedAt: Date.now(),
-      });
+      const view =
+        settings?.listingCountRebuildView === "member"
+          ? "member"
+          : "imported";
+      const cursor = settings?.listingCountRebuildCursor ?? null;
+
+      const page = await ctx.db
+        .query("listings")
+        .withIndex("by_kind_date", (q) => q.eq("listingKind", view))
+        .paginate({ numItems: batch, cursor });
+
+      const importedTotal =
+        (settings?.listingCountRebuildImported ?? 0) +
+        (view === "imported" ? page.page.length : 0);
+      const memberTotal =
+        (settings?.listingCountRebuildMember ?? 0) +
+        (view === "member" ? page.page.length : 0);
+
+      if (!page.isDone) {
+        await ctx.db.patch(row._id, {
+          listingCountRebuildView: view,
+          listingCountRebuildCursor: page.continueCursor,
+          listingCountRebuildImported: importedTotal,
+          listingCountRebuildMember: memberTotal,
+        });
+        needsMore = true;
+      } else if (view === "imported") {
+        await ctx.db.patch(row._id, {
+          listingCountRebuildView: "member",
+          listingCountRebuildCursor: undefined,
+          listingCountRebuildImported: importedTotal,
+          listingCountRebuildMember: memberTotal,
+        });
+        needsMore = true;
+      } else {
+        await ctx.db.patch(row._id, {
+          listingCountsReady: true,
+          listingImportedCount: importedTotal,
+          listingMemberCount: memberTotal,
+          listingCountsUpdatedAt: Date.now(),
+          listingCountRebuildView: undefined,
+          listingCountRebuildCursor: undefined,
+          listingCountRebuildImported: undefined,
+          listingCountRebuildMember: undefined,
+        });
+      }
     }
 
     const latestRows = await ctx.db
