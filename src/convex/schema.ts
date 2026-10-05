@@ -454,6 +454,8 @@ const schema = defineSchema(
           v.literal("light"),
         ),
       ),
+      /** شناسه ماژول‌های اختیاری فعال؛ کد هر ماژول مستقل از هسته نگه داشته می‌شود. */
+      enabledModules: v.optional(v.array(v.string())),
       /** شهر/دسته/نوع ملک‌های افزوده‌شده توسط مدیر */
       customCities: v.optional(v.array(v.string())),
       customDeals: v.optional(v.array(v.string())),
