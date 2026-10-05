@@ -25,19 +25,19 @@ export default function Blog() {
   const posts = useQuery(api.posts.listPublished);
 
   useSeo({
-    title: "وبلاگ مکا | راهنمای املاک صنعتی و اداری شهریار",
+    title: "وبلاگ دیوساز | راهنمای املاک صنعتی و اداری شهریار",
     description:
-      "مقالات تخصصی مکا درباره اجاره، خرید و بررسی املاک صنعتی و اداری در شهریار؛ راهنمای سوله، کارخانه، کارگاه و دفتر اداری.",
+      "مقالات تخصصی دیوساز درباره اجاره، خرید و بررسی املاک صنعتی و اداری در شهریار؛ راهنمای سوله، کارخانه، کارگاه و دفتر اداری.",
     keywords: ["املاک صنعتی شهریار", "املاک اداری شهریار", "اجاره سوله", "اجاره دفتر"],
     type: "website",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "Blog",
-      name: "وبلاگ مکا",
+      name: "وبلاگ دیوساز",
       description: "راهنمای تخصصی املاک صنعتی و اداری شهریار",
       publisher: {
         "@type": "Organization",
-        name: "مکا",
+        name: "دیوساز",
         telephone: "09120858095",
       },
     },
@@ -52,7 +52,7 @@ export default function Blog() {
               <Building2 className="size-5" />
             </span>
             <span>
-              <strong className="block text-base leading-none">مکا</strong>
+              <strong className="block text-base leading-none">دیوساز</strong>
               <span className="mt-1 block text-[10px] text-muted-foreground">وبلاگ املاک کسب‌وکار</span>
             </span>
           </Link>
@@ -79,7 +79,7 @@ export default function Blog() {
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
               <FileText className="size-4" />
-              مجله تخصصی مکا
+              مجله تخصصی دیوساز
             </span>
             <h1 className="mt-5 text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
               راهنمای تصمیم بهتر در
@@ -99,7 +99,7 @@ export default function Blog() {
           <div className="rounded-3xl border border-dashed border-border p-10 text-center">
             <FileText className="mx-auto size-9 text-muted-foreground" />
             <h2 className="mt-4 font-extrabold">هنوز مقاله‌ای منتشر نشده است</h2>
-            <p className="mt-2 text-sm text-muted-foreground">مقاله‌های جدید مکا به‌زودی در این بخش قرار می‌گیرند.</p>
+            <p className="mt-2 text-sm text-muted-foreground">مقاله‌های جدید دیوساز به‌زودی در این بخش قرار می‌گیرند.</p>
           </div>
         ) : (
           <div className="grid gap-5 md:grid-cols-2">
@@ -170,7 +170,7 @@ export default function Blog() {
 
       <footer className="border-t border-border/60">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <span>مکا · املاک صنعتی و اداری شهریار</span>
+          <span>دیوساز · املاک صنعتی و اداری شهریار</span>
           <Link to="/" className="font-bold text-foreground">بازگشت به صفحه اصلی</Link>
         </div>
       </footer>
