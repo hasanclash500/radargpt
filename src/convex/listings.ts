@@ -46,6 +46,27 @@ async function managerPhone(ctx: Ctx): Promise<string> {
   return (await globalSettings(ctx))?.managerPhone ?? "09120858095";
 }
 
+async function actorDisplayName(ctx: Ctx, userId: string) {
+  const profile = (
+    await ctx.db
+      .query("userProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .take(1)
+  )[0];
+  if (profile?.displayName?.trim()) return profile.displayName.trim();
+
+  try {
+    const user = await ctx.db.get(userId as any);
+    return (
+      user?.name?.trim() ||
+      user?.email?.trim() ||
+      "عضو تیم دیوساز"
+    );
+  } catch {
+    return "عضو تیم دیوساز";
+  }
+}
+
 async function byKey(ctx: Ctx, key: string): Promise<Doc<"listings"> | null> {
   const rows = await ctx.db
     .query("listings")
@@ -873,6 +894,27 @@ export const claimImportedListing = mutation({
       updatedAt: now,
     });
 
+    const consultant = await actorDisplayName(ctx, r.userId);
+    const activityTitle =
+      row.title?.trim() ||
+      `${row.dealType || "آگهی"} ${row.propertyType || "ملک"}${row.area ? ` ${row.area} متری` : ""} در ${row.city || "شهریار"}`;
+
+    await ctx.scheduler.runAfter(0, internal.integrations.notifyListingActivity, {
+      event: "claimed",
+      consultant,
+      key: row.key,
+      ...(row.radarCode ? { radarCode: row.radarCode } : {}),
+      title: activityTitle,
+      city: row.city || "شهریار",
+      propertyType: row.propertyType || "ملک",
+      dealType: row.dealType || "آگهی",
+      ...(row.phone ? { phone: row.phone } : {}),
+      ...(row.area != null ? { area: row.area } : {}),
+      ...(row.priceMillion != null ? { priceMillion: row.priceMillion } : {}),
+      ...(row.depositMillion != null ? { depositMillion: row.depositMillion } : {}),
+      ...(row.rentMillion != null ? { rentMillion: row.rentMillion } : {}),
+    });
+
     return {
       key: row.key,
       claimedAt: now,
@@ -1580,6 +1622,28 @@ export const createListing = mutation({
       createdAt: now,
       updatedAt: now,
     });
+
+    const consultant = await actorDisplayName(ctx, r.userId);
+    const activityTitle =
+      rest.title?.trim() ||
+      `${rest.dealType || "آگهی"} ${rest.propertyType || "ملک"}${rest.area ? ` ${rest.area} متری` : ""} در ${rest.city || "شهریار"}`;
+
+    await ctx.scheduler.runAfter(0, internal.integrations.notifyListingActivity, {
+      event: "registered",
+      consultant,
+      key: stableKey,
+      ...(rest.radarCode ? { radarCode: rest.radarCode } : {}),
+      title: activityTitle,
+      city: rest.city || "شهریار",
+      propertyType: rest.propertyType || "ملک",
+      dealType: rest.dealType || "آگهی",
+      phone,
+      ...(rest.area != null ? { area: rest.area } : {}),
+      ...(rest.priceMillion != null ? { priceMillion: rest.priceMillion } : {}),
+      ...(rest.depositMillion != null ? { depositMillion: rest.depositMillion } : {}),
+      ...(rest.rentMillion != null ? { rentMillion: rest.rentMillion } : {}),
+    });
+
     return stableKey;
   },
 });
