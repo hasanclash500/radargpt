@@ -6,7 +6,7 @@ import type { AuthConfig } from "convex/server";
  * Authentication tokens issued by @convex-dev/auth use this deployment's
  * Convex site URL as their issuer. The previous Freebuff/VLY custom JWT
  * provider was specific to the original template and is intentionally not
- * required by the standalone MEKA production deployment.
+ * required by the standalone Divosaz production deployment.
  */
 export default {
   providers: [
