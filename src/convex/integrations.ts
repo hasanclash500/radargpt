@@ -359,6 +359,101 @@ export const notifyListingActivity = internalAction({
   },
 });
 
+export const notifyListingActivity = internalAction({
+  args: {
+    event: v.union(
+      v.literal("created"),
+      v.literal("claimed"),
+      v.literal("public_created"),
+    ),
+    actorName: v.string(),
+    actorRole: v.optional(v.string()),
+    key: v.string(),
+    radarCode: v.optional(v.string()),
+    title: v.string(),
+    city: v.optional(v.string()),
+    neighborhood: v.optional(v.string()),
+    propertyType: v.optional(v.string()),
+    dealType: v.optional(v.string()),
+    area: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    priceMillion: v.optional(v.number()),
+    depositMillion: v.optional(v.number()),
+    rentMillion: v.optional(v.number()),
+    address: v.optional(v.string()),
+    description: v.optional(v.string()),
+    divarUrl: v.optional(v.string()),
+    mapsUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const config = await ctx.runQuery(
+      internal.integrations.getSecretsInternal,
+      {},
+    );
+    if (!config?.notifyListingActivity) return { skipped: true };
+
+    const hashtag =
+      args.event === "claimed"
+        ? "#آگهی_برداشته_شده"
+        : "#آگهی_ثبت_شده";
+    const heading =
+      args.event === "claimed"
+        ? "📥 آگهی از بانک ایمپورت برداشته شد"
+        : args.event === "public_created"
+          ? "📝 آگهی جدید از سایت ثبت شد"
+          : "📝 آگهی جدید توسط عضو تیم ثبت شد";
+
+    const roleLabels: Record<string, string> = {
+      manager: "مدیر",
+      admin: "ادمین",
+      consultant: "مشاور",
+      user: "کاربر",
+      guest: "مهمان",
+    };
+
+    const lines = [
+      hashtag,
+      heading,
+      "",
+      `ثبت‌کننده: ${args.actorName}${
+        args.actorRole
+          ? ` (${roleLabels[args.actorRole] || args.actorRole})`
+          : ""
+      }`,
+      `عنوان: ${args.title}`,
+      args.radarCode ? `کد رادار: ${args.radarCode}` : "",
+      args.dealType || args.propertyType
+        ? `نوع: ${[args.dealType, args.propertyType].filter(Boolean).join(" / ")}`
+        : "",
+      args.city
+        ? `محدوده: ${[args.city, args.neighborhood].filter(Boolean).join(" - ")}`
+        : "",
+      args.area != null ? `متراژ: ${args.area} متر` : "",
+      args.phone ? `تلفن فایل: ${args.phone}` : "",
+      args.depositMillion != null
+        ? `ودیعه: ${args.depositMillion} میلیون تومان`
+        : "",
+      args.rentMillion != null
+        ? `اجاره: ${args.rentMillion} میلیون تومان`
+        : "",
+      args.rentMillion == null &&
+      args.priceMillion != null &&
+      args.priceMillion > 0
+        ? `قیمت: ${args.priceMillion} میلیون تومان`
+        : "",
+      args.address ? `آدرس: ${args.address}` : "",
+      args.description
+        ? `\nتوضیحات:\n${args.description.slice(0, 1200)}`
+        : "",
+      args.divarUrl ? `\nلینک منبع: ${args.divarUrl}` : "",
+      args.mapsUrl ? `لوکیشن: ${args.mapsUrl}` : "",
+      `کد داخلی: ${args.key}`,
+    ].filter(Boolean);
+
+    return await sendConfigured(ctx, lines.join("\n"));
+  },
+});
+
 export const notifyPublicationRequest = internalAction({
   args: {
     key: v.string(),
