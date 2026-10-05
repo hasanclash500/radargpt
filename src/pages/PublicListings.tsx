@@ -475,7 +475,12 @@ export default function PublicListings() {
                       {image?.url ? (
                         <img src={image.url} alt={image.alt || item.title} className="h-full max-h-[280px] w-full object-contain transition-transform duration-300 group-hover:scale-[1.015]" loading="lazy" />
                       ) : (
-                        <Building2 className="size-12 text-muted-foreground/25" />
+                        <img
+                          src="/listing-placeholder.svg"
+                          alt="تصویر پیش‌فرض آگهی دیوساز"
+                          className="h-full max-h-[280px] w-full object-cover"
+                          loading="lazy"
+                        />
                       )}
                       {(item.images?.length ?? 0) > 0 && (
                         <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-lg bg-background/90 px-2 py-1 text-[10px] font-bold shadow-sm">
