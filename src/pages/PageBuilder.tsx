@@ -633,7 +633,7 @@ export default function PageBuilder() {
               <section className="rounded-3xl border border-primary/20 bg-primary/[0.035] p-4 sm:p-5">
                 <div className="flex items-center gap-2">
                   <Bot className="size-5 text-primary" />
-                  <h2 className="font-black">ساخت صفحه با هوش مصنوعی</h2>
+                  <h2 className="font-black">پیشنهاد ساخت صفحه</h2>
                 </div>
                 <p className="mt-1 text-[11px] leading-6 text-muted-foreground">
                   پرامپت بدهید؛ AI فقط بلوک‌های استاندارد دیوساز می‌سازد. نتیجه ابتدا پیش‌نویس است و بدون تأیید شما منتشر نمی‌شود.
