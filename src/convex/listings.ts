@@ -929,7 +929,8 @@ export const claimImportedListing = mutation({
 
     await ctx.scheduler.runAfter(0, internal.integrations.notifyListingActivity, {
       event: "claimed",
-      consultant,
+      actorName: consultant,
+      actorRole: r.role,
       key: row.key,
       ...(row.radarCode ? { radarCode: row.radarCode } : {}),
       title: activityTitle,
@@ -941,6 +942,13 @@ export const claimImportedListing = mutation({
       ...(row.priceMillion != null ? { priceMillion: row.priceMillion } : {}),
       ...(row.depositMillion != null ? { depositMillion: row.depositMillion } : {}),
       ...(row.rentMillion != null ? { rentMillion: row.rentMillion } : {}),
+      ...(row.neighborhood ? { neighborhood: row.neighborhood } : {}),
+      ...(row.address ? { address: row.address } : {}),
+      ...((row.description || "").trim()
+        ? { description: (row.description || "").slice(0, 1200) }
+        : {}),
+      ...(row.divarUrl ? { divarUrl: row.divarUrl } : {}),
+      ...(row.mapsUrl ? { mapsUrl: row.mapsUrl } : {}),
     });
 
     return {
@@ -1491,6 +1499,30 @@ export const submitPublicListing = mutation({
       await ctx.db.patch(id, { publicSlug: makePublicSlug(row) });
     }
 
+    await ctx.scheduler.runAfter(0, internal.integrations.notifyListingActivity, {
+      event: "public_created",
+      actorName: `ثبت عمومی • ${phone}`,
+      actorRole: "guest",
+      key,
+      title,
+      city,
+      propertyType,
+      dealType,
+      phone,
+      ...(args.area != null ? { area: args.area } : {}),
+      ...(args.depositMillion != null
+        ? { depositMillion: args.depositMillion }
+        : {}),
+      ...(args.rentMillion != null ? { rentMillion: args.rentMillion } : {}),
+      ...(args.priceMillion != null
+        ? { priceMillion: args.priceMillion }
+        : {}),
+      description: description.slice(0, 1200),
+      ...(hasLatitude && hasLongitude
+        ? { mapsUrl: neshanAppLocationUrl(args.latitude!, args.longitude!) }
+        : {}),
+    });
+
     await ctx.scheduler.runAfter(0, internal.integrations.notifyPublicationRequest, {
       key,
       title,
@@ -1657,8 +1689,9 @@ export const createListing = mutation({
       `${rest.dealType || "آگهی"} ${rest.propertyType || "ملک"}${rest.area ? ` ${rest.area} متری` : ""} در ${rest.city || "شهریار"}`;
 
     await ctx.scheduler.runAfter(0, internal.integrations.notifyListingActivity, {
-      event: "registered",
-      consultant,
+      event: "created",
+      actorName: consultant,
+      actorRole: r.role,
       key: stableKey,
       ...(rest.radarCode ? { radarCode: rest.radarCode } : {}),
       title: activityTitle,
@@ -1670,6 +1703,13 @@ export const createListing = mutation({
       ...(rest.priceMillion != null ? { priceMillion: rest.priceMillion } : {}),
       ...(rest.depositMillion != null ? { depositMillion: rest.depositMillion } : {}),
       ...(rest.rentMillion != null ? { rentMillion: rest.rentMillion } : {}),
+      ...(rest.neighborhood ? { neighborhood: rest.neighborhood } : {}),
+      ...(rest.address ? { address: rest.address } : {}),
+      ...((rest.description || "").trim()
+        ? { description: (rest.description || "").slice(0, 1200) }
+        : {}),
+      ...(rest.divarUrl ? { divarUrl: rest.divarUrl } : {}),
+      ...(rest.mapsUrl ? { mapsUrl: rest.mapsUrl } : {}),
     });
 
     return stableKey;
