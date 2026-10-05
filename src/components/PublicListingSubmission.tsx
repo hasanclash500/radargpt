@@ -259,7 +259,7 @@ export default function PublicListingSubmission() {
                   <div>
                     <p className="text-sm font-extrabold">موقعیت ملک روی نقشه</p>
                     <p className="mt-1 text-xs leading-6 text-muted-foreground">
-                      موقعیت دقیق فقط برای بررسی داخلی مکا ذخیره می‌شود و در آگهی عمومی نمایش داده نمی‌شود.
+                      موقعیت دقیق فقط برای بررسی داخلی دیوساز ذخیره می‌شود و در آگهی عمومی نمایش داده نمی‌شود.
                     </p>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ export default function PublicListingSubmission() {
               </div>
               <div className="sm:col-span-2">
                 <Field label="توضیحات *">
-                  <Textarea rows={6} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="مشخصات ملک، امکانات، دسترسی و شرایط معامله را بنویسید." />
+                  <Textarea rows={6} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="مشخصات ملک، ادیوسازنات، دسترسی و شرایط معامله را بنویسید." />
                 </Field>
               </div>
               <input
