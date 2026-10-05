@@ -25,7 +25,7 @@ export default function DashboardReminders() {
           <BellRing className="mx-auto size-10 text-muted-foreground" />
           <h1 className="mt-4 font-black">دسترسی به یادآوری‌ها ندارید</h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            این بخش برای مدیر، ادمین و مشاوران مکا فعال است.
+            این بخش برای مدیر، ادمین و مشاوران دیوساز فعال است.
           </p>
           <Button asChild className="mt-5">
             <Link to="/dashboard">بازگشت به داشبورد</Link>
