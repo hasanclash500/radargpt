@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
 import {
   Sheet,
   SheetClose,
@@ -407,12 +408,7 @@ function FeaturedPublicListings() {
                           loading="lazy"
                         />
                       ) : (
-                        <img
-                          src="/listing-placeholder.svg"
-                          alt="تصویر پیش‌فرض آگهی دیوساز"
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
+                        <ListingPlaceholder compact />
                       )}
                       <div className="absolute end-3 top-3 flex flex-wrap gap-1.5">
                         {item.featuredOnHome && (
