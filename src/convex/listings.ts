@@ -750,9 +750,22 @@ export const backfillListingSearch = mutation({
       });
     }
 
+    const done = rows.length < limit;
+    if (done) {
+      const settings = await globalSettings(ctx);
+      if (settings) {
+        await ctx.db.patch(settings._id, { listingSearchBackfillDone: true });
+      } else {
+        await ctx.db.insert("appSettings", {
+          key: "global",
+          listingSearchBackfillDone: true,
+        });
+      }
+    }
+
     return {
       processed: rows.length,
-      done: rows.length < limit,
+      done,
     };
   },
 });
@@ -777,9 +790,24 @@ export const backfillLandingFlags = mutation({
       });
     }
 
+    const done = rows.length < limit;
+    if (done) {
+      const settings = await globalSettings(ctx);
+      if (settings) {
+        await ctx.db.patch(settings._id, {
+          landingVisibilityMigrationDone: true,
+        });
+      } else {
+        await ctx.db.insert("appSettings", {
+          key: "global",
+          landingVisibilityMigrationDone: true,
+        });
+      }
+    }
+
     return {
       processed: rows.length,
-      done: rows.length < limit,
+      done,
     };
   },
 });
