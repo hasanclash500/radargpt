@@ -554,6 +554,12 @@ const schema = defineSchema(
       listingImportedCount: v.optional(v.number()),
       listingMemberCount: v.optional(v.number()),
       listingCountsUpdatedAt: v.optional(v.number()),
+      listingCountRebuildView: v.optional(
+        v.union(v.literal("imported"), v.literal("member")),
+      ),
+      listingCountRebuildCursor: v.optional(v.string()),
+      listingCountRebuildImported: v.optional(v.number()),
+      listingCountRebuildMember: v.optional(v.number()),
       /** گزارش آخرین اجرای افزودن روزانه */
       lastImportAt: v.optional(v.number()),
       lastImportAdded: v.optional(v.number()),
