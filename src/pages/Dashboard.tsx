@@ -903,6 +903,16 @@ export default function Dashboard() {
                             next.delete(key);
                             return next;
                           });
+                          const lookup =
+                            l.radarCode?.trim() ||
+                            l.phone?.trim() ||
+                            l.title?.trim() ||
+                            key;
+                          setListingView("member");
+                          setFilters({
+                            ...DEFAULT_FILTERS,
+                            query: lookup,
+                          });
                         } : undefined} />
                     );
                   })}
