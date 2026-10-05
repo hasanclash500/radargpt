@@ -13,6 +13,7 @@ const TYPES: { value: ListingFieldType; label: string }[] = [
   { value: "boolean", label: "بله/خیر" },
   { value: "select", label: "انتخابی" },
   { value: "textarea", label: "متن بلند" },
+  { value: "date", label: "تاریخ شمسی" },
 ];
 
 function uid(prefix: string) {
