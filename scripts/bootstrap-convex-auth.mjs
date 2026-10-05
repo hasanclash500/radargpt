@@ -66,7 +66,7 @@ const siteUrl =
   process.env.MEKA_SITE_URL?.trim() ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : "https://radargpt.vercel.app");
+    : "https://divsaz.ir");
 
 if (!names.has("SITE_URL") || getEnv("SITE_URL").trim() !== siteUrl) {
   setEnv("SITE_URL", siteUrl);
