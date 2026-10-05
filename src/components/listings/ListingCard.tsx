@@ -5,6 +5,7 @@ import FullListingEditDialog, {
   type ListingEditPatch,
 } from "@/components/listings/FullListingEditDialog";
 import { faDigits, formatArea, formatPrice, formatRooms } from "@/lib/format";
+import { formatJalaliDate } from "@/lib/jalali";
 import type { DealType, Listing } from "@/lib/parser";
 import { cn } from "@/lib/utils";
 import { listingNeshanUrl } from "@/lib/neshan";
@@ -188,7 +189,7 @@ export default function ListingCard({
               title={field.label}
             >
               <b className="text-foreground">{field.label}:</b>{" "}
-              {field.value}{field.unit ? ` ${field.unit}` : ""}
+              {field.type === "date" ? formatJalaliDate(field.value) : field.value}{field.unit ? ` ${field.unit}` : ""}
             </span>
           ))}
           {!expanded && l.customFields.length > 5 && (
