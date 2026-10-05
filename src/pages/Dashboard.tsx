@@ -12,7 +12,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMutation, usePaginatedQuery, useQuery } from "convex/react";
+import { useConvex, useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
 import { exportCsv, exportExcel, exportJson } from "@/lib/exporters";
@@ -44,6 +44,7 @@ const HINTS = [
 
 export default function Dashboard() {
   const { signOut } = useAuth();
+  const convex = useConvex();
   const navigate = useNavigate();
   const headerInputRef = useRef<HTMLInputElement>(null);
   const [listingView, setListingView] = useState<"member" | "imported">("member");
@@ -128,6 +129,7 @@ export default function Dashboard() {
   const [shareOpen, setShareOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [exportingAll, setExportingAll] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -351,6 +353,38 @@ export default function Dashboard() {
     } catch { toast.error("تهیه خروجی با خطا مواجه شد"); }
   }, [filtered]);
 
+  const exportAllExcel = useCallback(async () => {
+    if (exportingAll) return;
+    setExportingAll(true);
+    try {
+      const all: Listing[] = [];
+      let cursor: string | null = null;
+      let done = false;
+      while (!done) {
+        const page = await convex.query(api.listings.listListings, {
+          view: listingView,
+          paginationOpts: { numItems: 300, cursor },
+        });
+        all.push(...(page.page as Listing[]));
+        done = page.isDone;
+        cursor = page.continueCursor || null;
+        if (all.length > 50000) {
+          throw new Error("حجم خروجی بیش از حد مجاز است.");
+        }
+      }
+      if (all.length === 0) {
+        toast.error("آگهی‌ای برای خروجی وجود ندارد");
+        return;
+      }
+      await exportExcel(all);
+      toast.success(`فایل اکسل ${faNum(all.length)} آگهی آماده شد`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تهیه خروجی کامل ناموفق بود");
+    } finally {
+      setExportingAll(false);
+    }
+  }, [convex, exportingAll, listingView]);
+
   const handleSignOut = async () => { await signOut(); navigate("/"); };
   const filtersActive = hasActiveFilters(filters);
   const pct = progress && progress.total > 0 ? Math.min(100, Math.round((progress.done / progress.total) * 100)) : 0;
@@ -470,8 +504,12 @@ export default function Dashboard() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-52">
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  خروجی از {faNum(filtered.length)} آگهی
+                  خروجی از آگهی‌های بارگذاری‌شده یا کل بخش
                 </DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => void exportAllExcel()} disabled={exportingAll}>
+                  <FileSpreadsheet className="size-4" />
+                  {exportingAll ? "در حال جمع‌آوری…" : "اکسل کل این بخش"}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => void doExport("csv")}><FileText className="size-4" />فایل CSV</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => void doExport("excel")}><FileSpreadsheet className="size-4" />فایل اکسل (.xlsx)</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => void doExport("json")}><FileJson className="size-4" />فایل JSON</DropdownMenuItem>
