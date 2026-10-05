@@ -34,8 +34,8 @@ export default function AdvisorProfile() {
   const profile = useQuery(api.advisors.getPublicBySlug, { slug });
 
   useSeo({
-    title: profile ? profile.displayName + " | مشاور مکا" : "مشاور مکا",
-    description: profile?.bio || profile?.headline || "پروفایل مشاور مکا",
+    title: profile ? profile.displayName + " | مشاور دیوساز" : "مشاور دیوساز",
+    description: profile?.bio || profile?.headline || "پروفایل مشاور دیوساز",
     type: "profile",
   } as any);
 
@@ -140,7 +140,7 @@ export default function AdvisorProfile() {
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-[11px] font-bold text-primary">
                       <ShieldCheck className="size-3.5" />
-                      عضو مکا
+                      عضو دیوساز
                     </span>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export default function AdvisorProfile() {
 
               <div className="flex gap-2">
                 <Button asChild size="sm" variant="outline">
-                  <Link to="/listings">آگهی‌های مکا</Link>
+                  <Link to="/listings">آگهی‌های دیوساز</Link>
                 </Button>
               </div>
             </div>
