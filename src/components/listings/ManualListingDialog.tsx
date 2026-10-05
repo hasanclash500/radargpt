@@ -328,7 +328,7 @@ export default function ManualListingDialog({
       const area = form.area ? ` ${form.area} متری` : "";
       uploaded.push({
         storageId: result.storageId,
-        alt: [form.dealType, form.propertyType, area, "در", form.city, "| مکا"]
+        alt: [form.dealType, form.propertyType, area, "در", form.city, "| دیوساز"]
           .filter(Boolean)
           .join(" ")
           .replace(/\s+/g, " ")
@@ -623,7 +623,7 @@ export default function ManualListingDialog({
                   rows={7}
                   value={form.description}
                   onChange={(e) => set("description", e.target.value)}
-                  placeholder="ویژگی‌های واقعی ملک، زیرساخت، دسترسی، امکانات، محدودیت‌ها و شرایط معامله را کامل و طبیعی بنویسید."
+                  placeholder="ویژگی‌های واقعی ملک، زیرساخت، دسترسی، ادیوسازنات، محدودیت‌ها و شرایط معامله را کامل و طبیعی بنویسید."
                 />
               </Field>
 
