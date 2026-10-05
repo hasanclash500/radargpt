@@ -1,3 +1,4 @@
+import BrandStorySection from "@/components/BrandStorySection";
 import { Button } from "@/components/ui/button";
 import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
@@ -47,8 +48,9 @@ import { Link } from "react-router";
 import { useState } from "react";
 
 const PHONE = "09120858095";
-const ADDRESS = "شهریار، روبروی شهرک اداری تجربه";
-const MAPS_URL = "https://neshan.org/maps/places/rbve_DVxCgq9";
+const ADDRESS = "شهریار، روبروی شهرک اداری، مجتمع تجاری اداری شهریار";
+const MAPS_URL = "https://nshn.ir/2bveXP_xCgqA";
+const MAP_LOCATION = "جاده شهریار–شهدای اندیشه";
 
 const fadeUp = {
   initial: { opacity: 0, y: 24 },
@@ -486,7 +488,7 @@ export default function Landing() {
       address: {
         "@type": "PostalAddress",
         addressLocality: "شهریار",
-        streetAddress: "روبروی شهرک اداری تجربه",
+        streetAddress: "روبروی شهرک اداری، مجتمع تجاری اداری شهریار",
         addressCountry: "IR",
       },
       areaServed: {
@@ -677,6 +679,8 @@ export default function Landing() {
         </div>
       </section>
 
+      <BrandStorySection />
+
       <FeaturedPublicListings />
 
       <section id="services" className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
@@ -731,6 +735,9 @@ export default function Landing() {
               <p className="mt-3 flex items-start gap-2 text-sm leading-7 text-muted-foreground">
                 <MapPin className="mt-1 size-4 shrink-0 text-primary" />
                 {ADDRESS}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                موقعیت روی نقشه: {MAP_LOCATION}
               </p>
               <p className="mt-2 flex items-center gap-2 text-sm font-bold">
                 <PhoneCall className="size-4 text-primary" />
