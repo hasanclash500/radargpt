@@ -157,7 +157,7 @@ function StoryPreview({
           )}
           <div>
             <strong className="block text-xs">
-              {advisor?.displayName || "مشاور مکا"}
+              {advisor?.displayName || "مشاور دیوساز"}
             </strong>
             <span className="text-[9px] text-white/70">
               {form.durationSec.toLocaleString("fa-IR")} ثانیه
@@ -242,7 +242,7 @@ export default function StoryManager() {
         <div className="max-w-md rounded-3xl border border-border bg-card p-6 text-center">
           <h1 className="text-xl font-black">دسترسی مدیریت استوری ندارید</h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            این بخش فقط برای مدیر و مشاوران مکا فعال است.
+            این بخش فقط برای مدیر و مشاوران دیوساز فعال است.
           </p>
           <Button asChild className="mt-5">
             <Link to="/dashboard">بازگشت به داشبورد</Link>
