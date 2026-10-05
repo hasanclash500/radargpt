@@ -283,7 +283,7 @@ export const notifyLead = internalAction({
     if (!config?.notifyLeads) return { skipped: true };
 
     const lines = [
-      "🔔 درخواست جدید از سایت مکا",
+      "🔔 درخواست جدید از سایت دیوساز",
       "",
       `نوع درخواست: ${INTENT_LABELS[args.intent] || args.intent}`,
       `نام: ${args.name}`,
@@ -294,7 +294,7 @@ export const notifyLead = internalAction({
       args.budget ? `بودجه/شرایط: ${args.budget}` : "",
       args.details ? `توضیحات: ${args.details}` : "",
       "",
-      "📌 این درخواست در پنل مدیریت مکا ذخیره شده است.",
+      "📌 این درخواست در پنل مدیریت دیوساز ذخیره شده است.",
     ].filter(Boolean);
 
     return await sendConfigured(ctx, lines.join("\n"));
@@ -337,7 +337,7 @@ export const notifyPublicationRequest = internalAction({
       args.consultant ? `ثبت‌کننده: ${args.consultant}` : "",
       `کد داخلی: ${args.key}`,
       "",
-      "✅ برای انتشار عمومی، مدیر باید این آگهی را در داشبورد مکا تأیید کند.",
+      "✅ برای انتشار عمومی، مدیر باید این آگهی را در داشبورد دیوساز تأیید کند.",
     ].filter(Boolean);
 
     return await sendConfigured(ctx, text.join("\n"));
@@ -353,7 +353,7 @@ export const testIntegrations = action({
     }
     return await sendConfigured(
       ctx,
-      "✅ اتصال پیام‌رسان مکا با موفقیت برقرار است.",
+      "✅ اتصال پیام‌رسان دیوساز با موفقیت برقرار است.",
       args.channel,
     );
   },
