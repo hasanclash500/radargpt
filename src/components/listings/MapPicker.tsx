@@ -265,8 +265,8 @@ export default function MapPicker({
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="w-[calc(100vw-1rem)] max-w-2xl overflow-hidden p-0">
-          <div className="p-4 sm:p-5">
+        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-2xl flex-col overflow-hidden p-0 sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)]">
+          <div className="shrink-0 p-3 sm:p-5">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Navigation className="size-5 text-primary" />
@@ -300,10 +300,10 @@ export default function MapPicker({
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative min-h-0 flex-1">
             <div
               ref={containerRef}
-              className="h-[55vh] min-h-[360px] w-full bg-muted"
+              className="h-[34dvh] min-h-[210px] w-full bg-muted sm:h-[48vh] sm:min-h-[320px]"
             />
             {loading && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-background/60 text-sm">
@@ -328,7 +328,8 @@ export default function MapPicker({
             </p>
           )}
 
-          <div className="flex flex-col gap-3 border-t border-border p-4">
+          <div className="z-20 shrink-0 border-t border-border bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur sm:p-4">
+            <div className="flex max-h-[28dvh] flex-col gap-3 overflow-y-auto sm:max-h-none">
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -376,25 +377,28 @@ export default function MapPicker({
               )}
             </div>
 
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setOpen(false)}
-              >
-                انصراف
-              </Button>
-              <Button
-                type="button"
-                disabled={!selected}
-                onClick={() => {
-                  if (!selected) return;
-                  onChange(selected);
-                  setOpen(false);
-                }}
-              >
-                ثبت این موقعیت
-              </Button>
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full sm:w-auto"
+                  onClick={() => setOpen(false)}
+                >
+                  انصراف
+                </Button>
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  disabled={!selected}
+                  onClick={() => {
+                    if (!selected) return;
+                    onChange(selected);
+                    setOpen(false);
+                  }}
+                >
+                  ثبت این موقعیت
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
