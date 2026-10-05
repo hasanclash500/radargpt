@@ -46,40 +46,6 @@ async function managerPhone(ctx: Ctx): Promise<string> {
   return (await globalSettings(ctx))?.managerPhone ?? "09120858095";
 }
 
-function buildListingSearchText(value: {
-  radarCode?: string;
-  city?: string;
-  neighborhood?: string;
-  title?: string;
-  description?: string;
-  address?: string;
-  phone?: string;
-  propertyType?: string;
-  dealType?: string;
-}) {
-  return toEnglishDigits(
-    [
-      value.radarCode,
-      value.city,
-      value.neighborhood,
-      value.title,
-      value.description,
-      value.address,
-      value.phone,
-      value.propertyType,
-      value.dealType,
-    ]
-      .filter(Boolean)
-      .join(" "),
-  )
-    .replace(/ي/g, "ی")
-    .replace(/ك/g, "ک")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase()
-    .slice(0, 12000);
-}
-
 async function byKey(ctx: Ctx, key: string): Promise<Doc<"listings"> | null> {
   const rows = await ctx.db
     .query("listings")
