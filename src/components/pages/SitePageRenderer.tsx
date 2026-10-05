@@ -1,3 +1,4 @@
+import BrandStorySection from "@/components/BrandStorySection";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
@@ -15,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
 import { formatArea, formatPrice } from "@/lib/format";
-import { neshanSearchUrl } from "@/lib/neshan";
 import { useQuery } from "convex/react";
 import {
   ArrowLeft,
@@ -47,6 +47,7 @@ type PageBlock = {
 
 type SitePage = {
   title: string;
+  isHomepage?: boolean;
   slug: string;
   seoTitle?: string;
   seoDescription?: string;
@@ -339,7 +340,13 @@ function CtaBlock({ props }: { props: Record<string, any> }) {
 
 function ContactBlock({ props }: { props: Record<string, any> }) {
   const phone = String(props.phone || "09120858095");
-  const address = String(props.address || "شهریار");
+  const savedAddress = String(props.address || "").trim();
+  const address =
+    !savedAddress || savedAddress === "شهریار، روبروی شهرک اداری تجربه"
+      ? "شهریار، روبروی شهرک اداری، مجتمع تجاری اداری شهریار"
+      : savedAddress;
+  const mapUrl = String(props.mapUrl || "https://nshn.ir/2bveXP_xCgqA");
+  const mapLocation = String(props.mapLocation || "جاده شهریار–شهدای اندیشه");
   return (
     <section className="border-t border-border/60 bg-card/40">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -347,9 +354,10 @@ function ContactBlock({ props }: { props: Record<string, any> }) {
         {props.text && <p className="mt-2 text-sm leading-7 text-muted-foreground">{props.text}</p>}
         <div className="mt-5 flex flex-wrap gap-3">
           <Button asChild className="gap-2"><a href={"tel:" + phone}><PhoneCall className="size-4" />{phone}</a></Button>
-          <Button asChild variant="outline" className="gap-2"><a href={neshanSearchUrl(address)} target="_blank" rel="noreferrer"><Navigation className="size-4" />مسیریابی با نشان</a></Button>
+          <Button asChild variant="outline" className="gap-2"><a href={mapUrl} target="_blank" rel="noreferrer"><Navigation className="size-4" />مسیریابی با نشان</a></Button>
         </div>
         <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><MapPin className="size-4 text-primary" />{address}</p>
+        <p className="mt-2 text-[11px] text-muted-foreground">موقعیت روی نقشه: {mapLocation}</p>
       </div>
     </section>
   );
@@ -388,6 +396,7 @@ export default function SitePageRenderer({
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
       {!hideHeader && <PublicHeader />}
       {!hideHeader && <PublicStoryStrip />}
+      {page.isHomepage && <BrandStorySection />}
       {blocks.map((block) => <BlockRenderer key={block.id} block={block} />)}
     </main>
   );
