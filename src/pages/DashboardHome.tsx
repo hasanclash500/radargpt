@@ -111,7 +111,7 @@ export default function DashboardHome() {
     {
       title: "متقاضی‌ها",
       description:
-        "درخواست‌های خرید و اجاره ثبت‌شده از سایت، وضعیت تماس و پیگیری مشتری.",
+        "ثبت متقاضی جدید، پیگیری درخواست‌ها و مدیریت وضعیت تماس مشتری.",
       to: "/dashboard/leads",
       icon: UserRoundSearch,
       badge: activeLeads > 0 ? activeLeads.toLocaleString("fa-IR") + " فعال" : undefined,
