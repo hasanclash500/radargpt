@@ -136,7 +136,7 @@ async function collectMatches(ctx: any, question: string): Promise<AssistantMatc
   const area = areaMention(question);
   const prices = priceMentions(question);
 
-  // فقط آگهی‌های عمومی خود مکا وارد موتور پیشنهاد می‌شوند.
+  // فقط آگهی‌های عمومی خود دیوساز وارد موتور پیشنهاد می‌شوند.
   const rows = await ctx.db
     .query("listings")
     .withIndex("by_public_published", (builder: any) => builder.eq("isPublic", true))
@@ -249,7 +249,7 @@ async function collectMatches(ctx: any, question: string): Promise<AssistantMatc
         : null;
 
       return {
-        ref: `MEKA-${index + 1}`,
+        ref: `DIVSAZ-${index + 1}`,
         slug: row.publicSlug ?? "",
         title:
           row.title ||
@@ -289,19 +289,19 @@ export const searchSiteListingsInternal = internalQuery({
 function fallbackAnswer(question: string, matches: AssistantMatch[]) {
   if (isListingIntent(question)) {
     if (matches.length === 0) {
-      return "فعلاً آگهی عمومی متناسبی داخل سایت مکا پیدا نکردم. می‌توانید شهر، نوع ملک، متراژ یا حدود قیمت را کمی بازتر بگویید.";
+      return "فعلاً آگهی عمومی متناسبی داخل سایت دیوساز پیدا نکردم. می‌توانید شهر، نوع ملک، متراژ یا حدود قیمت را کمی بازتر بگویید.";
     }
     const exact = matches.slice(0, 3);
     return [
-      `${matches.length.toLocaleString("fa-IR")} گزینه از آگهی‌های خود مکا پیدا کردم.`,
+      `${matches.length.toLocaleString("fa-IR")} گزینه از آگهی‌های خود دیوساز پیدا کردم.`,
       ...exact.map(
         (item: any, index: number) =>
           `${index + 1}) ${item.title} — ${item.city}${item.area ? `، ${item.area.toLocaleString("fa-IR")} متر` : ""}`,
       ),
-      "کارت‌های زیر مستقیماً از دیتابیس آگهی‌های مکا هستند.",
+      "کارت‌های زیر مستقیماً از دیتابیس آگهی‌های دیوساز هستند.",
     ].join("\n");
   }
-  return "دستیار هوشمند مکا آماده است، اما مدل ابری هنوز تنظیم نشده است. جستجوی آگهی‌های خود سایت بدون مدل ابری هم فعال است.";
+  return "دستیار هوشمند دیوساز آماده است، اما برای پاسخ‌گویی عمومی و حقوقی باید مدل هوش مصنوعی در تنظیمات اتصال فعال باشد. جستجوی آگهی‌های خود سایت بدون مدل ابری هم فعال است.";
 }
 
 export const ask = action({
@@ -353,14 +353,16 @@ export const ask = action({
     }));
 
     const system = [
-      "تو دستیار هوشمند املاک مکا هستی و فارسی پاسخ می‌دهی.",
-      "قانون قطعی برای جستجو و معرفی ملک: فقط آگهی‌های بخش CANDIDATES که از دیتابیس سایت مکا آمده‌اند مجازند.",
+      "تو دستیار هوشمند املاک دیوساز هستی و فارسی پاسخ می‌دهی.",
+      "قانون قطعی برای جستجو و معرفی ملک: فقط آگهی‌های بخش CANDIDATES که از دیتابیس سایت دیوساز آمده‌اند مجازند.",
       "هرگز ملک، قیمت، منطقه، لینک یا مشخصاتی را که در CANDIDATES نیست اختراع یا از سایت دیگری پیشنهاد نکن.",
-      "اگر CANDIDATES خالی است، صریح بگو در آگهی‌های فعلی مکا گزینه متناسب پیدا نشد.",
+      "اگر CANDIDATES خالی است، صریح بگو در آگهی‌های فعلی دیوساز گزینه متناسب پیدا نشد.",
       "اگر کاربر رنج قیمت/متراژ گفته، گزینه‌های نزدیک را هم با بیان اینکه نزدیک هستند معرفی کن.",
-      "برای سؤال حقوقی ملک، فقط اطلاعات عمومی و آموزشی بده و روشن بگو برای تصمیم یا دعوای حقوقی باید مدارک توسط وکیل/کارشناس بررسی شود.",
+      "برای سؤال حقوقی ملک، اطلاعات عمومی و آموزشی کاربردی بده و روشن بگو برای تصمیم، قرارداد یا دعوای حقوقی باید مدارک واقعی توسط وکیل/کارشناس بررسی شود.",
+      "به سؤال‌های عمومی و روزمره کاربر هم پاسخ بده؛ لازم نیست هر پاسخ را به املاک ربط بدهی.",
+      "اگر سؤال نیازمند اطلاعات لحظه‌ای یا منبعی خارج از دانسته‌های مدل است، با قطعیت ساختگی پاسخ نده و محدودیت را روشن بیان کن.",
       "آدرس دقیق، محله خصوصی، شماره مالک و اطلاعات داخلی را افشا نکن.",
-      "برای اشاره به ملک فقط refهای MEKA-* موجود را استفاده کن.",
+      "برای اشاره به ملک فقط refهای DIVSAZ-* موجود را استفاده کن.",
       "خلاصه و کاربردی پاسخ بده.",
     ].join("\n");
 
@@ -370,8 +372,8 @@ export const ask = action({
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": process.env.SITE_URL ?? "https://meka.ir",
-          "X-Title": "MEKA Real Estate Assistant",
+          "HTTP-Referer": process.env.SITE_URL ?? "https://radargpt.vercel.app",
+          "X-Title": "Divosaz Real Estate Assistant",
         },
         body: JSON.stringify({
           model,
