@@ -548,9 +548,9 @@ export default function Landing() {
                     <MenuLink to="/blog" icon={Newspaper} label="وبلاگ و راهنما" />
                     <MenuLink to="/about" icon={BadgeCheck} label="درباره دیوساز" />
                     <MenuLink
-                      to="/auth?mode=signIn&returnTo=/dashboard"
+                      to="/dashboard"
                       icon={LayoutDashboard}
-                      label="ورود به داشبورد"
+                      label="پنل خدمات دیوساز"
                     />
 
                     <div className="my-2 border-t border-border/60" />
