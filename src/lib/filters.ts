@@ -63,13 +63,13 @@ function normalizeDigits(value: string) {
     .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
 }
 
-function num(value: string): number | null {
+export function parseNumberFilter(value: string): number | null {
   if (value.trim() === "") return null;
   const n = Number(normalizeDigits(value).replace(/[,،٬\s]/g, ""));
   return Number.isFinite(n) ? n : null;
 }
 
-function moneyMillion(value: string): number | null {
+export function parseMoneyMillionFilter(value: string): number | null {
   const raw = normalizeDigits(value)
     .trim()
     .toLowerCase()
@@ -118,10 +118,10 @@ function matchesRooms(listing: Listing, rooms: string): boolean {
 /** اعمال جستجو، فیلترها و مرتب‌سازی روی لیست آگهی‌ها. */
 export function applyFilters(listings: Listing[], f: Filters): Listing[] {
   const q = f.query.trim().toLowerCase();
-  const pMin = moneyMillion(f.priceMin);
-  const pMax = moneyMillion(f.priceMax);
-  const aMin = num(f.areaMin);
-  const aMax = num(f.areaMax);
+  const pMin = parseMoneyMillionFilter(f.priceMin);
+  const pMax = parseMoneyMillionFilter(f.priceMax);
+  const aMin = parseNumberFilter(f.areaMin);
+  const aMax = parseNumberFilter(f.areaMax);
   const dateFrom = normalizeDateInput(f.dateFrom);
   const dateTo = normalizeDateInput(f.dateTo);
 
