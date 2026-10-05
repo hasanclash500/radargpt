@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { Listing } from "@/lib/parser";
-import { CheckCircle2, ExternalLink, Globe2, Loader2, Search, Star } from "lucide-react";
+import { CheckCircle2, ExternalLink, Globe2, Loader2, RefreshCw, Search, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -44,32 +44,67 @@ export default function PublicListingDialog({
   const [noIndex, setNoIndex] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const autoTitle = useMemo(() => {
+    const deal = listing.dealType || "معامله";
+    const property = listing.propertyType || "ملک";
+    const area = listing.area ? ` ${listing.area} متری` : "";
+    const city = listing.city || "غرب تهران";
+    return `${deal} ${property}${area} در ${city} | دیوساز`.slice(0, 65);
+  }, [listing]);
+
+  const autoDescription = useMemo(() => {
+    const deal = listing.dealType || "معامله";
+    const property = listing.propertyType || "ملک";
+    const city = listing.city || "غرب تهران";
+    const area = listing.area ? ` با متراژ حدود ${listing.area} متر` : "";
+    const priceBits = [
+      listing.priceMillion != null && listing.priceMillion > 0
+        ? `قیمت ${listing.priceMillion.toLocaleString("fa-IR")} میلیون تومان`
+        : "",
+      listing.depositMillion != null && listing.depositMillion > 0
+        ? `ودیعه ${listing.depositMillion.toLocaleString("fa-IR")} میلیون تومان`
+        : "",
+      listing.rentMillion != null && listing.rentMillion > 0
+        ? `اجاره ${listing.rentMillion.toLocaleString("fa-IR")} میلیون تومان`
+        : "",
+    ].filter(Boolean);
+    const detail = (listing.description || "").replace(/\s+/g, " ").trim();
+    const natural = `این ${property}${area} در ${city} برای ${deal} ارائه شده است${priceBits.length ? ` و شرایط مالی آن شامل ${priceBits.join(" و ")} است` : ""}. ${detail}`;
+    return natural.replace(/\s+/g, " ").trim().slice(0, 160);
+  }, [listing]);
+
+  const autoKeywords = useMemo(() => {
+    const values = [
+      listing.dealType && `${listing.dealType} ${listing.propertyType || "ملک"}`,
+      listing.city && `${listing.propertyType || "ملک"} در ${listing.city}`,
+      listing.area && listing.propertyType
+        ? `${listing.propertyType} ${listing.area} متری`
+        : "",
+      "املاک صنعتی و اداری",
+      "دیوساز",
+    ].filter(Boolean);
+    return Array.from(new Set(values)).join("، ");
+  }, [listing]);
+
   useEffect(() => {
     if (!open) return;
     setIsPublic(Boolean(listing.isPublic || listing.publicationStatus === "pending"));
     setFeaturedOnHome(listing.featuredOnHome ?? false);
-    setSeoTitle(listing.seoTitle ?? "");
-    setSeoDescription(listing.seoDescription ?? "");
-    setSeoKeywords((listing.seoKeywords ?? []).join("، "));
+    setSeoTitle(listing.seoTitle?.trim() || autoTitle);
+    setSeoDescription(listing.seoDescription?.trim() || autoDescription);
+    setSeoKeywords(
+      listing.seoKeywords?.length
+        ? listing.seoKeywords.join("، ")
+        : autoKeywords,
+    );
     setNoIndex(listing.noIndex ?? false);
-  }, [open, listing]);
+  }, [open, listing, autoTitle, autoDescription, autoKeywords]);
 
-  const autoTitle = useMemo(() => {
-    const area = listing.area ? ` ${listing.area} متری` : "";
-    return `${listing.dealType} ${listing.propertyType}${area} در ${listing.city} | مکا`;
-  }, [listing]);
-
-  const autoDescription = useMemo(() => {
-    const bits = [
-      listing.dealType,
-      listing.propertyType,
-      listing.area ? `${listing.area} متر` : "",
-      `در ${listing.city}`,
-      listing.depositMillion != null ? `ودیعه ${listing.depositMillion} میلیون` : "",
-      listing.rentMillion != null ? `اجاره ${listing.rentMillion} میلیون` : "",
-    ].filter(Boolean);
-    return `${bits.join("، ")}. ${listing.description.replace(/\s+/g, " ").slice(0, 80)}`.slice(0, 160);
-  }, [listing]);
+  const regenerateSeo = () => {
+    setSeoTitle(autoTitle);
+    setSeoDescription(autoDescription);
+    setSeoKeywords(autoKeywords);
+  };
 
   const finalTitle = seoTitle || autoTitle;
   const finalDescription = seoDescription || autoDescription;
@@ -159,10 +194,19 @@ export default function PublicListingDialog({
           <ListingImageManager listing={listing} />
 
           <div className="space-y-4 rounded-2xl border border-border/70 p-4">
-            <div className="flex items-center gap-2">
-              <Search className="size-4 text-primary" />
-              <h3 className="text-sm font-extrabold">تنظیمات SEO</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Search className="size-4 text-primary" />
+                <h3 className="text-sm font-extrabold">تنظیمات SEO</h3>
+              </div>
+              <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={regenerateSeo}>
+                <RefreshCw className="size-3.5" />
+                بازنویسی خودکار
+              </Button>
             </div>
+            <p className="text-[11px] leading-6 text-muted-foreground">
+              فیلدهای خالی بر اساس مشخصات همین آگهی با متن طبیعی پر می‌شوند و قبل از انتشار کاملاً قابل ویرایش هستند.
+            </p>
 
             <div className="space-y-2">
               <Label>SEO Title</Label>
@@ -206,7 +250,7 @@ export default function PublicListingDialog({
 
           <div className="rounded-2xl border border-border/70 bg-background p-4">
             <p dir="ltr" className="truncate text-[10px] text-emerald-700 dark:text-emerald-400">
-              meka.ir › listings › {listing.publicSlug || "property-slug"}
+              radargpt.vercel.app › listings › {listing.publicSlug || "property-slug"}
             </p>
             <p className="mt-1 text-lg font-medium leading-7 text-blue-700 dark:text-blue-400">
               {finalTitle}
