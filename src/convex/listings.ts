@@ -77,7 +77,7 @@ async function actorDisplayName(ctx: Ctx, userId: string) {
   if (profile?.displayName?.trim()) return profile.displayName.trim();
 
   try {
-    const user = await ctx.db.get(userId as any);
+    const user: any = await ctx.db.get(userId as any);
     return (
       user?.name?.trim() ||
       user?.email?.trim() ||
