@@ -250,7 +250,7 @@ export default function PublicListingDialog({
 
           <div className="rounded-2xl border border-border/70 bg-background p-4">
             <p dir="ltr" className="truncate text-[10px] text-emerald-700 dark:text-emerald-400">
-              radargpt.vercel.app › listings › {listing.publicSlug || "property-slug"}
+              divsaz.ir › listings › {listing.publicSlug || "property-slug"}
             </p>
             <p className="mt-1 text-lg font-medium leading-7 text-blue-700 dark:text-blue-400">
               {finalTitle}
