@@ -46,6 +46,7 @@ export default function Dashboard() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const headerInputRef = useRef<HTMLInputElement>(null);
+  const [listingView, setListingView] = useState<"member" | "imported">("member");
 
   // نقش کاربر و منابع سرور
   const roleData = useQuery(api.roles.myRole);
@@ -57,6 +58,8 @@ export default function Dashboard() {
   const markShared = useMutation(api.listings.markShared);
   const syncListings = useMutation(api.listings.upsertListings);
   const createListing = useMutation(api.listings.createListing);
+  const claimImportedListing = useMutation(api.listings.claimImportedListing);
+  const migrateLegacyListingKinds = useMutation(api.listings.migrateLegacyListingKinds);
   const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
   const approvePublication = useMutation(api.listings.approvePublication);
   const rejectPublication = useMutation(api.listings.rejectPublication);
@@ -66,8 +69,8 @@ export default function Dashboard() {
   // آگهی‌های ذخیره‌شدهٔ سرور؛ صفحه‌های بعدی هنگام اسکرول خوانده می‌شوند
   const { results: serverPages, status, loadMore } = usePaginatedQuery(
     api.listings.listListings,
-    {},
-    { initialNumItems: 60 },
+    { view: listingView },
+    { initialNumItems: PAGE_SIZE },
   );
   const serverItems = useMemo(
     () => serverPages.flat() as Listing[],
@@ -88,6 +91,28 @@ export default function Dashboard() {
   const isManager = roleData?.canManageSite ?? role === "manager";
   const canManageListings =
     roleData?.canManageListings ?? (role === "manager" || role === "admin");
+
+  const migrationStartedRef = useRef(false);
+  useEffect(() => {
+    if (!canManageListings || migrationStartedRef.current) return;
+    migrationStartedRef.current = true;
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        for (let i = 0; i < 20 && !cancelled; i += 1) {
+          const result = await migrateLegacyListingKinds({ limit: 500 });
+          if (result.done) break;
+        }
+      } catch (error) {
+        console.error("listing kind migration failed", error);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canManageListings, migrateLegacyListingKinds]);
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [localTouched, setLocalTouched] = useState(false);
@@ -119,13 +144,11 @@ export default function Dashboard() {
     return () => observer.disconnect();
   }, [loadMore, localTouched, status]);
 
-  // بعد از Refresh فقط صفحه اول ۶۰تایی نماند: صفحات سرور را در پس‌زمینه
-  // تا پایان دریافت می‌کنیم، در حالی که رندر کارت‌ها همچنان مرحله‌ای می‌ماند.
   useEffect(() => {
-    if (localTouched || status !== "CanLoadMore") return;
-    const timer = window.setTimeout(() => loadMore(240), 80);
-    return () => window.clearTimeout(timer);
-  }, [localTouched, status, loadMore, serverItems.length]);
+    setVisibleCount(PAGE_SIZE);
+    setSelected(new Set());
+    setLocalTouched(false);
+  }, [listingView]);
 
   const deferredFilters = useDeferredValue(filters);
 
@@ -166,6 +189,7 @@ export default function Dashboard() {
     setSyncing(true);
     try {
       const BATCH = 100;
+      const importBatchId = `file-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       let added = 0; let updated = 0;
       for (let i = 0; i < items.length; i += BATCH) {
         const batch = items.slice(i, i + BATCH).map((l) => ({
@@ -184,7 +208,7 @@ export default function Dashboard() {
           dateRaw: l.dateRaw || undefined, poster: l.poster || undefined,
           phone: l.phone,
         }));
-        const res = await syncListings({ items: batch });
+        const res = await syncListings({ items: batch, importBatchId });
         added += res.added; updated += res.updated;
         setSyncProgress({ done: Math.min(i + BATCH, items.length), total: items.length });
       }
@@ -236,7 +260,9 @@ export default function Dashboard() {
       } else {
         setBusyLabel("در حال ذخیره همه آگهی‌ها روی سرور…");
         await persist(result.listings);
-        toast.success(`${faNum(result.listings.length)} آگهی استخراج و کامل ذخیره شد`, {
+        setLocalTouched(false);
+        setListingView("imported");
+        toast.success(`${faNum(result.listings.length)} آگهی وارد بانک ایمپورت شد`, {
           description: result.skipped > 0 ? `${faNum(result.skipped)} آگهی بدون شماره تلفن نادیده گرفته شد` : undefined,
         });
       }
@@ -263,7 +289,9 @@ export default function Dashboard() {
         afterLoad();
         setBusyLabel("در حال ذخیره همه آگهی‌ها روی سرور…");
         await persist(result.listings);
-        toast.success(`${faNum(result.listings.length)} آگهی وارد و کامل ذخیره شد`);
+        setLocalTouched(false);
+        setListingView("imported");
+        toast.success(`${faNum(result.listings.length)} آگهی وارد بانک ایمپورت شد`);
       } else {
         const text = await file.text();
         await parseText(text, file.name);
