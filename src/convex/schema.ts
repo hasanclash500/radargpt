@@ -446,6 +446,14 @@ const schema = defineSchema(
       officeName: v.optional(v.string()),
       managerPhone: v.optional(v.string()),
       shareFooter: v.optional(v.string()),
+      /** تم پیش‌فرض کل سایت؛ توسط مدیر انتخاب می‌شود */
+      siteTheme: v.optional(
+        v.union(
+          v.literal("navy"),
+          v.literal("emerald"),
+          v.literal("light"),
+        ),
+      ),
       /** شهر/دسته/نوع ملک‌های افزوده‌شده توسط مدیر */
       customCities: v.optional(v.array(v.string())),
       customDeals: v.optional(v.array(v.string())),
