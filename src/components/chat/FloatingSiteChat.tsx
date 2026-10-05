@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
+import { useAuth } from "@/hooks/use-auth";
 import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
@@ -55,7 +56,7 @@ function PersonAvatar({ person }: { person: any }) {
 }
 
 export default function FloatingSiteChat() {
-  const role = useQuery(api.roles.myRole, {});
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const contacts = useQuery(api.advisorChat.listContacts, {}) ?? [];
   const registerGuest = useMutation(api.advisorChat.registerGuest);
   const startConversation = useMutation(api.advisorChat.startConversation);
@@ -65,12 +66,18 @@ export default function FloatingSiteChat() {
   const [guestToken] = useState(() => makeGuestToken());
   const guestProfile = useQuery(
     api.advisorChat.getGuestProfile,
-    guestToken ? { guestToken } : {},
+    !authLoading && !isAuthenticated && guestToken ? { guestToken } : "skip",
   );
   const conversations =
     useQuery(
       api.advisorChat.listConversations,
-      guestToken ? { guestToken } : {},
+      authLoading
+        ? "skip"
+        : isAuthenticated
+          ? {}
+          : guestToken
+            ? { guestToken }
+            : "skip",
     ) ?? [];
 
   const [open, setOpen] = useState(false);
@@ -87,11 +94,11 @@ export default function FloatingSiteChat() {
   const messages = useQuery(
     api.advisorChat.getMessages,
     selectedId
-      ? { conversationId: selectedId, guestToken: guestToken || undefined }
+      ? { conversationId: selectedId, guestToken: authenticated ? undefined : guestToken || undefined }
       : "skip",
   );
 
-  const authenticated = Boolean(role);
+  const authenticated = isAuthenticated;
   const unreadTotal = useMemo(
     () =>
       conversations.reduce(
@@ -105,7 +112,7 @@ export default function FloatingSiteChat() {
     if (!open || !selectedId) return;
     void markRead({
       conversationId: selectedId,
-      guestToken: guestToken || undefined,
+      guestToken: authenticated ? undefined : guestToken || undefined,
     }).catch(() => undefined);
   }, [open, selectedId, messages?.length, guestToken, markRead]);
 
@@ -136,7 +143,7 @@ export default function FloatingSiteChat() {
         existing?.id ??
         (await startConversation({
           otherUserId: person.userId,
-          guestToken: guestToken || undefined,
+          guestToken: authenticated ? undefined : guestToken || undefined,
         }));
       setSelectedPerson(person);
       setSelectedId(id);
@@ -185,7 +192,7 @@ export default function FloatingSiteChat() {
       await sendMessage({
         conversationId: selectedId,
         body,
-        guestToken: guestToken || undefined,
+        guestToken: authenticated ? undefined : guestToken || undefined,
       });
       setMessage("");
     } catch (error) {
