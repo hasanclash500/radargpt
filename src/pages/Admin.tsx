@@ -274,7 +274,7 @@ export default function Admin() {
     },
     {
       id: "integrations",
-      label: "اتصال‌ها و هوش مصنوعی",
+      label: "اتصال‌ها و دستیار",
       icon: PlugZap,
       show: isManager,
     },
