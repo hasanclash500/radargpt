@@ -48,6 +48,7 @@ export default function BackupRestore() {
   const convex = useConvex();
   const restoreCore = useMutation(api.backup.restoreCore);
   const restoreListings = useMutation(api.backup.restoreListings);
+  const restoreDependentData = useMutation(api.backup.restoreDependentData);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [exporting, setExporting] = useState(false);
@@ -151,6 +152,13 @@ export default function BackupRestore() {
         );
       }
 
+      const dependent = await restoreDependentData({
+        reminders: Array.isArray(parsed.core?.reminders)
+          ? parsed.core.reminders
+          : [],
+        userIdMap: coreResult.userIdMap,
+      });
+
       toast.success("بازیابی اطلاعات تمام شد", {
         description:
           added.toLocaleString("fa-IR") +
@@ -162,6 +170,11 @@ export default function BackupRestore() {
             ? " · " +
               coreResult.unmatchedUsers.length.toLocaleString("fa-IR") +
               " حساب نیازمند ورود/ساخت مجدد"
+            : "") +
+          (dependent.restoredReminders
+            ? " · " +
+              dependent.restoredReminders.toLocaleString("fa-IR") +
+              " یادآوری"
             : ""),
       });
     } catch (error) {
@@ -184,8 +197,8 @@ export default function BackupRestore() {
         </CardTitle>
         <CardDescription className="leading-6">
           یک فایل JSON روی دستگاه شما ذخیره می‌شود که آگهی‌ها، متقاضیان،
-          نقش‌ها و پروفایل کاربران، تنظیمات، زونکن‌ها، صفحات و مقالات را نگه
-          می‌دارد.
+          نقش‌ها و پروفایل کاربران، تنظیمات، زونکن‌ها، صفحات، مقالات، چت‌ها،
+          استوری‌ها و یادآوری‌ها را نگه می‌دارد.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
