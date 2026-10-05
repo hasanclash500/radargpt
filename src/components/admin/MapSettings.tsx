@@ -52,7 +52,7 @@ export default function MapSettings() {
           نقشه و موقعیت ملک
         </CardTitle>
         <CardDescription>
-          نقشه پیش‌فرض فرم‌های مکا را انتخاب کنید. نشان با کلید Web SDK کار
+          نقشه پیش‌فرض فرم‌های دیوساز را انتخاب کنید. نشان با کلید Web SDK کار
           می‌کند و OpenStreetMap بدون کلید به‌عنوان گزینه جایگزین در دسترس است.
         </CardDescription>
       </CardHeader>
