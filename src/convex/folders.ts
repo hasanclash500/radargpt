@@ -90,7 +90,7 @@ export const getSettings = query({
 
     return {
       key: "global",
-      officeName: settings?.officeName ?? "مکا",
+      officeName: settings?.officeName ?? "دیوساز",
       managerPhone: settings?.managerPhone ?? "09120858095",
       shareFooter: settings?.shareFooter ?? "",
       customCities: settings?.customCities ?? [],
