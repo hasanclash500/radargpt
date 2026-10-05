@@ -22,6 +22,7 @@ export default function IntegrationSettings() {
   const [aiModel, setAiModel] = useState("openrouter/free");
   const [notifyLeads, setNotifyLeads] = useState(true);
   const [notifyPublicationRequests, setNotifyPublicationRequests] = useState(true);
+  const [notifyChatMessages, setNotifyChatMessages] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState<string | null>(null);
 
@@ -32,6 +33,7 @@ export default function IntegrationSettings() {
     setAiModel(status.aiModel || "openrouter/free");
     setNotifyLeads(status.notifyLeads);
     setNotifyPublicationRequests(status.notifyPublicationRequests);
+    setNotifyChatMessages(status.notifyChatMessages);
   }, [status]);
 
   if (!status?.allowed) return null;
@@ -51,6 +53,7 @@ export default function IntegrationSettings() {
         clearOpenRouterApiKey: false,
         notifyLeads,
         notifyPublicationRequests,
+        notifyChatMessages,
       });
       setTelegramToken("");
       setBaleToken("");
@@ -173,7 +176,7 @@ export default function IntegrationSettings() {
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           <label className="flex items-center justify-between rounded-xl border border-border/70 p-3 text-xs font-bold">
             اعلان درخواست‌های مشتری
             <Switch checked={notifyLeads} onCheckedChange={setNotifyLeads} />
@@ -181,6 +184,10 @@ export default function IntegrationSettings() {
           <label className="flex items-center justify-between rounded-xl border border-border/70 p-3 text-xs font-bold">
             اعلان درخواست تأیید آگهی
             <Switch checked={notifyPublicationRequests} onCheckedChange={setNotifyPublicationRequests} />
+          </label>
+          <label className="flex items-center justify-between rounded-xl border border-border/70 p-3 text-xs font-bold">
+            اعلان پیام جدید چت
+            <Switch checked={notifyChatMessages} onCheckedChange={setNotifyChatMessages} />
           </label>
         </div>
 
