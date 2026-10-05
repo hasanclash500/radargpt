@@ -169,7 +169,7 @@ export default function BackupRestore() {
           (coreResult.unmatchedUsers.length
             ? " · " +
               coreResult.unmatchedUsers.length.toLocaleString("fa-IR") +
-              " حساب نیازمند ورود/ساخت مجدد"
+              " حساب برای بازیابی خودکار پس از ورود/ثبت‌نام صف شد"
             : "") +
           (dependent.restoredReminders
             ? " · " +
@@ -206,7 +206,8 @@ export default function BackupRestore() {
           <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
           <p>
             رمز عبور کاربران، توکن ربات‌ها و کلید OpenRouter داخل پشتیبان
-            ذخیره نمی‌شوند. عکس‌های موجود در Convex Storage با شناسه فعلی
+            ذخیره نمی‌شوند. اگر حسابی هنوز وجود نداشته باشد، نقش و پروفایل آن
+            با ایمیل نگه داشته می‌شود و پس از ورود/ثبت‌نام همان ایمیل خودکار برمی‌گردد. عکس‌های موجود در Convex Storage با شناسه فعلی
             نگهداری می‌شوند؛ برای انتقال کامل رسانه به یک سرور جدید باید
             پشتیبان رسانه‌ای جداگانه ساخته شود.
           </p>
