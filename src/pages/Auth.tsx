@@ -9,8 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
-import logo from "@/assets/logo.svg";
-import { Loader2, LockKeyhole, Mail, UserPlus } from "lucide-react";
+import { Loader2, LockKeyhole, LogIn, Mail, UserPlus } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
@@ -73,25 +72,25 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   }
 
   return (
-    <div dir="rtl" className="flex min-h-screen items-center justify-center px-4 py-10">
-      <Card className="w-full max-w-md border shadow-xl">
+    <div dir="rtl" className="flex min-h-screen items-center justify-center bg-[#f6f7f9] px-4 py-10 dark:bg-[#061522]">
+      <Card className="w-full max-w-md overflow-hidden border-slate-200 shadow-2xl dark:border-white/10">
         <CardHeader className="text-center">
           <div className="mb-3 flex justify-center">
             <button type="button" onClick={() => navigate("/")} aria-label="صفحه اصلی">
               <img
-                src={logo}
+                src="/divsaz-icon.svg"
                 alt="دیوساز"
                 width={72}
                 height={72}
-                className="rounded-2xl"
+                className="rounded-2xl shadow-lg ring-1 ring-border/60"
               />
             </button>
           </div>
-          <CardTitle className="text-2xl">ورود به دیوساز</CardTitle>
+          <CardTitle className="text-2xl font-black">حساب دیوساز</CardTitle>
           <CardDescription className="leading-6">
             {mode === "signUp"
-              ? "برای ساخت حساب مدیر، ایمیل و یک رمز عبور امن وارد کنید."
-              : "با ایمیل و رمز عبور حساب خود وارد شوید."}
+              ? "برای ایجاد حساب، ایمیل و رمز عبور خود را وارد کنید."
+              : "برای ورود، ایمیل و رمز عبور حساب خود را وارد کنید."}
           </CardDescription>
         </CardHeader>
 
@@ -173,14 +172,14 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               ) : mode === "signUp" ? (
                 <UserPlus className="size-4" />
               ) : (
-                <LockKeyhole className="size-4" />
+                <LogIn className="size-4" />
               )}
-              {mode === "signUp" ? "ساخت حساب و ورود" : "ورود"}
+              {mode === "signUp" ? "ایجاد حساب" : "ورود به حساب"}
             </Button>
           </form>
 
           <p className="mt-5 text-center text-[11px] leading-5 text-muted-foreground">
-            احراز هویت مستقیماً توسط زیرساخت Convex انجام می‌شود.
+            پس از ورود، بخش‌های متناسب با سطح دسترسی شما نمایش داده می‌شود.
           </p>
         </CardContent>
       </Card>
