@@ -3,7 +3,8 @@ export type ListingFieldType =
   | "number"
   | "boolean"
   | "select"
-  | "textarea";
+  | "textarea"
+  | "date";
 
 export type ListingFieldDefinition = {
   id: string;
