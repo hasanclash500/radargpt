@@ -113,6 +113,8 @@ const schema = defineSchema(
       date: v.optional(v.string()),
       dateRaw: v.optional(v.string()),
       poster: v.optional(v.string()),
+      /** متن نرمال‌شده برای جستجوی سریع سمت سرور */
+      searchText: v.optional(v.string()),
       /** حساس: فقط برای نقش‌های مجاز برگردانده می‌شود */
       phone: v.optional(v.string()),
       /** یادداشت‌های دفتر (مثل یادداشت روی پرونده) */
@@ -203,7 +205,11 @@ const schema = defineSchema(
       .index("by_submitter_created", ["submittedByPhone", "createdAt"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"])
-      .index("by_publication_status", ["publicationStatus"]),
+      .index("by_publication_status", ["publicationStatus"])
+      .searchIndex("search_listings", {
+        searchField: "searchText",
+        filterFields: ["listingKind", "createdByUserId"],
+      }),
 
     /**
      * پروفایل عمومی مشاور/مدیر. اطلاعات تماس و شبکه‌های اجتماعی فقط در صورت
