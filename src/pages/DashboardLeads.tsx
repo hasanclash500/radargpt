@@ -79,7 +79,7 @@ export default function DashboardLeads() {
             <div>
               <h1 className="text-xl font-black sm:text-2xl">مدیریت متقاضی‌ها</h1>
               <p className="mt-1 text-xs leading-6 text-muted-foreground">
-                درخواست‌های خرید و اجاره اینجا مستقل از آگهی‌ها و تنظیمات مدیریت می‌شوند.
+                ثبت متقاضی جدید و پیگیری درخواست‌های خرید، فروش، رهن و اجاره در این بخش انجام می‌شود.
               </p>
             </div>
           </div>
