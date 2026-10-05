@@ -52,7 +52,7 @@ const FIELDS = {
 
 const itemValidator = v.object({ key: v.string(), ...FIELDS });
 
-type SaveResult = { added: number; updated: number; total: number };
+type SaveResult = { added: number; updated: number; skippedMember?: number; total: number };
 type ImportOutcome =
   | ({ skipped: true; reason: string } & Partial<SaveResult>)
   | (SaveResult & { skippedRows: number; source: string });
@@ -67,7 +67,9 @@ export const saveIngested = internalMutation({
   handler: async (ctx, args): Promise<SaveResult> => {
     let added = 0;
     let updated = 0;
+    let skippedMember = 0;
     const now = Date.now();
+    const importBatchId = "scheduled-" + new Date(now).toISOString().slice(0, 10);
 
     for (const item of args.items) {
       const existing = await ctx.db
@@ -75,12 +77,29 @@ export const saveIngested = internalMutation({
         .withIndex("by_key", (q) => q.eq("key", item.key))
         .unique();
       if (existing) {
-        await ctx.db.patch(existing._id, { ...item, updatedAt: now });
+        if (existing.listingKind === "member") {
+          skippedMember++;
+          continue;
+        }
+        await ctx.db.patch(existing._id, {
+          ...item,
+          listingKind: "imported",
+          importBatchId: existing.importBatchId || importBatchId,
+          createdByUserId: undefined,
+          isPublic: false,
+          showOnLanding: false,
+          featuredOnHome: false,
+          publicationStatus: "private",
+          updatedAt: now,
+        });
         updated++;
       } else {
         await ctx.db.insert("listings", {
           ...item,
+          listingKind: "imported",
+          importBatchId,
           isPublic: false,
+          showOnLanding: false,
           featuredOnHome: false,
           publicationStatus: "private",
           createdAt: now,
@@ -111,7 +130,7 @@ export const saveIngested = internalMutation({
       });
     }
 
-    return { added, updated, total: args.items.length };
+    return { added, updated, skippedMember, total: args.items.length };
   },
 });
 
