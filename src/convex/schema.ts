@@ -165,6 +165,9 @@ const schema = defineSchema(
       publicUploadCount: v.optional(v.number()),
       /** کنترل انتشار عمومی */
       isPublic: v.optional(v.boolean()),
+      /** نمایش در سکشن آگهی‌های صفحه اصلی */
+      showOnLanding: v.optional(v.boolean()),
+      /** برچسب ویژه برای آگهی */
       featuredOnHome: v.optional(v.boolean()),
       publicSlug: v.optional(v.string()),
       publishedAt: v.optional(v.number()),
