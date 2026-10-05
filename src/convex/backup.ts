@@ -38,6 +38,12 @@ export const exportCore = query({
       pages,
       posts,
       advisorProfiles,
+      stories,
+      conversations,
+      messages,
+      conversationReads,
+      chatGuests,
+      reminders,
       integrationRows,
     ] = await Promise.all([
       ctx.db.query("appSettings").collect(),
@@ -48,6 +54,12 @@ export const exportCore = query({
       ctx.db.query("sitePages").collect(),
       ctx.db.query("posts").collect(),
       ctx.db.query("advisorProfiles").collect(),
+      ctx.db.query("advisorStories").collect(),
+      ctx.db.query("advisorConversations").collect(),
+      ctx.db.query("advisorMessages").collect(),
+      ctx.db.query("advisorConversationReads").collect(),
+      ctx.db.query("chatGuests").collect(),
+      ctx.db.query("listingReminders").collect(),
       ctx.db.query("integrationSecrets").collect(),
     ]);
 
@@ -68,6 +80,12 @@ export const exportCore = query({
       pages: pages.map(stripMeta),
       posts: posts.map(stripMeta),
       advisorProfiles: advisorProfiles.map(stripMeta),
+      stories: stories.map(stripMeta),
+      conversations: conversations.map(stripMeta),
+      messages: messages.map(stripMeta),
+      conversationReads: conversationReads.map(stripMeta),
+      chatGuests: chatGuests.map(stripMeta),
+      reminders: reminders.map(stripMeta),
       integrations: integrationRows.map((row: any) => ({
         key: row.key,
         telegramChatId: row.telegramChatId,
@@ -313,6 +331,207 @@ export const restoreCore = mutation({
       }
     }
 
+    let restoredStories = 0;
+    for (const story of Array.isArray(core.stories) ? core.stories : []) {
+      const ownerUserId =
+        userIdMap[String(story?.ownerUserId || "")] || story?.ownerUserId;
+      const createdByUserId =
+        userIdMap[String(story?.createdByUserId || "")] || story?.createdByUserId;
+      if (!ownerUserId || !createdByUserId) continue;
+
+      const data: any = {
+        ...story,
+        ownerUserId,
+        createdByUserId,
+      };
+      delete data.backupId;
+      delete data.backupCreationTime;
+      delete data._id;
+      delete data._creationTime;
+
+      const existingStories = await ctx.db
+        .query("advisorStories")
+        .withIndex("by_owner_updated", (q: any) =>
+          q.eq("ownerUserId", ownerUserId),
+        )
+        .collect();
+      const existing = existingStories.find(
+        (row: any) =>
+          row.createdAt === data.createdAt &&
+          row.contentType === data.contentType &&
+          (row.title || "") === (data.title || ""),
+      );
+      if (existing) await ctx.db.patch(existing._id, data);
+      else await ctx.db.insert("advisorStories", data);
+      restoredStories++;
+    }
+
+    for (const guest of Array.isArray(core.chatGuests) ? core.chatGuests : []) {
+      const token = String(guest?.token || "").trim();
+      if (!token) continue;
+      const existing = (
+        await ctx.db
+          .query("chatGuests")
+          .withIndex("by_token", (q: any) => q.eq("token", token))
+          .take(1)
+      )[0];
+      const data: any = { ...guest, token };
+      delete data.backupId;
+      delete data.backupCreationTime;
+      delete data._id;
+      delete data._creationTime;
+      if (existing) await ctx.db.patch(existing._id, data);
+      else await ctx.db.insert("chatGuests", data);
+    }
+
+    const principalMap = (value: string) => {
+      if (value.startsWith("guest:")) return value;
+      return userIdMap[value] || value;
+    };
+
+    const conversationIdMap: Record<string, string> = {};
+    let restoredConversations = 0;
+    for (const conversation of Array.isArray(core.conversations)
+      ? core.conversations
+      : []) {
+      const oldId = String(conversation?.backupId || "");
+      const participantA = principalMap(String(conversation?.participantA || ""));
+      const participantB = principalMap(String(conversation?.participantB || ""));
+      if (!oldId || !participantA || !participantB) continue;
+
+      const pairKey = [participantA, participantB].sort().join("::");
+      let existing = (
+        await ctx.db
+          .query("advisorConversations")
+          .withIndex("by_pair", (q: any) => q.eq("pairKey", pairKey))
+          .take(1)
+      )[0];
+
+      const data: any = {
+        pairKey,
+        participantA,
+        participantB,
+        lastMessage: conversation.lastMessage,
+        lastSenderUserId: conversation.lastSenderUserId
+          ? principalMap(String(conversation.lastSenderUserId))
+          : undefined,
+        createdAt: conversation.createdAt || Date.now(),
+        updatedAt: conversation.updatedAt || Date.now(),
+      };
+
+      if (existing) {
+        await ctx.db.patch(existing._id, data);
+      } else {
+        const id = await ctx.db.insert("advisorConversations", data);
+        const created = await ctx.db.get(id);
+        if (created) existing = created;
+      }
+
+      if (existing) {
+        conversationIdMap[oldId] = String(existing._id);
+        restoredConversations++;
+      }
+    }
+
+    let restoredMessages = 0;
+    for (const message of Array.isArray(core.messages) ? core.messages : []) {
+      const mappedConversationId =
+        conversationIdMap[String(message?.conversationId || "")];
+      if (!mappedConversationId) continue;
+
+      const senderUserId = principalMap(String(message?.senderUserId || ""));
+      const createdAt = Number(message?.createdAt || 0);
+      const body = String(message?.body || "");
+      if (!senderUserId || !createdAt || !body) continue;
+
+      const currentMessages = await ctx.db
+        .query("advisorMessages")
+        .withIndex("by_conversation_created", (q: any) =>
+          q.eq("conversationId", mappedConversationId as any),
+        )
+        .collect();
+      const duplicate = currentMessages.some(
+        (row: any) =>
+          row.senderUserId === senderUserId &&
+          row.createdAt === createdAt &&
+          row.body === body,
+      );
+      if (duplicate) continue;
+
+      await ctx.db.insert("advisorMessages", {
+        conversationId: mappedConversationId as any,
+        senderUserId,
+        body,
+        createdAt,
+      });
+      restoredMessages++;
+    }
+
+    for (const read of Array.isArray(core.conversationReads)
+      ? core.conversationReads
+      : []) {
+      const conversationId =
+        conversationIdMap[String(read?.conversationId || "")];
+      if (!conversationId) continue;
+      const userId = principalMap(String(read?.userId || ""));
+      if (!userId) continue;
+
+      const existing = (
+        await ctx.db
+          .query("advisorConversationReads")
+          .withIndex("by_conversation_user", (q: any) =>
+            q
+              .eq("conversationId", conversationId as any)
+              .eq("userId", userId),
+          )
+          .take(1)
+      )[0];
+      const data = {
+        conversationId: conversationId as any,
+        userId,
+        lastReadAt: Number(read?.lastReadAt || Date.now()),
+      };
+      if (existing) await ctx.db.patch(existing._id, data);
+      else await ctx.db.insert("advisorConversationReads", data);
+    }
+
+    let restoredReminders = 0;
+    for (const reminder of Array.isArray(core.reminders) ? core.reminders : []) {
+      const listingKey = String(reminder?.listingKey || "").trim();
+      if (!listingKey) continue;
+      const listing = (
+        await ctx.db
+          .query("listings")
+          .withIndex("by_key", (q: any) => q.eq("key", listingKey))
+          .take(1)
+      )[0];
+      if (!listing) continue;
+
+      const slot = reminder?.slot === 2 ? 2 : 1;
+      const existing = (
+        await ctx.db
+          .query("listingReminders")
+          .withIndex("by_listing_slot", (q: any) =>
+            q.eq("listingId", listing._id).eq("slot", slot),
+          )
+          .take(1)
+      )[0];
+      const data: any = {
+        listingId: listing._id,
+        listingKey,
+        slot,
+        remindAt: Number(reminder?.remindAt || Date.now()),
+        createdByUserId:
+          userIdMap[String(reminder?.createdByUserId || "")] ||
+          manager.userId,
+        createdAt: Number(reminder?.createdAt || Date.now()),
+        updatedAt: Number(reminder?.updatedAt || Date.now()),
+      };
+      if (existing) await ctx.db.patch(existing._id, data);
+      else await ctx.db.insert("listingReminders", data);
+      restoredReminders++;
+    }
+
     const restoredPages = await restoreBySlug(
       "sitePages",
       Array.isArray(core.pages) ? core.pages : [],
@@ -330,6 +549,10 @@ export const restoreCore = mutation({
       restoredPages,
       restoredPosts,
       restoredAdvisorProfiles,
+      restoredStories,
+      restoredConversations,
+      restoredMessages,
+      restoredReminders,
     };
   },
 });
