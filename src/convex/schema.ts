@@ -219,8 +219,6 @@ const schema = defineSchema(
       .index("by_owner_kind_updated", ["createdByUserId", "listingKind", "updatedAt"])
       .index("by_kind_date", ["listingKind", "date"])
       .index("by_owner_kind_date", ["createdByUserId", "listingKind", "date"])
-      .index("by_kind_created", ["listingKind", "createdAt"])
-      .index("by_owner_kind_created", ["createdByUserId", "listingKind", "createdAt"])
       .index("by_kind_price", ["listingKind", "priceMillion"])
       .index("by_owner_kind_price", ["createdByUserId", "listingKind", "priceMillion"])
       .index("by_kind_area", ["listingKind", "area"])
