@@ -470,6 +470,36 @@ export const listListings = query({
   },
 });
 
+export const countListingsByView = query({
+  args: {
+    view: v.union(v.literal("member"), v.literal("imported")),
+  },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canWorkListings(r.role)) return 0;
+
+    if (args.view === "member" && ownsOnlyListings(r.role)) {
+      const rows = await ctx.db
+        .query("listings")
+        .withIndex("by_owner_kind_date", (q) =>
+          q
+            .eq("createdByUserId", r.userId)
+            .eq("listingKind", "member"),
+        )
+        .collect();
+      return rows.length;
+    }
+
+    const rows = await ctx.db
+      .query("listings")
+      .withIndex("by_kind_date", (q) =>
+        q.eq("listingKind", args.view),
+      )
+      .collect();
+    return rows.length;
+  },
+});
+
 export const listPendingPublications = query({
   args: {},
   handler: async (ctx) => {
