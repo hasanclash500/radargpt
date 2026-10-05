@@ -302,6 +302,27 @@ export const listListings = query({
     paginationOpts: paginationOptsValidator,
     view: v.optional(v.union(v.literal("member"), v.literal("imported"))),
     search: v.optional(v.string()),
+    city: v.optional(v.string()),
+    dealType: v.optional(v.string()),
+    propertyType: v.optional(v.string()),
+    roomsExact: v.optional(v.number()),
+    roomsMin: v.optional(v.number()),
+    priceMin: v.optional(v.number()),
+    priceMax: v.optional(v.number()),
+    areaMin: v.optional(v.number()),
+    areaMax: v.optional(v.number()),
+    dateFrom: v.optional(v.string()),
+    dateTo: v.optional(v.string()),
+    sort: v.optional(
+      v.union(
+        v.literal("date-desc"),
+        v.literal("date-asc"),
+        v.literal("price-desc"),
+        v.literal("price-asc"),
+        v.literal("area-desc"),
+        v.literal("area-asc"),
+      ),
+    ),
   },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
@@ -310,6 +331,7 @@ export const listListings = query({
     }
 
     const view = args.view ?? "member";
+    const ownerOnly = view === "member" && ownsOnlyListings(r.role);
     const search = toEnglishDigits(args.search ?? "")
       .replace(/ي/g, "ی")
       .replace(/ك/g, "ک")
@@ -318,93 +340,133 @@ export const listListings = query({
       .toLowerCase()
       .slice(0, 200);
 
-    const page = search
-      ? await ctx.db
-          .query("listings")
-          .withSearchIndex("search_listings", (q) => {
-            const base = q.search("searchText", search).eq("listingKind", view);
-            return view === "member" && ownsOnlyListings(r.role)
-              ? base.eq("createdByUserId", r.userId)
-              : base;
-          })
-          .paginate(args.paginationOpts)
-      : view === "imported"
-        ? await ctx.db
+    let page: any;
+
+    if (search) {
+      const searched = ctx.db
+        .query("listings")
+        .withSearchIndex("search_listings", (q) => {
+          let base: any = q.search("searchText", search).eq("listingKind", view);
+          if (ownerOnly) base = base.eq("createdByUserId", r.userId);
+          if (args.city) base = base.eq("city", args.city);
+          if (args.dealType) base = base.eq("dealType", args.dealType);
+          if (args.propertyType) {
+            base = base.eq("propertyType", args.propertyType);
+          }
+          if (args.roomsExact !== undefined) {
+            base = base.eq("rooms", args.roomsExact);
+          }
+          return base;
+        });
+
+      page = await searched.paginate(args.paginationOpts);
+    } else {
+      const sort = args.sort ?? "date-desc";
+      const order = sort.endsWith("asc") ? "asc" : "desc";
+      const sortField = sort.startsWith("price")
+        ? "price"
+        : sort.startsWith("area")
+          ? "area"
+          : "date";
+
+      let ordered: any;
+      if (ownerOnly) {
+        if (sortField === "price") {
+          ordered = ctx.db
             .query("listings")
-            .withIndex("by_kind_updated", (q) =>
-              q.eq("listingKind", "imported"),
-            )
-            .order("desc")
-            .paginate(args.paginationOpts)
-        : ownsOnlyListings(r.role)
-          ? await ctx.db
-              .query("listings")
-              .withIndex("by_owner_kind_updated", (q) =>
-                q
-                  .eq("createdByUserId", r.userId)
-                  .eq("listingKind", "member"),
-              )
-              .order("desc")
-              .paginate(args.paginationOpts)
-          : await ctx.db
-              .query("listings")
-              .withIndex("by_kind_updated", (q) =>
-                q.eq("listingKind", "member"),
-              )
-              .order("desc")
-              .paginate(args.paginationOpts);
+            .withIndex("by_owner_kind_price", (q) =>
+              q.eq("createdByUserId", r.userId).eq("listingKind", "member"),
+            );
+        } else if (sortField === "area") {
+          ordered = ctx.db
+            .query("listings")
+            .withIndex("by_owner_kind_area", (q) =>
+              q.eq("createdByUserId", r.userId).eq("listingKind", "member"),
+            );
+        } else {
+          ordered = ctx.db
+            .query("listings")
+            .withIndex("by_owner_kind_date", (q) =>
+              q.eq("createdByUserId", r.userId).eq("listingKind", "member"),
+            );
+        }
+      } else if (sortField === "price") {
+        ordered = ctx.db
+          .query("listings")
+          .withIndex("by_kind_price", (q) => q.eq("listingKind", view));
+      } else if (sortField === "area") {
+        ordered = ctx.db
+          .query("listings")
+          .withIndex("by_kind_area", (q) => q.eq("listingKind", view));
+      } else {
+        ordered = ctx.db
+          .query("listings")
+          .withIndex("by_kind_date", (q) => q.eq("listingKind", view));
+      }
+
+      if (args.city) {
+        ordered = ordered.filter((q: any) => q.eq(q.field("city"), args.city));
+      }
+      if (args.dealType) {
+        ordered = ordered.filter((q: any) =>
+          q.eq(q.field("dealType"), args.dealType),
+        );
+      }
+      if (args.propertyType) {
+        ordered = ordered.filter((q: any) =>
+          q.eq(q.field("propertyType"), args.propertyType),
+        );
+      }
+      if (args.roomsExact !== undefined) {
+        ordered = ordered.filter((q: any) =>
+          q.eq(q.field("rooms"), args.roomsExact),
+        );
+      } else if (args.roomsMin !== undefined) {
+        ordered = ordered.filter((q: any) =>
+          q.gte(q.field("rooms"), args.roomsMin),
+        );
+      }
+      if (args.priceMin !== undefined) {
+        ordered = ordered.filter((q: any) =>
+          q.gte(q.field("priceMillion"), args.priceMin),
+        );
+      }
+      if (args.priceMax !== undefined) {
+        ordered = ordered.filter((q: any) =>
+          q.lte(q.field("priceMillion"), args.priceMax),
+        );
+      }
+      if (args.areaMin !== undefined) {
+        ordered = ordered.filter((q: any) =>
+          q.gte(q.field("area"), args.areaMin),
+        );
+      }
+      if (args.areaMax !== undefined) {
+        ordered = ordered.filter((q: any) =>
+          q.lte(q.field("area"), args.areaMax),
+        );
+      }
+      if (args.dateFrom) {
+        ordered = ordered.filter((q: any) =>
+          q.gte(q.field("date"), args.dateFrom),
+        );
+      }
+      if (args.dateTo) {
+        ordered = ordered.filter((q: any) =>
+          q.lte(q.field("date"), args.dateTo),
+        );
+      }
+
+      page = await ordered.order(order).paginate(args.paginationOpts);
+    }
 
     const fallback = r.privileged ? "" : await managerPhone(ctx);
     return {
       ...page,
-      page: page.page.map((row) =>
+      page: page.page.map((row: Doc<"listings">) =>
         toListing(row, r.privileged ? (row.phone ?? "") : fallback),
       ),
     };
-  },
-});
-
-export const searchListings = query({
-  args: {
-    view: v.union(v.literal("member"), v.literal("imported")),
-    query: v.string(),
-    limit: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const r = await resolve(ctx);
-    if (!r || !canWorkListings(r.role)) return [];
-
-    const term = toEnglishDigits(args.query)
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 180);
-    if (term.length < 2) return [];
-
-    const limit = Math.max(1, Math.min(Math.floor(args.limit ?? 120), 200));
-
-    let search = ctx.db
-      .query("listings")
-      .withSearchIndex("search_listings", (q) =>
-        q.search("searchText", term).eq("listingKind", args.view),
-      );
-
-    const rows =
-      args.view === "member" && ownsOnlyListings(r.role)
-        ? await ctx.db
-            .query("listings")
-            .withSearchIndex("search_listings", (q) =>
-              q
-                .search("searchText", term)
-                .eq("listingKind", "member")
-                .eq("createdByUserId", r.userId),
-            )
-            .take(limit)
-        : await search.take(limit);
-
-    const fallback = r.privileged ? "" : await managerPhone(ctx);
-    return rows.map((row) =>
-      toListing(row, r.privileged ? (row.phone ?? "") : fallback),
-    );
   },
 });
 
