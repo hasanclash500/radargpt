@@ -233,7 +233,8 @@ export default function PublicListing() {
         </div>
       </section>
 
-      <section
+      {images.length > 0 && (
+        <section
           aria-label="گالری تصاویر ملک"
           className="mx-auto max-w-5xl px-4 pt-7 sm:px-6"
         >
@@ -271,6 +272,7 @@ export default function PublicListing() {
             </div>
           )}
         </section>
+      )}
       {images.length === 0 ? (
         <section aria-label="تصویر آگهی" className="mx-auto max-w-5xl px-4 pt-7 sm:px-6">
           <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-muted">
