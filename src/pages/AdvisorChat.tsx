@@ -279,17 +279,17 @@ export default function AdvisorChat() {
               </span>
             </div>
 
-            {allConversations === undefined ? (
+            {allConversations == null ? (
               <div className="flex justify-center py-5">
                 <Loader2 className="size-5 animate-spin text-primary" />
               </div>
-            ) : allConversations.length === 0 ? (
+            ) : (allConversations ?? []).length === 0 ? (
               <p className="py-5 text-center text-xs text-muted-foreground">
                 هنوز گفتگویی ثبت نشده است.
               </p>
             ) : (
               <div className="mt-3 max-h-56 space-y-2 overflow-y-auto pe-1">
-                {allConversations.map((conversation: any) => (
+                {(allConversations ?? []).map((conversation: any) => (
                   <div
                     key={String(conversation.id)}
                     className="flex items-center gap-2 rounded-2xl border border-border/60 bg-background/60 p-2.5"
