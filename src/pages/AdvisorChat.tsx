@@ -516,6 +516,18 @@ export default function AdvisorChat() {
                                 : "rounded-bl-md border border-border/70 bg-card")
                             }
                           >
+                            {historyReadOnly && (
+                              <p
+                                className={
+                                  "mb-1 text-[9px] font-black " +
+                                  (item.mine
+                                    ? "text-primary-foreground/80"
+                                    : "text-primary")
+                                }
+                              >
+                                {item.senderName}
+                              </p>
+                            )}
                             <p
                               dir="auto"
                               className="whitespace-pre-wrap break-words text-sm leading-6"
@@ -540,42 +552,48 @@ export default function AdvisorChat() {
                   )}
                 </div>
 
-                <form
-                  onSubmit={(event) => void submitMessage(event)}
-                  className="flex shrink-0 items-end gap-2 border-t border-border/60 bg-card p-3 sm:p-4"
-                >
-                  <textarea
-                    value={message}
-                    onChange={(event) => setMessage(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (
-                        event.key === "Enter" &&
-                        !event.shiftKey &&
-                        window.innerWidth >= 768
-                      ) {
-                        event.preventDefault();
-                        void submitMessage(event as any);
-                      }
-                    }}
-                    rows={1}
-                    maxLength={4000}
-                    placeholder="پیام بنویسید…"
-                    className="min-h-11 max-h-32 flex-1 resize-none rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-                  />
-                  <Button
-                    type="submit"
-                    size="icon"
-                    className="size-11 shrink-0 rounded-2xl"
-                    disabled={!message.trim() || sending}
-                    aria-label="ارسال پیام"
+                {historyReadOnly ? (
+                  <div className="shrink-0 border-t border-border/60 bg-card p-3 text-center text-[10px] leading-5 text-muted-foreground">
+                    این نمای مدیریتی فقط برای بررسی تاریخچه است. برای پاسخ، گفتگویی را که خودتان یکی از طرفین آن هستید از فهرست گفتگوهای اخیر باز کنید.
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={(event) => void submitMessage(event)}
+                    className="flex shrink-0 items-end gap-2 border-t border-border/60 bg-card p-3 sm:p-4"
                   >
-                    {sending ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Send className="size-4" />
-                    )}
-                  </Button>
-                </form>
+                    <textarea
+                      value={message}
+                      onChange={(event) => setMessage(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (
+                          event.key === "Enter" &&
+                          !event.shiftKey &&
+                          window.innerWidth >= 768
+                        ) {
+                          event.preventDefault();
+                          void submitMessage(event as any);
+                        }
+                      }}
+                      rows={1}
+                      maxLength={4000}
+                      placeholder="پیام بنویسید…"
+                      className="min-h-11 max-h-32 flex-1 resize-none rounded-2xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                    />
+                    <Button
+                      type="submit"
+                      size="icon"
+                      className="size-11 shrink-0 rounded-2xl"
+                      disabled={!message.trim() || sending}
+                      aria-label="ارسال پیام"
+                    >
+                      {sending ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Send className="size-4" />
+                      )}
+                    </Button>
+                  </form>
+                )}
               </>
             ) : (
               <div className="hidden h-full items-center justify-center lg:flex">
