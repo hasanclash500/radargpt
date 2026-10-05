@@ -170,7 +170,7 @@ export default function AdvisorChat() {
   const submitMessage = async (event: FormEvent) => {
     event.preventDefault();
     const body = message.trim();
-    if (!selectedId || !body || sending) return;
+    if (!selectedId || !body || sending || historyReadOnly) return;
     setSending(true);
     try {
       await sendMessage({
@@ -184,6 +184,47 @@ export default function AdvisorChat() {
       );
     } finally {
       setSending(false);
+    }
+  };
+
+  const openHistoryConversation = (conversation: any) => {
+    setHistoryReadOnly(true);
+    setSelectedId(conversation.id);
+    setSelectedPerson({
+      displayName:
+        (conversation.participantA?.displayName || "—") +
+        " ↔ " +
+        (conversation.participantB?.displayName || "—"),
+      headline: "مشاهده تاریخچه توسط مدیر",
+      imageUrl: null,
+      profileSlug: "",
+    });
+  };
+
+  const removeHistory = async (conversationId: any) => {
+    if (
+      !window.confirm(
+        "کل تاریخچه این گفتگو حذف شود؟ این کار قابل بازگشت نیست.",
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(String(conversationId));
+    try {
+      await deleteConversation({ conversationId });
+      if (String(selectedId) === String(conversationId)) {
+        setSelectedId(null);
+        setSelectedPerson(null);
+        setHistoryReadOnly(false);
+      }
+      toast.success("تاریخچه گفتگو حذف شد");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "حذف گفتگو ناموفق بود",
+      );
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -215,7 +256,7 @@ export default function AdvisorChat() {
             <div>
               <h1 className="text-xl font-black">چت خصوصی دیوساز</h1>
               <p className="mt-1 text-xs leading-6 text-muted-foreground">
-                گفت‌وگوی خصوصی کاربران، ادمین‌ها و مشاوران با مدیر یا مدیر و مشاوران دیوساز.
+                گفت‌وگوی خصوصی کاربران، ادمین‌ها و مشاوران با مدیر یا مشاوران دیوساز.
               </p>
             </div>
           </div>
