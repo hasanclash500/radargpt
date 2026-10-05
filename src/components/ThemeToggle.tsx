@@ -1,77 +1,78 @@
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
-import { useMutation, useQuery } from "convex/react";
-import { Moon, Palette, Sun } from "lucide-react";
-import { toast } from "sonner";
-
-const THEMES = [
-  { id: "navy" as const, label: "سرمه‌ای دیوساز", icon: Moon },
-  { id: "emerald" as const, label: "سبز تیره", icon: Moon },
-  { id: "light" as const, label: "روشن", icon: Sun },
-];
+import {
+  DIVSAZ_THEMES,
+  THEME_CHANGE_EVENT,
+  THEME_STORAGE_KEY,
+  isDivosazTheme,
+  readLocalTheme,
+  writeLocalTheme,
+  type DivosazTheme,
+} from "@/lib/theme-preference";
+import { useQuery } from "convex/react";
+import { Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 
 /**
- * تم سایت سراسری است و فقط مدیر آن را تغییر می‌دهد.
- * کاربران عادی همان تم انتخاب‌شده توسط مدیر را می‌بینند.
+ * هر کاربر تم خودش را روی همان مرورگر انتخاب می‌کند.
+ * ترتیب دکمه: سرمه‌ای ← سبز تیره ← روشن.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const settings = useQuery(api.folders.getSettings, {});
-  const role = useQuery(api.roles.myRole, {});
-  const updateSettings = useMutation(api.folders.updateSettings);
+  const [currentId, setCurrentId] = useState<DivosazTheme>(
+    () => readLocalTheme() ?? "navy",
+  );
 
-  const currentId = (settings?.siteTheme ?? "navy") as
-    | "navy"
-    | "emerald"
-    | "light";
+  useEffect(() => {
+    const local = readLocalTheme();
+    if (local) {
+      setCurrentId(local);
+      return;
+    }
+    if (isDivosazTheme(settings?.siteTheme)) {
+      setCurrentId(settings.siteTheme);
+    }
+  }, [settings?.siteTheme]);
+
+  useEffect(() => {
+    const handleThemeChange = (event: Event) => {
+      const custom = event as CustomEvent<DivosazTheme>;
+      if (isDivosazTheme(custom.detail)) setCurrentId(custom.detail);
+    };
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== THEME_STORAGE_KEY) return;
+      if (isDivosazTheme(event.newValue)) setCurrentId(event.newValue);
+    };
+    window.addEventListener(THEME_CHANGE_EVENT, handleThemeChange);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   const currentIndex = Math.max(
     0,
-    THEMES.findIndex((theme) => theme.id === currentId),
+    DIVSAZ_THEMES.findIndex((theme) => theme.id === currentId),
   );
-  const current = THEMES[currentIndex] ?? THEMES[0];
-  const Icon = current.icon;
-  const canChange = role?.role === "manager";
-
-  const cycle = async () => {
-    if (!canChange) return;
-    const next = THEMES[(currentIndex + 1) % THEMES.length];
-    try {
-      await updateSettings({ siteTheme: next.id });
-      toast.success("تم سایت تغییر کرد", {
-        description: next.label,
-      });
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "تغییر تم انجام نشد",
-      );
-    }
-  };
+  const current = DIVSAZ_THEMES[currentIndex] ?? DIVSAZ_THEMES[0];
+  const next = DIVSAZ_THEMES[(currentIndex + 1) % DIVSAZ_THEMES.length];
+  const Icon = current.mode === "light" ? Sun : Moon;
 
   return (
     <Button
       type="button"
       variant="ghost"
       size="icon"
-      aria-label={
-        canChange
-          ? "تغییر تم سراسری سایت"
-          : `تم سایت: ${current.label}`
-      }
-      title={
-        canChange
-          ? `تم فعلی: ${current.label} — برای تم بعدی کلیک کنید`
-          : `تم سایت توسط مدیر تنظیم شده: ${current.label}`
-      }
+      aria-label={`تغییر تم؛ تم فعلی ${current.label}`}
+      title={`تم فعلی: ${current.label} · بعدی: ${next.label}`}
       className={`size-9 ${className ?? ""}`}
-      onClick={() => void cycle()}
+      onClick={() => {
+        writeLocalTheme(next.id);
+        setCurrentId(next.id);
+      }}
     >
-      {canChange ? (
-        <span className="relative">
-          <Icon className="size-4" />
-          <Palette className="absolute -bottom-1 -end-1 size-2.5 rounded-full bg-background" />
-        </span>
-      ) : (
-        <Icon className="size-4" />
-      )}
+      <Icon className="size-4" />
     </Button>
   );
 }
