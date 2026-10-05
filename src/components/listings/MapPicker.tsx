@@ -274,7 +274,7 @@ export default function MapPicker({
               </DialogTitle>
               <DialogDescription>
                 روی نقشه لمس کنید یا نشانگر را جابه‌جا کنید. موقعیت دقیق فقط
-                برای استفاده داخلی مکا ذخیره می‌شود.
+                برای استفاده داخلی دیوساز ذخیره می‌شود.
               </DialogDescription>
             </DialogHeader>
 
