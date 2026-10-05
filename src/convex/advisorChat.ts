@@ -404,7 +404,11 @@ export const getMessages = query({
   },
   handler: async (ctx, args) => {
     const principal = await principalForRequest(ctx, args.guestToken);
-    await conversationForRead(ctx, args.conversationId, principal);
+    const conversation = await conversationForRead(
+      ctx,
+      args.conversationId,
+      principal,
+    );
 
     const rows = await ctx.db
       .query("advisorMessages")
@@ -414,9 +418,20 @@ export const getMessages = query({
       .order("asc")
       .take(500);
 
+    const [participantA, participantB] = await Promise.all([
+      personInfo(ctx, conversation.participantA),
+      personInfo(ctx, conversation.participantB),
+    ]);
+    const people: Record<string, any> = {
+      [conversation.participantA]: participantA,
+      [conversation.participantB]: participantB,
+    };
+
     return rows.map((row) => ({
       id: row._id,
       senderUserId: row.senderUserId,
+      senderName: people[row.senderUserId]?.displayName || "کاربر دیوساز",
+      senderRole: people[row.senderUserId]?.role || "",
       body: row.body,
       createdAt: row.createdAt,
       mine: principal ? row.senderUserId === principal.key : false,
@@ -570,15 +585,16 @@ export const deleteConversation = mutation({
           q.eq("conversationId", args.conversationId),
         )
         .collect(),
-      ctx.db.query("advisorConversationReads").collect(),
+      ctx.db
+        .query("advisorConversationReads")
+        .withIndex("by_conversation_user", (q: any) =>
+          q.eq("conversationId", args.conversationId),
+        )
+        .collect(),
     ]);
 
     for (const message of messages) await ctx.db.delete(message._id);
-    for (const read of reads) {
-      if (read.conversationId === args.conversationId) {
-        await ctx.db.delete(read._id);
-      }
-    }
+    for (const read of reads) await ctx.db.delete(read._id);
     await ctx.db.delete(args.conversationId);
     return true;
   },
