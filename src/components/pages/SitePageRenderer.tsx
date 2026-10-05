@@ -251,7 +251,7 @@ function ListingsBlock({ props }: { props: Record<string, any> }) {
           return (
             <Link key={item.slug} to={"/listings/" + item.slug} className="w-[82vw] max-w-[340px] shrink-0 snap-start overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
               <div className="aspect-[16/10] bg-muted/50 p-2">
-                {image?.url ? <img src={image.url} alt={image.alt || item.title} className="h-full w-full object-contain" loading="lazy" /> : <div className="flex h-full items-center justify-center"><Building2 className="size-10 text-muted-foreground/30" /></div>}
+                {image?.url ? <img src={image.url} alt={image.alt || item.title} className="h-full w-full object-contain" loading="lazy" /> : <img src="/listing-placeholder.svg" alt="تصویر پیش‌فرض آگهی دیوساز" className="h-full w-full object-cover" loading="lazy" />}
               </div>
               <div className="p-4">
                 <h3 className="line-clamp-2 text-sm font-black leading-6">{item.title}</h3>
