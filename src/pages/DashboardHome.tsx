@@ -44,7 +44,7 @@ export default function DashboardHome() {
   const roleData = useQuery(api.roles.myRole, {});
   const leadRows = useQuery(
     api.leads.listLeads,
-    roleData?.canManageListings ? {} : "skip",
+    roleData && (roleData.role === "manager" || roleData.role === "admin" || roleData.role === "consultant") ? {} : "skip",
   );
   const { results: listingPages } = usePaginatedQuery(
     api.listings.listListings,
@@ -74,9 +74,9 @@ export default function DashboardHome() {
       restricted: !isPrivileged,
     },
     {
-      title: "دستیار هوشمند مکا",
+      title: "دستیار هوشمند دیوساز",
       description:
-        "جستجوی کلامی و صوتی در آگهی‌های خود مکا و پاسخ اطلاعات ملکی و حقوقی.",
+        "جستجوی کلامی و صوتی در آگهی‌های خود دیوساز و پاسخ اطلاعات ملکی و حقوقی.",
       to: "/dashboard/assistant",
       icon: Bot,
       badge: "AI",
@@ -84,7 +84,7 @@ export default function DashboardHome() {
     {
       title: "چت مشاوران",
       description:
-        "گفت‌وگوی خصوصی و لحظه‌ای بین مدیر و مشاوران مکا در یک صفحه مستقل.",
+        "گفت‌وگوی خصوصی و لحظه‌ای بین مدیر و مشاوران دیوساز در یک صفحه مستقل.",
       to: "/dashboard/chat",
       icon: MessageCircle,
       badge: "داخلی",
@@ -115,12 +115,12 @@ export default function DashboardHome() {
       to: "/dashboard/leads",
       icon: UserRoundSearch,
       badge: activeLeads > 0 ? activeLeads.toLocaleString("fa-IR") + " فعال" : undefined,
-      restricted: !canManageListings,
+      restricted: !(role === "manager" || role === "admin" || role === "consultant"),
     },
     {
       title: "مچ هوشمند",
       description:
-        "تطبیق خودکار متقاضی‌ها با نزدیک‌ترین فایل‌های موجود در دیتابیس مکا.",
+        "تطبیق خودکار متقاضی‌ها با نزدیک‌ترین فایل‌های موجود در دیتابیس دیوساز.",
       to: "/dashboard/matches",
       icon: BrainCircuit,
       badge: "هوشمند",
@@ -162,7 +162,7 @@ export default function DashboardHome() {
     {
       title: "استودیوی محتوا",
       description:
-        "نوشتن و مدیریت مقاله‌های وبلاگ و تنظیمات سئوی محتوای مکا.",
+        "نوشتن و مدیریت مقاله‌های وبلاگ و تنظیمات سئوی محتوای دیوساز.",
       to: "/dashboard/blog",
       icon: FileText,
       restricted: !isManager,
@@ -185,7 +185,7 @@ export default function DashboardHome() {
               <LayoutDashboard className="size-5" />
             </span>
             <div>
-              <h1 className="text-sm font-black sm:text-base">داشبورد مکا</h1>
+              <h1 className="text-sm font-black sm:text-base">داشبورد دیوساز</h1>
               <p className="text-[10px] text-muted-foreground">
                 {ROLE_LABELS[role] || role}
                 {roleData?.displayName ? " · " + roleData.displayName : ""}
@@ -213,7 +213,7 @@ export default function DashboardHome() {
         <aside className="hidden lg:block">
           <div className="sticky top-20 space-y-2 rounded-3xl border border-border/70 bg-card p-3 shadow-sm">
             <div className="px-2 pb-2 pt-1">
-              <p className="text-[10px] font-extrabold text-primary">پنل کاری مکا</p>
+              <p className="text-[10px] font-extrabold text-primary">پنل کاری دیوساز</p>
               <p className="mt-1 text-xs text-muted-foreground">
                 هر ابزار در بخش مستقل
               </p>
@@ -236,7 +236,7 @@ export default function DashboardHome() {
               className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <BookOpen className="size-4" />
-              سایت عمومی مکا
+              سایت عمومی دیوساز
             </Link>
           </div>
         </aside>
@@ -247,7 +247,7 @@ export default function DashboardHome() {
               <div>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[10px] font-extrabold text-primary">
                   <Sparkles className="size-3.5" />
-                  مرکز کنترل مکا
+                  مرکز کنترل دیوساز
                 </span>
                 <h2 className="mt-3 text-2xl font-black sm:text-3xl">
                   امروز روی چه بخشی کار می‌کنید؟
