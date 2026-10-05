@@ -317,50 +317,6 @@ export const notifyLead = internalAction({
 
 export const notifyListingActivity = internalAction({
   args: {
-    event: v.union(v.literal("claimed"), v.literal("registered")),
-    consultant: v.string(),
-    key: v.string(),
-    radarCode: v.optional(v.string()),
-    title: v.string(),
-    city: v.string(),
-    propertyType: v.string(),
-    dealType: v.string(),
-    phone: v.optional(v.string()),
-    area: v.optional(v.number()),
-    priceMillion: v.optional(v.number()),
-    depositMillion: v.optional(v.number()),
-    rentMillion: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    const config = await ctx.runQuery(internal.integrations.getSecretsInternal, {});
-    if (!config?.notifyListingActivity) return { skipped: true };
-
-    const claimed = args.event === "claimed";
-    const lines = [
-      claimed ? "#آگهی_برداشته_شده" : "#آگهی_ثبت_شده",
-      claimed ? "📥 آگهی از بانک ایمپورت برداشته شد" : "📝 آگهی جدید توسط عضو تیم ثبت شد",
-      "",
-      `مشاور/ثبت‌کننده: ${args.consultant}`,
-      `عنوان: ${args.title}`,
-      `نوع: ${args.dealType} / ${args.propertyType}`,
-      `شهر: ${args.city}`,
-      args.radarCode ? `کد رادار: ${args.radarCode}` : "",
-      args.area != null ? `متراژ: ${args.area} متر` : "",
-      args.phone ? `تلفن فایل: ${args.phone}` : "",
-      args.depositMillion != null ? `ودیعه: ${args.depositMillion} میلیون تومان` : "",
-      args.rentMillion != null ? `اجاره: ${args.rentMillion} میلیون تومان` : "",
-      args.rentMillion == null && args.priceMillion != null && args.priceMillion > 0
-        ? `قیمت: ${args.priceMillion} میلیون تومان`
-        : "",
-      `کد داخلی: ${args.key}`,
-    ].filter(Boolean);
-
-    return await sendConfigured(ctx, lines.join("\n"));
-  },
-});
-
-export const notifyListingActivity = internalAction({
-  args: {
     event: v.union(
       v.literal("created"),
       v.literal("claimed"),
