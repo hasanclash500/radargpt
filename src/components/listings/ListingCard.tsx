@@ -63,6 +63,7 @@ interface ListingCardProps {
   onDeleteListing?: () => Promise<void>;
   onSavePublic?: (settings: {
     isPublic: boolean;
+    showOnLanding: boolean;
     featuredOnHome: boolean;
     seoTitle?: string;
     seoDescription?: string;
@@ -344,9 +345,14 @@ export default function ListingCard({
         <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
           <div className="flex items-center gap-2">
             <PublicListingDialog listing={l} onSave={onSavePublic} />
+            {l.isPublic && l.showOnLanding && (
+              <span className="rounded-full bg-sky-500/10 px-2 py-1 text-[10px] font-bold text-sky-700 dark:text-sky-300">
+                لندینگ
+              </span>
+            )}
             {l.isPublic && l.featuredOnHome && (
               <span className="rounded-full bg-gold/10 px-2 py-1 text-[10px] font-bold text-gold">
-                منتخب صفحه اصلی
+                ویژه
               </span>
             )}
           </div>
