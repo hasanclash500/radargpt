@@ -123,15 +123,15 @@ export default function PublicListings() {
   const [sortOpen, setSortOpen] = useState(false);
 
   useSeo({
-    title: "آگهی‌های املاک صنعتی و اداری شهریار | مکا",
+    title: "آگهی‌های املاک صنعتی و اداری شهریار | دیوساز",
     description:
-      "فایل‌های منتخب و عمومی املاک صنعتی و اداری شهریار؛ سوله، کارخانه، کارگاه و دفتر اداری با فیلتر پیشرفته و تماس مستقیم با مکا.",
+      "فایل‌های منتخب و عمومی املاک صنعتی و اداری شهریار؛ سوله، کارخانه، کارگاه و دفتر اداری با فیلتر پیشرفته و تماس مستقیم با دیوساز.",
     keywords: [
       "املاک صنعتی شهریار",
       "املاک اداری شهریار",
       "اجاره سوله شهریار",
       "اجاره دفتر شهریار",
-      "مکا",
+      "دیوساز",
     ],
     type: "website",
   });
@@ -300,7 +300,7 @@ export default function PublicListings() {
               <Building2 className="size-5" />
             </span>
             <span>
-              <strong className="block leading-none">مکا</strong>
+              <strong className="block leading-none">دیوساز</strong>
               <span className="mt-1 block text-[10px] text-muted-foreground">آگهی‌های عمومی</span>
             </span>
           </Link>
@@ -308,7 +308,7 @@ export default function PublicListings() {
             <Button asChild variant="outline" size="sm" className="gap-1.5">
               <Link to="/assistant">
                 <Bot className="size-4" />
-                دستیار مکا
+                دستیار دیوساز
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm"><Link to="/blog">وبلاگ</Link></Button>
@@ -320,7 +320,7 @@ export default function PublicListings() {
       <section className="border-b border-border/60 bg-background">
         <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-xs font-extrabold text-primary">
-            <Factory className="size-4" />جستجوی فایل مکا
+            <Factory className="size-4" />جستجوی فایل دیوساز
           </span>
           <h1 className="mt-4 text-2xl font-black sm:text-4xl">آگهی‌های صنعتی و اداری</h1>
         </div>
