@@ -18,7 +18,15 @@ import { useAuth } from "@/hooks/use-auth";
 import { exportCsv, exportExcel, exportJson } from "@/lib/exporters";
 import { IMPORT_ACCEPT, importListingsFile } from "@/lib/importers";
 import { listingKey } from "@/lib/ingest";
-import { DEFAULT_FILTERS, applyFilters, hasActiveFilters, type Filters } from "@/lib/filters";
+import {
+  DEFAULT_FILTERS,
+  applyFilters,
+  hasActiveFilters,
+  normalizeDateInput,
+  parseMoneyMillionFilter,
+  parseNumberFilter,
+  type Filters,
+} from "@/lib/filters";
 import { faNum, formatPrice } from "@/lib/format";
 import { DEAL_TYPES, PROPERTY_TYPES, parseHtmlFile, type DealType, type Listing, type PropertyType } from "@/lib/parser";
 import { SAMPLE_HTML } from "@/lib/sample";
@@ -70,10 +78,42 @@ export default function Dashboard() {
   const deleteListing = useMutation(api.listings.deleteListing);
   const ensureProfile = useMutation(api.roles.ensureProfile);
 
-  // آگهی‌های ذخیره‌شدهٔ سرور؛ صفحه‌های بعدی هنگام اسکرول خوانده می‌شوند
+  const serverListingArgs = useMemo(() => {
+    const roomsExact =
+      filters.rooms !== "همه" && filters.rooms !== "4+"
+        ? Number(filters.rooms)
+        : undefined;
+    const roomsMin = filters.rooms === "4+" ? 4 : undefined;
+    const priceMin = parseMoneyMillionFilter(filters.priceMin) ?? undefined;
+    const priceMax = parseMoneyMillionFilter(filters.priceMax) ?? undefined;
+    const areaMin = parseNumberFilter(filters.areaMin) ?? undefined;
+    const areaMax = parseNumberFilter(filters.areaMax) ?? undefined;
+    const dateFrom = normalizeDateInput(filters.dateFrom) || undefined;
+    const dateTo = normalizeDateInput(filters.dateTo) || undefined;
+
+    return {
+      view: listingView,
+      search: serverSearch || undefined,
+      city: filters.city === "همه" ? undefined : filters.city,
+      dealType: filters.deal === "همه" ? undefined : filters.deal,
+      propertyType:
+        filters.property === "همه" ? undefined : filters.property,
+      roomsExact,
+      roomsMin,
+      priceMin,
+      priceMax,
+      areaMin,
+      areaMax,
+      dateFrom,
+      dateTo,
+      sort: filters.sort,
+    };
+  }, [filters, listingView, serverSearch]);
+
+  // آگهی‌ها مستقیماً با صفحه‌بندی، فیلتر و مرتب‌سازی سمت سرور خوانده می‌شوند.
   const { results: serverPages, status, loadMore } = usePaginatedQuery(
     api.listings.listListings,
-    { view: listingView, search: serverSearch || undefined },
+    serverListingArgs,
     { initialNumItems: PAGE_SIZE },
   );
   const serverItems = useMemo(
@@ -335,8 +375,11 @@ export default function Dashboard() {
   const resetFilters = useCallback(() => { setFilters(DEFAULT_FILTERS); setVisibleCount(PAGE_SIZE); }, []);
 
   const filtered = useMemo(
-    () => applyFilters(displayListings, deferredFilters),
-    [displayListings, deferredFilters],
+    () =>
+      localTouched
+        ? applyFilters(displayListings, deferredFilters)
+        : displayListings,
+    [displayListings, deferredFilters, localTouched],
   );
   const visible = filtered.slice(0, visibleCount);
 
