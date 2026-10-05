@@ -95,6 +95,7 @@ export const getSettings = query({
       managerPhone: settings?.managerPhone ?? "09120858095",
       shareFooter: settings?.shareFooter ?? "",
       siteTheme: settings?.siteTheme ?? "navy",
+      enabledModules: settings?.enabledModules ?? [],
       customCities: settings?.customCities ?? [],
       customDeals: settings?.customDeals ?? [],
       customPropertyTypes: settings?.customPropertyTypes ?? [],
@@ -206,6 +207,7 @@ export const updateSettings = mutation({
     siteTheme: v.optional(
       v.union(v.literal("navy"), v.literal("emerald"), v.literal("light")),
     ),
+    enabledModules: v.optional(v.array(v.string())),
     customCities: v.optional(v.array(v.string())),
     customDeals: v.optional(v.array(v.string())),
     customPropertyTypes: v.optional(v.array(v.string())),
@@ -227,6 +229,7 @@ export const updateSettings = mutation({
         args.managerPhone !== undefined ||
         args.shareFooter !== undefined ||
         args.siteTheme !== undefined ||
+        args.enabledModules !== undefined ||
         args.mapProvider !== undefined)
     ) {
       throw new Error("فقط مدیر اصلی می‌تواند اطلاعات دفتر و نقشه را تغییر دهد.");
