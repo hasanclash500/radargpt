@@ -1,26 +1,42 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Home } from "lucide-react";
+import { Link } from "react-router";
 
 export default function NotFound() {
   return (
-    <motion.div
+    <motion.main
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen flex flex-col"
+      transition={{ duration: 0.35 }}
+      dir="rtl"
+      className="relative flex min-h-screen flex-col bg-background text-foreground"
     >
+      <div className="absolute end-4 top-4 rounded-xl border border-border/70 bg-card/80 shadow-sm backdrop-blur sm:end-6 sm:top-6">
+        <ThemeToggle />
+      </div>
 
-      
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="max-w-5xl mx-auto relative px-4">
-          <div className="flex items-center justify-center min-h-[200px]">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-lg text-gray-600">Page Not Found</p>
-            </div>
-          </div>
+      <div className="flex flex-1 items-center justify-center px-4">
+        <div className="mx-auto max-w-lg text-center">
+          <img
+            src="/divsaz-icon.svg"
+            alt="دیوساز"
+            className="mx-auto size-16 rounded-2xl shadow-lg"
+          />
+          <h1 className="mt-5 text-5xl font-black">۴۰۴</h1>
+          <p className="mt-3 text-lg font-black">این صفحه پیدا نشد</p>
+          <p className="mt-2 text-sm leading-7 text-muted-foreground">
+            نشانی صفحه را بررسی کنید یا به صفحه اصلی دیوساز برگردید.
+          </p>
+          <Button asChild className="mt-5 gap-2">
+            <Link to="/">
+              <Home className="size-4" />
+              صفحه اصلی
+            </Link>
+          </Button>
         </div>
       </div>
-    </motion.div>
+    </motion.main>
   );
 }
