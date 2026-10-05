@@ -18,6 +18,12 @@ const INTENTS: Record<string, string> = {
 
 type Intent = "buy" | "rent" | "sell" | "lease_out";
 
+function toEnglishDigits(value: string) {
+  return value
+    .replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)))
+    .replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+}
+
 const EMPTY_FORM = {
   intent: "buy" as Intent,
   name: "",
@@ -48,7 +54,7 @@ export default function LeadInbox() {
         phone: form.phone,
         city: form.city,
         propertyType: form.propertyType,
-        area: form.area.trim() ? Number(form.area) : undefined,
+        area: form.area.trim() ? Number(toEnglishDigits(form.area)) : undefined,
         budget: form.budget || undefined,
         details: form.details || undefined,
       });
