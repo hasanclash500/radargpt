@@ -5,6 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
 import { resizeImageFile } from "@/lib/image-resize";
+import {
+  runAfterListingSubmit,
+  runBeforeListingSubmit,
+  type ListingSubmissionDraft,
+} from "@/modules";
 import { useMutation, useQuery } from "convex/react";
 import {
   CheckCircle2,
@@ -141,7 +146,7 @@ export default function PublicListingSubmission() {
   async function save() {
     setSaving(true);
     try {
-      const result = await submit({
+      const draft: ListingSubmissionDraft = {
         phone: form.phone,
         city: form.city,
         propertyType: form.propertyType,
@@ -150,6 +155,28 @@ export default function PublicListingSubmission() {
         priceMillion: n(form.price),
         depositMillion: n(form.deposit),
         rentMillion: n(form.rent),
+        title: form.title,
+        description: form.description,
+        latitude: mapPoint?.lat,
+        longitude: mapPoint?.lng,
+        imageCount: images.length,
+      };
+
+      const enabledModules = settings?.enabledModules ?? [];
+      const gate = await runBeforeListingSubmit(enabledModules, draft);
+      if (!gate.allowed) {
+        throw new Error(gate.message || "امکان ثبت آگهی در حال حاضر وجود ندارد.");
+      }
+
+      const result = await submit({
+        phone: form.phone,
+        city: form.city,
+        propertyType: form.propertyType,
+        dealType: form.dealType,
+        area: draft.area,
+        priceMillion: draft.priceMillion,
+        depositMillion: draft.depositMillion,
+        rentMillion: draft.rentMillion,
         title: form.title,
         description: form.description,
         latitude: mapPoint?.lat,
@@ -163,6 +190,13 @@ export default function PublicListingSubmission() {
       }
 
       const imageResult = await uploadSelectedImages(result.key, result.uploadToken);
+
+      await runAfterListingSubmit(enabledModules, {
+        key: result.key,
+        trackingCode: result.trackingCode,
+        draft,
+        metadata: gate.metadata,
+      });
 
       setTracking(result.trackingCode);
       setMapPoint(null);
@@ -313,7 +347,7 @@ export default function PublicListingSubmission() {
               </div>
               <div className="sm:col-span-2">
                 <Field label="توضیحات *">
-                  <Textarea rows={6} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="مشخصات ملک، ادیوسازنات، دسترسی و شرایط معامله را بنویسید." />
+                  <Textarea rows={6} value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="مشخصات ملک، امکانات، دسترسی‌ها و شرایط معامله را بنویسید." />
                 </Field>
               </div>
               <input
