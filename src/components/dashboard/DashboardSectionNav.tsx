@@ -70,7 +70,7 @@ export default function DashboardSectionNav() {
       to: "/dashboard/leads",
       label: "متقاضی‌ها",
       icon: UserRoundSearch,
-      show: role.isPrivileged,
+      show: role.role === "manager" || role.role === "admin" || role.role === "consultant",
     },
     {
       to: "/dashboard/matches",
