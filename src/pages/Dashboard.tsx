@@ -56,6 +56,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const headerInputRef = useRef<HTMLInputElement>(null);
   const [listingView, setListingView] = useState<"member" | "imported">("member");
+  const [focusClaimedKey, setFocusClaimedKey] = useState<string | null>(null);
   const [serverSearch, setServerSearch] = useState("");
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
@@ -916,6 +917,7 @@ export default function Dashboard() {
                             next.delete(key);
                             return next;
                           });
+                          setFocusClaimedKey(key);
                           const lookup =
                             l.radarCode?.trim() ||
                             l.phone?.trim() ||
@@ -926,7 +928,9 @@ export default function Dashboard() {
                             ...DEFAULT_FILTERS,
                             query: lookup,
                           });
-                        } : undefined} />
+                        } : undefined}
+                        autoOpenEditor={!imported && focusClaimedKey === key}
+                        onEditorOpened={() => setFocusClaimedKey(null)} />
                     );
                   })}
                 </div>
