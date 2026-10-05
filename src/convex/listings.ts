@@ -140,6 +140,10 @@ function toListing(row: Doc<"listings">, contactPhone: string): ListingRow {
     notes: row.notes,
     folderIds: row.folderIds,
     contactPhone,
+    listingKind: row.listingKind,
+    importBatchId: row.importBatchId,
+    claimedFromImport: row.claimedFromImport ?? false,
+    claimedAt: row.claimedAt,
     createdByUserId: row.createdByUserId,
     isPublic: row.isPublic ?? false,
     featuredOnHome: row.featuredOnHome ?? false,
@@ -291,27 +295,44 @@ async function toPublicListing(
 }
 
 export const listListings = query({
-  args: { paginationOpts: paginationOptsValidator },
+  args: {
+    paginationOpts: paginationOptsValidator,
+    view: v.optional(v.union(v.literal("member"), v.literal("imported"))),
+  },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
-    if (!r) {
+    if (!r || !canWorkListings(r.role)) {
       return { page: [], isDone: true, continueCursor: "" };
     }
 
-    if (!canWorkListings(r.role)) {
-      return { page: [], isDone: true, continueCursor: "" };
-    }
+    const view = args.view ?? "member";
+    const page =
+      view === "imported"
+        ? await ctx.db
+            .query("listings")
+            .withIndex("by_kind_updated", (q) =>
+              q.eq("listingKind", "imported"),
+            )
+            .order("desc")
+            .paginate(args.paginationOpts)
+        : ownsOnlyListings(r.role)
+          ? await ctx.db
+              .query("listings")
+              .withIndex("by_owner_kind_updated", (q) =>
+                q
+                  .eq("createdByUserId", r.userId)
+                  .eq("listingKind", "member"),
+              )
+              .order("desc")
+              .paginate(args.paginationOpts)
+          : await ctx.db
+              .query("listings")
+              .withIndex("by_kind_updated", (q) =>
+                q.eq("listingKind", "member"),
+              )
+              .order("desc")
+              .paginate(args.paginationOpts);
 
-    const page = ownsOnlyListings(r.role)
-      ? await ctx.db
-          .query("listings")
-          .withIndex("by_created_by", (q) => q.eq("createdByUserId", r.userId))
-          .order("desc")
-          .paginate(args.paginationOpts)
-      : await ctx.db
-          .query("listings")
-          .order("desc")
-          .paginate(args.paginationOpts);
     const fallback = r.privileged ? "" : await managerPhone(ctx);
     return {
       ...page,
@@ -435,41 +456,64 @@ const listingFields = {
 };
 
 export const upsertListings = mutation({
-  args: { items: v.array(v.object({ key: v.string(), ...listingFields })) },
+  args: {
+    items: v.array(v.object({ key: v.string(), ...listingFields })),
+    importBatchId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
-    if (!r || !canWorkListings(r.role)) {
-      throw new Error("دسترسی افزودن آگهی ندارید.");
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("ورود فایل فقط برای مدیر و ادمین فعال است.");
     }
 
     let added = 0;
     let updated = 0;
+    let skippedMember = 0;
+    const now = Date.now();
+    const importBatchId =
+      args.importBatchId?.trim() || `import-${now.toString(36)}`;
+
     for (const item of args.items) {
       const existing = await byKey(ctx, item.key);
       if (existing) {
-        if (!canEditListing(r.role, r.userId, existing.createdByUserId)) {
-          throw new Error("این آگهی متعلق به مشاور دیگری است.");
+        if (existing.listingKind === "member") {
+          skippedMember++;
+          continue;
         }
         await ctx.db.patch(existing._id, {
           ...item,
-          createdByUserId: existing.createdByUserId ?? r.userId,
-          updatedAt: Date.now(),
+          listingKind: "imported",
+          importBatchId: existing.importBatchId || importBatchId,
+          createdByUserId: undefined,
+          claimedFromImport: undefined,
+          claimedAt: undefined,
+          isPublic: false,
+          featuredOnHome: false,
+          publicationStatus: "private",
+          updatedAt: now,
         });
         updated++;
       } else {
         await ctx.db.insert("listings", {
           ...item,
-          createdByUserId: r.userId,
+          listingKind: "imported",
+          importBatchId,
           isPublic: false,
           featuredOnHome: false,
           publicationStatus: "private",
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
+          createdAt: now,
+          updatedAt: now,
         });
         added++;
       }
     }
-    return { added, updated, total: args.items.length };
+    return {
+      added,
+      updated,
+      skippedMember,
+      total: args.items.length,
+      importBatchId,
+    };
   },
 });
 
@@ -972,6 +1016,7 @@ export const submitPublicListing = mutation({
           : undefined,
       submittedByPhone: phone,
       submissionSource: "public_mobile",
+      listingKind: "member",
       publicSubmissionToken: uploadToken,
       publicSubmissionExpiresAt: now + 30 * 60 * 1000,
       publicUploadCount: 0,
@@ -1137,6 +1182,7 @@ export const createListing = mutation({
       ...rest,
       key: stableKey,
       phone,
+      listingKind: "member",
       createdByUserId: r.userId,
       isPublic: false,
       featuredOnHome: false,
