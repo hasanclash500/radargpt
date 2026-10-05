@@ -75,6 +75,11 @@ export interface Listing {
   folderIds?: string[];
   /** شماره‌ای که باید در متن اشتراک‌گذاری بیاید (آگهی یا دفتر). */
   contactPhone?: string;
+  /** نوع رکورد در پنل: بانک ایمپورت یا فایل ثبت‌شده اعضا. */
+  listingKind?: "imported" | "member";
+  importBatchId?: string;
+  claimedFromImport?: boolean;
+  claimedAt?: number;
   /** اطلاعات مدیریت انتشار عمومی؛ فقط در داشبورد استفاده می‌شوند. */
   createdByUserId?: string;
   isPublic?: boolean;
