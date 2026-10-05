@@ -253,6 +253,65 @@ export const restoreCore = mutation({
       return count;
     };
 
+    let restoredAdvisorProfiles = 0;
+    for (const profile of Array.isArray(core.advisorProfiles)
+      ? core.advisorProfiles
+      : []) {
+      const mappedUserId = userIdMap[String(profile?.userId || "")];
+      if (!mappedUserId) continue;
+
+      const existing = (
+        await ctx.db
+          .query("advisorProfiles")
+          .withIndex("by_user", (q: any) => q.eq("userId", mappedUserId))
+          .take(1)
+      )[0];
+
+      const data: any = { ...profile, userId: mappedUserId };
+      delete data.backupId;
+      delete data.backupCreationTime;
+      delete data._id;
+      delete data._creationTime;
+      if (data.createdByUserId) {
+        data.createdByUserId =
+          userIdMap[String(data.createdByUserId)] || mappedUserId;
+      }
+
+      if (existing) await ctx.db.patch(existing._id, data);
+      else await ctx.db.insert("advisorProfiles", data);
+      restoredAdvisorProfiles++;
+    }
+
+    for (const integration of Array.isArray(core.integrations)
+      ? core.integrations
+      : []) {
+      const key = String(integration?.key || "").trim();
+      if (!key) continue;
+      const existing = (
+        await ctx.db
+          .query("integrationSecrets")
+          .withIndex("by_key", (q: any) => q.eq("key", key))
+          .take(1)
+      )[0];
+
+      const safeData: any = {
+        key,
+        telegramChatId: integration.telegramChatId,
+        baleChatId: integration.baleChatId,
+        openRouterModel: integration.openRouterModel,
+        notifyLeads: integration.notifyLeads,
+        notifyPublicationRequests: integration.notifyPublicationRequests,
+        notifyChatMessages: integration.notifyChatMessages,
+        updatedAt: Date.now(),
+      };
+
+      if (existing) {
+        await ctx.db.patch(existing._id, safeData);
+      } else {
+        await ctx.db.insert("integrationSecrets", safeData);
+      }
+    }
+
     const restoredPages = await restoreBySlug(
       "sitePages",
       Array.isArray(core.pages) ? core.pages : [],
@@ -269,6 +328,7 @@ export const restoreCore = mutation({
       restoredLeads,
       restoredPages,
       restoredPosts,
+      restoredAdvisorProfiles,
     };
   },
 });
