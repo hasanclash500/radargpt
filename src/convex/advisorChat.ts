@@ -14,7 +14,7 @@ function pairKey(a: string, b: string) {
 async function requireChatUser(ctx: any) {
   const current = await currentRole(ctx);
   if (!current || !canUseAdvisorChat(current.role)) {
-    throw new Error("چت داخلی فقط برای مدیر و مشاوران مکا فعال است.");
+    throw new Error("چت داخلی فقط برای مدیر و مشاوران دیوساز فعال است.");
   }
   return current;
 }
@@ -39,7 +39,7 @@ async function personInfo(ctx: any, userId: string) {
 
   return {
     userId,
-    displayName: profile?.displayName || "مشاور مکا",
+    displayName: profile?.displayName || "مشاور دیوساز",
     role: await roleForUser(ctx, userId),
     imageUrl,
     profileSlug: advisor?.publicProfile ? advisor.slug : "",
@@ -155,7 +155,7 @@ export const startConversation = mutation({
   handler: async (ctx, args) => {
     const current = await requireChatUser(ctx);
     if (args.otherUserId === current.userId) {
-      throw new Error("امکان ایجاد گفت‌وگو با خودتان وجود ندارد.");
+      throw new Error("ادیوسازن ایجاد گفت‌وگو با خودتان وجود ندارد.");
     }
 
     const otherRole = await roleForUser(ctx, args.otherUserId);
