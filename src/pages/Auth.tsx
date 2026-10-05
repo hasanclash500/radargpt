@@ -9,6 +9,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { api } from "@/convex/_generated/api";
+import { getModuleAuthEntries } from "@/modules";
+import { useQuery } from "convex/react";
 import { Loader2, LockKeyhole, LogIn, Mail, UserPlus } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -30,6 +33,8 @@ function resolveRedirectAfterAuth(
 
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
+  const settings = useQuery(api.folders.getSettings, {});
+  const authEntries = getModuleAuthEntries(settings?.enabledModules ?? []);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = resolveRedirectAfterAuth(
@@ -177,6 +182,19 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               {mode === "signUp" ? "ایجاد حساب" : "ورود به حساب"}
             </Button>
           </form>
+
+          {authEntries.length > 0 && (
+            <div className="mt-5 space-y-3 border-t border-border/60 pt-5">
+              {authEntries.map((entry) => {
+                const Entry = entry.component;
+                return (
+                  <div key={entry.moduleId + ":" + entry.id}>
+                    <Entry mode={mode} returnTo={redirect} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <p className="mt-5 text-center text-[11px] leading-5 text-muted-foreground">
             پس از ورود، بخش‌های متناسب با سطح دسترسی شما نمایش داده می‌شود.
