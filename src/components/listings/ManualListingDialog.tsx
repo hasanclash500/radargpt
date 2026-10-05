@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { PersianDatePicker } from "@/components/ui/persian-date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -826,6 +827,18 @@ function DynamicField({
           <Textarea rows={4} value={value} onChange={(e) => onChange(e.target.value)} placeholder={field.placeholder} />
         </Field>
       </div>
+    );
+  }
+
+  if (field.type === "date") {
+    return (
+      <Field label={field.label} required={field.required}>
+        <PersianDatePicker
+          value={value}
+          onChange={onChange}
+          placeholder={field.placeholder || "انتخاب تاریخ شمسی"}
+        />
+      </Field>
     );
   }
 
