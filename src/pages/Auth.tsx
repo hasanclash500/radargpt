@@ -80,14 +80,14 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
             <button type="button" onClick={() => navigate("/")} aria-label="صفحه اصلی">
               <img
                 src={logo}
-                alt="مکا"
+                alt="دیوساز"
                 width={72}
                 height={72}
                 className="rounded-2xl"
               />
             </button>
           </div>
-          <CardTitle className="text-2xl">ورود به مکا</CardTitle>
+          <CardTitle className="text-2xl">ورود به دیوساز</CardTitle>
           <CardDescription className="leading-6">
             {mode === "signUp"
               ? "برای ساخت حساب مدیر، ایمیل و یک رمز عبور امن وارد کنید."
