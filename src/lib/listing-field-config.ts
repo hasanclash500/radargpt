@@ -214,7 +214,7 @@ export const DEFAULT_LISTING_FIELD_CONFIGS: ListingFieldConfig[] = [
       },
       {
         id: "officeAmenities",
-        label: "امکانات و توضیحات اداری",
+        label: "ادیوسازنات و توضیحات اداری",
         type: "textarea",
         required: false,
         public: true,
