@@ -72,6 +72,7 @@ export default function Dashboard() {
   const claimImportedListing = useMutation(api.listings.claimImportedListing);
   const migrateLegacyListingKinds = useMutation(api.listings.migrateLegacyListingKinds);
   const backfillListingSearch = useMutation(api.listings.backfillListingSearch);
+  const backfillLandingFlags = useMutation(api.listings.backfillLandingFlags);
   const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
   const approvePublication = useMutation(api.listings.approvePublication);
   const rejectPublication = useMutation(api.listings.rejectPublication);
@@ -152,6 +153,10 @@ export default function Dashboard() {
           const result = await backfillListingSearch({ limit: 500 });
           if (result.done) break;
         }
+        for (let i = 0; i < 20 && !cancelled; i += 1) {
+          const result = await backfillLandingFlags({ limit: 500 });
+          if (result.done) break;
+        }
       } catch (error) {
         console.error("listing kind migration failed", error);
       }
@@ -160,7 +165,12 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [canManageListings, migrateLegacyListingKinds, backfillListingSearch]);
+  }, [
+    canManageListings,
+    migrateLegacyListingKinds,
+    backfillListingSearch,
+    backfillLandingFlags,
+  ]);
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [localTouched, setLocalTouched] = useState(false);
