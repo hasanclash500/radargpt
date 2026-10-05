@@ -265,7 +265,7 @@ export default function MapPicker({
           </Button>
         </DialogTrigger>
 
-        <DialogContent className="flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-2xl flex-col overflow-hidden p-0 sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)]">
+        <DialogContent className="z-[120] flex max-h-[calc(100dvh-0.75rem)] w-[calc(100vw-0.75rem)] max-w-2xl flex-col overflow-hidden p-0 sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)]">
           <div className="shrink-0 p-3 sm:p-5">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
