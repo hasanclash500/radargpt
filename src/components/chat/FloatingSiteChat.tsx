@@ -57,6 +57,7 @@ function PersonAvatar({ person }: { person: any }) {
 
 export default function FloatingSiteChat() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const authenticated = isAuthenticated;
   const contacts = useQuery(api.advisorChat.listContacts, {}) ?? [];
   const registerGuest = useMutation(api.advisorChat.registerGuest);
   const startConversation = useMutation(api.advisorChat.startConversation);
@@ -98,7 +99,6 @@ export default function FloatingSiteChat() {
       : "skip",
   );
 
-  const authenticated = isAuthenticated;
   const unreadTotal = useMemo(
     () =>
       conversations.reduce(
