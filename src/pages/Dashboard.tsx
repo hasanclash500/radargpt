@@ -139,26 +139,47 @@ export default function Dashboard() {
 
   const migrationStartedRef = useRef(false);
   useEffect(() => {
-    if (!canManageListings || migrationStartedRef.current) return;
+    if (
+      !canManageListings ||
+      settingsRow === undefined ||
+      migrationStartedRef.current
+    ) {
+      return;
+    }
+
+    const needsKindMigration = !settingsRow.listingKindMigrationDone;
+    const needsSearchBackfill = !settingsRow.listingSearchBackfillDone;
+    const needsLandingBackfill = !settingsRow.landingVisibilityMigrationDone;
+    if (!needsKindMigration && !needsSearchBackfill && !needsLandingBackfill) {
+      migrationStartedRef.current = true;
+      return;
+    }
+
     migrationStartedRef.current = true;
     let cancelled = false;
 
     void (async () => {
       try {
-        for (let i = 0; i < 20 && !cancelled; i += 1) {
-          const result = await migrateLegacyListingKinds({ limit: 500 });
-          if (result.done) break;
+        if (needsKindMigration) {
+          for (let i = 0; i < 20 && !cancelled; i += 1) {
+            const result = await migrateLegacyListingKinds({ limit: 500 });
+            if (result.done) break;
+          }
         }
-        for (let i = 0; i < 20 && !cancelled; i += 1) {
-          const result = await backfillListingSearch({ limit: 500 });
-          if (result.done) break;
+        if (needsSearchBackfill) {
+          for (let i = 0; i < 20 && !cancelled; i += 1) {
+            const result = await backfillListingSearch({ limit: 500 });
+            if (result.done) break;
+          }
         }
-        for (let i = 0; i < 20 && !cancelled; i += 1) {
-          const result = await backfillLandingFlags({ limit: 500 });
-          if (result.done) break;
+        if (needsLandingBackfill) {
+          for (let i = 0; i < 20 && !cancelled; i += 1) {
+            const result = await backfillLandingFlags({ limit: 500 });
+            if (result.done) break;
+          }
         }
       } catch (error) {
-        console.error("listing kind migration failed", error);
+        console.error("listing data migration failed", error);
       }
     })();
 
@@ -167,6 +188,7 @@ export default function Dashboard() {
     };
   }, [
     canManageListings,
+    settingsRow,
     migrateLegacyListingKinds,
     backfillListingSearch,
     backfillLandingFlags,
