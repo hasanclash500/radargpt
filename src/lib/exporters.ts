@@ -77,7 +77,7 @@ export function exportCsv(listings: Listing[]): void {
   const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {
     type: "text/csv;charset=utf-8",
   });
-  download(blob, `melak-radar-${stamp()}.csv`);
+  download(blob, `divsaz-listings-${stamp()}.csv`);
 }
 
 /** خروجی JSON با کلیدهای استاندارد لاتین. */
@@ -108,7 +108,7 @@ export function exportJson(listings: Listing[]): void {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: "application/json;charset=utf-8",
   });
-  download(blob, `melak-radar-${stamp()}.json`);
+  download(blob, `divsaz-listings-${stamp()}.json`);
 }
 
 /** خروجی اکسل (xlsx) با سرفصل‌های فارسی و عرض ستون‌های مناسب. */
@@ -139,5 +139,5 @@ export async function exportExcel(listings: Listing[]): Promise<void> {
   ];
   const book = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(book, sheet, "آگهی‌ها");
-  XLSX.writeFile(book, `melak-radar-${stamp()}.xlsx`);
+  XLSX.writeFile(book, `divsaz-listings-${stamp()}.xlsx`);
 }
