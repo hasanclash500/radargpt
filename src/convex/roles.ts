@@ -122,6 +122,55 @@ export const ensureProfile = mutation({
       };
     }
 
+    const authUser = await ctx.db.get(userId);
+    const email = authUser?.email?.trim().toLowerCase() ?? "";
+    const pending = email
+      ? (
+          await ctx.db
+            .query("pendingUserRestores")
+            .withIndex("by_email", (q) => q.eq("email", email))
+            .take(1)
+        )[0]
+      : null;
+
+    if (pending) {
+      const restoredRole =
+        (pending.officeRole as OfficeRole | undefined) ?? OFFICE_ROLES.USER;
+      await ctx.db.insert("userProfiles", {
+        userId: id,
+        officeRole: restoredRole,
+        displayName: pending.displayName,
+        publicPhone: pending.publicPhone,
+        createdAt: Date.now(),
+      });
+
+      const advisor = pending.advisorProfile as Record<string, any> | undefined;
+      if (advisor?.slug) {
+        const data: any = {
+          ...advisor,
+          userId: id,
+          createdAt: Number(advisor.createdAt || Date.now()),
+          updatedAt: Date.now(),
+        };
+        delete data._id;
+        delete data._creationTime;
+        delete data.backupId;
+        delete data.backupCreationTime;
+        await ctx.db.insert("advisorProfiles", data);
+      }
+
+      await ctx.db.delete(pending._id);
+      return {
+        role: restoredRole,
+        isPrivileged: isPrivileged(restoredRole),
+        canManageSite: canManageSite(restoredRole),
+        canManageListings: canManageListings(restoredRole),
+        ownsOnlyListings: restoredRole === OFFICE_ROLES.CONSULTANT,
+        displayName: pending.displayName ?? "",
+        publicPhone: pending.publicPhone ?? "",
+      };
+    }
+
     const profiles = await ctx.db.query("userProfiles").take(1);
     const role: OfficeRole =
       profiles.length === 0 ? OFFICE_ROLES.MANAGER : OFFICE_ROLES.USER;
