@@ -382,7 +382,7 @@ export const ask = action({
             {
               role: "user",
               content:
-                `QUESTION:\n${question}\n\nCANDIDATES_FROM_MEKA_ONLY:\n${JSON.stringify(
+                `QUESTION:\n${question}\n\nCANDIDATES_FROM_DIVOSAZ_ONLY:\n${JSON.stringify(
                   listingContext,
                 )}`,
             },
