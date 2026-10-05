@@ -467,12 +467,12 @@ export default function Admin() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>تم پیش‌فرض سایت</Label>
+                <Label>تم پیش‌فرض سایت برای کاربران جدید</Label>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {[
-                    { value: "navy" as const, label: "سرمه‌ای دیوساز", note: "تاریک · سرمه‌ای و طلایی", swatch: "bg-[#082f54]" },
-                    { value: "emerald" as const, label: "سبز تیره", note: "تاریک · سبز و طلایی", swatch: "bg-[#12382f]" },
-                    { value: "light" as const, label: "روشن", note: "روشن · سفید و سرمه‌ای", swatch: "bg-white" },
+                    { value: "navy" as const, label: "سرمه‌ای دیوساز", note: "تاریک · کاربر می‌تواند تغییر دهد", swatch: "bg-[#082f54]" },
+                    { value: "emerald" as const, label: "سبز تیره", note: "تاریک · کاربر می‌تواند تغییر دهد", swatch: "bg-[#12382f]" },
+                    { value: "light" as const, label: "روشن", note: "روشن · کاربر می‌تواند تغییر دهد", swatch: "bg-white" },
                   ].map((theme) => (
                     <button
                       key={theme.value}
