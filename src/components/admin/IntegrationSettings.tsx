@@ -189,10 +189,6 @@ export default function IntegrationSettings() {
             <Switch checked={notifyPublicationRequests} onCheckedChange={setNotifyPublicationRequests} />
           </label>
           <label className="flex items-center justify-between rounded-xl border border-border/70 p-3 text-xs font-bold">
-            ثبت و برداشتن فایل توسط اعضا
-            <Switch checked={notifyListingActivity} onCheckedChange={setNotifyListingActivity} />
-          </label>
-          <label className="flex items-center justify-between rounded-xl border border-border/70 p-3 text-xs font-bold">
             اعلان ثبت/برداشتن آگهی
             <Switch checked={notifyListingActivity} onCheckedChange={setNotifyListingActivity} />
           </label>
