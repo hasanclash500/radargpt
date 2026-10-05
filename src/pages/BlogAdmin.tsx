@@ -736,7 +736,7 @@ export default function BlogAdmin() {
                     </div>
                     <div className="rounded-xl border border-border/60 bg-background p-4">
                       <p dir="ltr" className="truncate text-[11px] text-emerald-700 dark:text-emerald-400">
-                        meka.ir › blog › {form.slug || "article"}
+                        divsaz.ir › blog › {form.slug || "article"}
                       </p>
                       <p className="mt-1 text-lg font-medium leading-7 text-blue-700 dark:text-blue-400">{seoTitle}</p>
                       <p className="mt-1 line-clamp-3 text-xs leading-6 text-muted-foreground">{seoDescription}</p>
