@@ -205,7 +205,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به یادآوری‌ها"
-                    description="این بخش برای تیم داخلی مکا است."
+                    description="این بخش برای تیم داخلی دیوساز است."
                   >
                     <DashboardReminders />
                   </RequireAuth>
@@ -227,7 +227,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به پروفایل مشاور"
-                    description="مدیریت صفحه عمومی مشاور مکا"
+                    description="مدیریت صفحه عمومی مشاور دیوساز"
                   >
                     <AdvisorProfileEditor />
                   </RequireAuth>
@@ -238,7 +238,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به چت مشاوران"
-                    description="گفت‌وگوی داخلی مدیر و مشاوران مکا"
+                    description="گفت‌وگوی داخلی مدیر و مشاوران دیوساز"
                   >
                     <AdvisorChat />
                   </RequireAuth>
@@ -249,7 +249,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به مدیریت استوری"
-                    description="ایجاد و مدیریت استوری مشاوران مکا"
+                    description="ایجاد و مدیریت استوری مشاوران دیوساز"
                   >
                     <StoryManager />
                   </RequireAuth>
@@ -260,7 +260,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به صفحه‌ساز"
-                    description="مدیریت لندینگ‌ها و برگه‌های سایت مکا"
+                    description="مدیریت لندینگ‌ها و برگه‌های سایت دیوساز"
                   >
                     <PageBuilder />
                   </RequireAuth>
@@ -271,7 +271,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به استودیوی محتوا"
-                    description="برای نوشتن و مدیریت مقاله‌های مکا وارد حساب کاربری شوید."
+                    description="برای نوشتن و مدیریت مقاله‌های دیوساز وارد حساب کاربری شوید."
                   >
                     <BlogAdmin />
                   </RequireAuth>
