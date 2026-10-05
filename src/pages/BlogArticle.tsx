@@ -36,7 +36,7 @@ export default function BlogArticle() {
   const post = useQuery(api.posts.getPublishedBySlug, { slug });
   const allPosts = useQuery(api.posts.listPublished);
 
-  const title = post?.metaTitle || post?.title || "مقاله | مکا";
+  const title = post?.metaTitle || post?.title || "مقاله | دیوساز";
   const description = post?.metaDescription || post?.excerpt || "";
   const image = post?.ogImage || post?.featuredImage;
   const canonical =
@@ -62,10 +62,10 @@ export default function BlogArticle() {
           image: image ? [image] : undefined,
           datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
           dateModified: new Date(post.updatedAt).toISOString(),
-          author: { "@type": "Organization", name: post.authorName || "مکا" },
+          author: { "@type": "Organization", name: post.authorName || "دیوساز" },
           publisher: {
             "@type": "Organization",
-            name: "مکا",
+            name: "دیوساز",
             telephone: "09120858095",
             address: {
               "@type": "PostalAddress",
@@ -122,7 +122,7 @@ export default function BlogArticle() {
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
           <Link to="/blog" className="flex items-center gap-2 text-sm font-extrabold">
             <ArrowRight className="size-4" />
-            وبلاگ مکا
+            وبلاگ دیوساز
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -181,7 +181,7 @@ export default function BlogArticle() {
 
             <div className="mt-12 rounded-[1.8rem] border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-gold/10 p-6">
               <Building2 className="size-8 text-primary" />
-              <h2 className="mt-3 text-xl font-extrabold">برای پیدا کردن ملک مناسب با مکا تماس بگیرید</h2>
+              <h2 className="mt-3 text-xl font-extrabold">برای پیدا کردن ملک مناسب با دیوساز تماس بگیرید</h2>
               <p className="mt-2 text-sm leading-7 text-muted-foreground">
                 مشاوره و معرفی فایل‌های صنعتی و اداری در شهریار بر اساس نوع فعالیت، بودجه و موقعیت مورد نظر شما.
               </p>
@@ -209,7 +209,7 @@ export default function BlogArticle() {
           <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
               <p className="text-xs text-muted-foreground">نویسنده</p>
-              <p className="mt-1 text-sm font-extrabold">{post.authorName || "تیم مکا"}</p>
+              <p className="mt-1 text-sm font-extrabold">{post.authorName || "تیم دیوساز"}</p>
               {post.focusKeyword && (
                 <>
                   <p className="mt-4 text-xs text-muted-foreground">موضوع اصلی</p>
