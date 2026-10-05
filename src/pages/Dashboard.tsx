@@ -83,6 +83,7 @@ export default function Dashboard() {
   const migrateLegacyListingKinds = useMutation(api.listings.migrateLegacyListingKinds);
   const backfillListingSearch = useMutation(api.listings.backfillListingSearch);
   const backfillLandingFlags = useMutation(api.listings.backfillLandingFlags);
+  const rebuildListingCounts = useMutation(api.listings.rebuildListingCounts);
   const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
   const approvePublication = useMutation(api.listings.approvePublication);
   const rejectPublication = useMutation(api.listings.rejectPublication);
@@ -149,6 +150,33 @@ export default function Dashboard() {
   const isManager = roleData?.canManageSite ?? role === "manager";
   const canManageListings =
     roleData?.canManageListings ?? (role === "manager" || role === "admin");
+
+  const counterRebuildStartedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !canManageListings ||
+      settingsRow === undefined ||
+      !settingsRow?.listingKindMigrationDone ||
+      settingsRow?.listingCountsReady ||
+      counterRebuildStartedRef.current
+    ) {
+      return;
+    }
+
+    counterRebuildStartedRef.current = true;
+    const timer = window.setTimeout(() => {
+      void rebuildListingCounts().catch((error) => {
+        counterRebuildStartedRef.current = false;
+        console.error("listing counter rebuild failed", error);
+      });
+    }, 2200);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    canManageListings,
+    settingsRow,
+    rebuildListingCounts,
+  ]);
   const migrationPending =
     canManageListings &&
     Boolean(settingsRow) &&
