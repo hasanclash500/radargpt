@@ -194,7 +194,7 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth
                     title="ورود به متقاضی‌ها"
-                    description="این بخش برای مدیر و ادمین آگهی است."
+                    description="این بخش برای مدیر، ادمین و مشاوران است."
                   >
                     <DashboardLeads />
                   </RequireAuth>
