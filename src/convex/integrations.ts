@@ -44,6 +44,7 @@ export const getIntegrationStatus = query({
         aiModel: "openrouter/free",
         notifyLeads: true,
         notifyPublicationRequests: true,
+        notifyListingActivity: true,
         notifyChatMessages: true,
       };
     }
@@ -63,6 +64,7 @@ export const getIntegrationStatus = query({
       aiModel: config?.openRouterModel?.trim() || "openrouter/free",
       notifyLeads: config?.notifyLeads ?? true,
       notifyPublicationRequests: config?.notifyPublicationRequests ?? true,
+      notifyListingActivity: config?.notifyListingActivity ?? true,
       notifyChatMessages: config?.notifyChatMessages ?? true,
     };
   },
@@ -81,6 +83,7 @@ export const saveIntegrationSettings = mutation({
     clearOpenRouterApiKey: v.boolean(),
     notifyLeads: v.boolean(),
     notifyPublicationRequests: v.boolean(),
+    notifyListingActivity: v.optional(v.boolean()),
     notifyChatMessages: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -110,6 +113,8 @@ export const saveIntegrationSettings = mutation({
       openRouterModel: args.openRouterModel.trim() || "openrouter/free",
       notifyLeads: args.notifyLeads,
       notifyPublicationRequests: args.notifyPublicationRequests,
+      notifyListingActivity:
+        args.notifyListingActivity ?? existing?.notifyListingActivity ?? true,
       notifyChatMessages: args.notifyChatMessages ?? existing?.notifyChatMessages ?? true,
       updatedAt: Date.now(),
     };
@@ -154,6 +159,7 @@ export const getSecretsInternal = internalQuery({
       openRouterModel: config.openRouterModel ?? "openrouter/free",
       notifyLeads: config.notifyLeads ?? true,
       notifyPublicationRequests: config.notifyPublicationRequests ?? true,
+      notifyListingActivity: config.notifyListingActivity ?? true,
       notifyChatMessages: config.notifyChatMessages ?? true,
     };
   },
