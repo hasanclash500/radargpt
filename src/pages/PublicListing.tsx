@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
 import { formatArea, formatPrice, formatRooms } from "@/lib/format";
+import { formatJalaliDate } from "@/lib/jalali";
 import { useQuery } from "convex/react";
 import {
   ArrowRight,
@@ -301,7 +302,7 @@ export default function PublicListing() {
                   >
                     <span className="text-xs text-muted-foreground">{field.label}</span>
                     <strong className="text-left text-sm">
-                      {field.value}
+                      {field.type === "date" ? formatJalaliDate(field.value) : field.value}
                       {field.unit ? ` ${field.unit}` : ""}
                     </strong>
                   </div>
