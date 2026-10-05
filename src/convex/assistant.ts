@@ -372,7 +372,7 @@ export const ask = action({
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": process.env.SITE_URL ?? "https://radargpt.vercel.app",
+          "HTTP-Referer": process.env.SITE_URL ?? "https://divsaz.ir",
           "X-Title": "Divosaz Real Estate Assistant",
         },
         body: JSON.stringify({
