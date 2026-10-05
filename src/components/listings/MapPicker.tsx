@@ -278,7 +278,7 @@ export default function MapPicker({
               </DialogDescription>
             </DialogHeader>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
               {providerButtons.map((item) => {
                 const active = effectiveProvider === item.id;
                 return (
@@ -330,12 +330,12 @@ export default function MapPicker({
 
           <div className="z-20 shrink-0 border-t border-border bg-background/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur sm:p-4">
             <div className="flex max-h-[28dvh] flex-col gap-3 overflow-y-auto sm:max-h-none">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
               <Button
                 type="button"
                 variant="outline"
                 onClick={useMyLocation}
-                className="gap-2"
+                className="shrink-0 gap-2"
               >
                 <Crosshair className="size-4" />
                 موقعیت فعلی من
@@ -347,7 +347,7 @@ export default function MapPicker({
                     type="button"
                     variant="ghost"
                     asChild
-                    className="gap-2"
+                    className="shrink-0 gap-2"
                   >
                     <a
                       href={neshanAppLocationUrl(selected.lat, selected.lng)}
@@ -362,7 +362,7 @@ export default function MapPicker({
                     type="button"
                     variant="ghost"
                     asChild
-                    className="gap-2"
+                    className="shrink-0 gap-2"
                   >
                     <a
                       href={osmLocationUrl(selected.lat, selected.lng)}
