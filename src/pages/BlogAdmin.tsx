@@ -202,7 +202,7 @@ export default function BlogAdmin() {
     ensureSeedPosts()
       .then((result) => {
         if (result.created > 0) {
-          toast.success("دو مقاله اولیه مکا ساخته شد");
+          toast.success("دو مقاله اولیه دیوساز ساخته شد");
         }
       })
       .catch(() => undefined);
@@ -417,7 +417,7 @@ export default function BlogAdmin() {
               </Link>
             </Button>
             <div className="min-w-0">
-              <h1 className="truncate text-base font-extrabold">استودیوی محتوای مکا</h1>
+              <h1 className="truncate text-base font-extrabold">استودیوی محتوای دیوساز</h1>
               <p className="hidden text-[11px] text-muted-foreground sm:block">
                 نگارش، انتشار و تنظیمات SEO مقالات
               </p>
