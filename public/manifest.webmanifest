@@ -6,14 +6,14 @@
   "dir": "rtl",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f241f",
-  "theme_color": "#0f241f",
+  "background_color": "#062b50",
+  "theme_color": "#062b50",
   "icons": [
     {
-      "src": "/logo.svg",
+      "src": "/divsaz-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
