@@ -48,6 +48,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const headerInputRef = useRef<HTMLInputElement>(null);
   const [listingView, setListingView] = useState<"member" | "imported">("member");
+  const [serverSearch, setServerSearch] = useState("");
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
   // نقش کاربر و منابع سرور
@@ -72,7 +73,7 @@ export default function Dashboard() {
   // آگهی‌های ذخیره‌شدهٔ سرور؛ صفحه‌های بعدی هنگام اسکرول خوانده می‌شوند
   const { results: serverPages, status, loadMore } = usePaginatedQuery(
     api.listings.listListings,
-    { view: listingView },
+    { view: listingView, search: serverSearch || undefined },
     { initialNumItems: PAGE_SIZE },
   );
   const serverItems = useMemo(
@@ -165,6 +166,15 @@ export default function Dashboard() {
     setSelected(new Set());
     setLocalTouched(false);
   }, [listingView]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setServerSearch(filters.query.trim());
+      setVisibleCount(PAGE_SIZE);
+      setSelected(new Set());
+    }, 280);
+    return () => window.clearTimeout(timer);
+  }, [filters.query]);
 
   const deferredFilters = useDeferredValue(filters);
   const searchingServer =
