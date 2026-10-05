@@ -31,7 +31,7 @@ export async function resizeImageFile(
     canvas.width = targetWidth;
     canvas.height = targetHeight;
     const ctx = canvas.getContext("2d");
-    if (!ctx) throw new Error("مرورگر امکان کوچک‌سازی تصویر را ندارد.");
+    if (!ctx) throw new Error("مرورگر ادیوسازن کوچک‌سازی تصویر را ندارد.");
 
     // Preserve the complete image: proportional resize only, never crop.
     ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
