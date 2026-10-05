@@ -211,6 +211,11 @@ const schema = defineSchema(
       .index("by_submitter_created", ["submittedByPhone", "createdAt"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"])
+      .index("by_landing_featured_published", [
+        "showOnLanding",
+        "featuredOnHome",
+        "publishedAt",
+      ])
       .index("by_publication_status", ["publicationStatus"])
       .searchIndex("search_listings", {
         searchField: "searchText",
