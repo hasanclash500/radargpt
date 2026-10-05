@@ -521,6 +521,34 @@ export const countListingsByView = query({
   },
 });
 
+export const listDashboardRecentListings = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canWorkListings(r.role)) return [];
+
+    const limit = Math.max(1, Math.min(Math.floor(args.limit ?? 5), 10));
+    const rows = ownsOnlyListings(r.role)
+      ? await ctx.db
+          .query("listings")
+          .withIndex("by_owner_kind_updated", (q) =>
+            q.eq("createdByUserId", r.userId).eq("listingKind", "member"),
+          )
+          .order("desc")
+          .take(limit)
+      : await ctx.db
+          .query("listings")
+          .withIndex("by_kind_updated", (q) => q.eq("listingKind", "member"))
+          .order("desc")
+          .take(limit);
+
+    const fallback = r.privileged ? "" : await managerPhone(ctx);
+    return rows.map((row) =>
+      toListing(row, r.privileged ? row.phone ?? "" : fallback),
+    );
+  },
+});
+
 export const listPendingPublications = query({
   args: {},
   handler: async (ctx) => {
