@@ -35,6 +35,7 @@ import {
   LogIn,
   Newspaper,
 } from "lucide-react";
+import { Fragment } from "react";
 import { Link } from "react-router";
 
 type PageBlock = {
@@ -391,13 +392,21 @@ export default function SitePageRenderer({
   } as any);
 
   const blocks = [...(page.blocks || [])].sort((a, b) => a.order - b.order);
+  const heroIndex = blocks.findIndex(
+    (block) => block.enabled && block.type === "hero",
+  );
 
   return (
     <main dir="rtl" className="min-h-screen bg-background text-foreground">
       {!hideHeader && <PublicHeader />}
       {!hideHeader && <PublicStoryStrip />}
-      {page.isHomepage && <BrandStorySection />}
-      {blocks.map((block) => <BlockRenderer key={block.id} block={block} />)}
+      {page.isHomepage && heroIndex < 0 && <BrandStorySection />}
+      {blocks.map((block, index) => (
+        <Fragment key={block.id}>
+          <BlockRenderer block={block} />
+          {page.isHomepage && index === heroIndex && <BrandStorySection />}
+        </Fragment>
+      ))}
     </main>
   );
 }
