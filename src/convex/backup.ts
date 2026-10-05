@@ -193,7 +193,8 @@ export const restoreCore = mutation({
         await ctx.db.patch(existing._id, data);
       } else {
         const id = await ctx.db.insert("folders", data);
-        existing = await ctx.db.get(id);
+        const created = await ctx.db.get(id);
+        if (created) existing = created;
       }
       if (existing) folderIdMap[oldId] = String(existing._id);
     }
