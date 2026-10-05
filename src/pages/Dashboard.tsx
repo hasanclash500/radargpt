@@ -367,7 +367,7 @@ export default function Dashboard() {
             <div className="min-w-0">
               <h1 className="truncate text-base font-extrabold leading-tight">آگهی‌ها</h1>
               <p className="hidden truncate text-xs text-muted-foreground sm:block">
-                مکا · {role === "manager" ? "مدیر" : role === "admin" ? "ادمین" : role === "consultant" ? "مشاور" : role === "user" ? "کاربر" : "مهمان"}
+                دیوساز · {role === "manager" ? "مدیر" : role === "admin" ? "ادمین" : role === "consultant" ? "مشاور" : role === "user" ? "کاربر" : "مهمان"}
               </p>
             </div>
             {fileName && (
