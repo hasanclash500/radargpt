@@ -51,7 +51,7 @@ export default function PublicListing() {
   const isLease = listing?.dealType?.includes("اجاره") || listing?.rentMillion != null;
 
   useSeo({
-    title: listing?.seoTitle || "آگهی ملک | مکا",
+    title: listing?.seoTitle || "آگهی ملک | دیوساز",
     description: listing?.seoDescription || "",
     keywords: listing?.seoKeywords || [],
     canonical,
@@ -93,7 +93,7 @@ export default function PublicListing() {
                   : "http://purl.org/goodrelations/v1#Sell",
                 seller: {
                   "@type": "RealEstateAgent",
-                  name: "مکا",
+                  name: "دیوساز",
                   telephone: listing.contacts?.[0]?.phone || "09120858095",
                 },
               },
@@ -104,7 +104,7 @@ export default function PublicListing() {
                 {
                   "@type": "ListItem",
                   position: 1,
-                  name: "مکا",
+                  name: "دیوساز",
                   item: typeof window !== "undefined" ? window.location.origin : undefined,
                 },
                 {
@@ -177,7 +177,7 @@ export default function PublicListing() {
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
           <Link to="/listings" className="flex items-center gap-2 text-sm font-extrabold">
             <ArrowRight className="size-4" />
-            آگهی‌های مکا
+            آگهی‌های دیوساز
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -313,7 +313,7 @@ export default function PublicListing() {
           <section className="mt-5 rounded-[1.8rem] border border-border/70 bg-card/70 p-5 sm:p-7">
             <h2 className="text-xl font-extrabold">توضیحات کامل ملک</h2>
             <div className="mt-4 whitespace-pre-line text-[15px] leading-8 text-foreground/80 sm:text-base sm:leading-9">
-              {listing.description || "برای دریافت توضیحات تکمیلی با مکا تماس بگیرید."}
+              {listing.description || "برای دریافت توضیحات تکمیلی با دیوساز تماس بگیرید."}
             </div>
           </section>
 
