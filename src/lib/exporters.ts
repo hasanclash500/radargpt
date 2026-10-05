@@ -22,6 +22,10 @@ export const CSV_HEADERS = [
   "تاریخ ثبت",
   "آگهی‌دهنده",
   "آدرس",
+  "بخش فایل",
+  "وضعیت انتشار",
+  "نمایش در لندینگ",
+  "آگهی ویژه",
 ] as const;
 
 function toCells(l: Listing): (string | number)[] {
@@ -45,6 +49,16 @@ function toCells(l: Listing): (string | number)[] {
     l.dateRaw || l.date,
     l.poster,
     l.address,
+    l.listingKind === "imported" ? "بانک ایمپورت" : "فایل اعضا",
+    l.publicationStatus === "approved"
+      ? "عمومی"
+      : l.publicationStatus === "pending"
+        ? "در انتظار تأیید"
+        : l.publicationStatus === "rejected"
+          ? "رد شده"
+          : "خصوصی",
+    l.showOnLanding ? "بله" : "خیر",
+    l.featuredOnHome ? "بله" : "خیر",
   ];
 }
 
@@ -136,6 +150,10 @@ export async function exportExcel(listings: Listing[]): Promise<void> {
     { wch: 12 }, // تاریخ
     { wch: 12 }, // آگهی‌دهنده
     { wch: 50 }, // آدرس
+    { wch: 16 }, // بخش فایل
+    { wch: 16 }, // وضعیت انتشار
+    { wch: 15 }, // لندینگ
+    { wch: 12 }, // ویژه
   ];
   const book = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(book, sheet, "آگهی‌ها");
