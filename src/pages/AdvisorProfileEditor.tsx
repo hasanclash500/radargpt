@@ -135,7 +135,7 @@ export default function AdvisorProfileEditor() {
           <UserRound className="mx-auto size-10 text-muted-foreground" />
           <h1 className="mt-4 text-xl font-black">پروفایل مشاور برای این حساب فعال نیست</h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            این بخش فقط برای مدیر و مشاوران مکا نمایش داده می‌شود.
+            این بخش فقط برای مدیر و مشاوران دیوساز نمایش داده می‌شود.
           </p>
           <Button asChild className="mt-5">
             <Link to="/dashboard">بازگشت به داشبورد</Link>
@@ -373,7 +373,7 @@ export default function AdvisorProfileEditor() {
                 rows={7}
                 value={form.bio}
                 onChange={(e) => set("bio", e.target.value)}
-                placeholder="تجربه، حوزه تخصص، مناطق فعالیت و شیوه همکاری خود را معرفی کنید…"
+                placeholder="تجربه، حوزه تخصص، مناطق فعالیت و شیوه هدیوسازری خود را معرفی کنید…"
               />
             </div>
             <div className="space-y-1.5">
