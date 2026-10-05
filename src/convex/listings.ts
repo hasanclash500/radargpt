@@ -1,7 +1,7 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Doc } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
-import { mutation, query, type QueryCtx } from "./_generated/server";
+import { internalMutation, mutation, query, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toEnglishDigits, type Listing as ListingRow } from "../lib/parser";
@@ -792,6 +792,156 @@ export const upsertListings = mutation({
       total: args.items.length,
       importBatchId,
     };
+  },
+});
+
+export const continueListingMaintenance = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const settingsRows = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .take(1);
+    let settings = settingsRows[0] ?? null;
+    const ensureSettings = async () => {
+      if (settings) return settings;
+      const id = await ctx.db.insert("appSettings", { key: "global" });
+      settings = await ctx.db.get(id);
+      return settings!;
+    };
+
+    const batch = 150;
+    let needsMore = false;
+
+    if (!settings?.listingKindMigrationDone) {
+      const rows = await ctx.db
+        .query("listings")
+        .withIndex("by_kind_updated", (q) => q.eq("listingKind", undefined))
+        .take(batch);
+      const now = Date.now();
+
+      for (const row of rows) {
+        const publicSubmission = row.submissionSource === "public_mobile";
+        const hasEditedContent =
+          (row.listingImages?.length ?? 0) > 0 ||
+          (row.customFields?.length ?? 0) > 0 ||
+          Boolean(row.isPublic) ||
+          row.publicationStatus === "pending" ||
+          row.publicationStatus === "approved";
+        const looksImported =
+          !publicSubmission &&
+          !hasEditedContent &&
+          Boolean(row.radarCode || row.divarUrl);
+
+        await ctx.db.patch(row._id, {
+          listingKind: looksImported ? "imported" : "member",
+          searchText: row.searchText || listingSearchText(row),
+          showOnLanding:
+            row.showOnLanding ?? Boolean(row.featuredOnHome && row.isPublic),
+          ...(looksImported
+            ? {
+                importBatchId: row.importBatchId || "legacy-import",
+                createdByUserId: undefined,
+              }
+            : {}),
+          updatedAt: row.updatedAt ?? row.createdAt ?? now,
+        });
+      }
+
+      if (rows.length < batch) {
+        const row = await ensureSettings();
+        await ctx.db.patch(row._id, { listingKindMigrationDone: true });
+      } else {
+        needsMore = true;
+      }
+    } else if (!settings?.listingSearchBackfillDone) {
+      const rows = await ctx.db
+        .query("listings")
+        .filter((q) => q.eq(q.field("searchText"), undefined))
+        .take(batch);
+      for (const row of rows) {
+        await ctx.db.patch(row._id, { searchText: listingSearchText(row) });
+      }
+      if (rows.length < batch) {
+        const row = await ensureSettings();
+        await ctx.db.patch(row._id, { listingSearchBackfillDone: true });
+      } else {
+        needsMore = true;
+      }
+    } else if (!settings?.landingVisibilityMigrationDone) {
+      const rows = await ctx.db
+        .query("listings")
+        .filter((q) => q.eq(q.field("showOnLanding"), undefined))
+        .take(batch);
+      for (const row of rows) {
+        await ctx.db.patch(row._id, {
+          showOnLanding: Boolean(row.featuredOnHome && row.isPublic),
+        });
+      }
+      if (rows.length < batch) {
+        const row = await ensureSettings();
+        await ctx.db.patch(row._id, {
+          landingVisibilityMigrationDone: true,
+        });
+      } else {
+        needsMore = true;
+      }
+    } else if (!settings?.listingCountsReady) {
+      const [importedRows, memberRows] = await Promise.all([
+        ctx.db
+          .query("listings")
+          .withIndex("by_kind_date", (q) => q.eq("listingKind", "imported"))
+          .collect(),
+        ctx.db
+          .query("listings")
+          .withIndex("by_kind_date", (q) => q.eq("listingKind", "member"))
+          .collect(),
+      ]);
+      const row = await ensureSettings();
+      await ctx.db.patch(row._id, {
+        listingCountsReady: true,
+        listingImportedCount: importedRows.length,
+        listingMemberCount: memberRows.length,
+        listingCountsUpdatedAt: Date.now(),
+      });
+    }
+
+    const latestRows = await ctx.db
+      .query("appSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .take(1);
+    const latest = latestRows[0];
+    const done = Boolean(
+      latest?.listingKindMigrationDone &&
+        latest?.listingSearchBackfillDone &&
+        latest?.landingVisibilityMigrationDone &&
+        latest?.listingCountsReady,
+    );
+
+    if (!done || needsMore) {
+      await ctx.scheduler.runAfter(
+        1200,
+        internal.listings.continueListingMaintenance,
+        {},
+      );
+    }
+    return { done };
+  },
+});
+
+export const startListingMaintenance = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const r = await resolve(ctx);
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("فقط مدیر یا ادمین اجازهٔ بهینه‌سازی بانک آگهی را دارد.");
+    }
+    await ctx.scheduler.runAfter(
+      0,
+      internal.listings.continueListingMaintenance,
+      {},
+    );
+    return true;
   },
 });
 
