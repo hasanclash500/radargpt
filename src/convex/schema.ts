@@ -529,8 +529,10 @@ const schema = defineSchema(
        * توسط cron خوانده و آگهی‌های تازه روی سرور ذخیره می‌شوند.
        */
       sourceUrl: v.optional(v.string()),
-      /** وضعیت مهاجرت جداسازی بانک ایمپورت از فایل‌های اعضا */
+      /** وضعیت مهاجرت‌های یک‌باره داده‌های قدیمی */
       listingKindMigrationDone: v.optional(v.boolean()),
+      listingSearchBackfillDone: v.optional(v.boolean()),
+      landingVisibilityMigrationDone: v.optional(v.boolean()),
       /** گزارش آخرین اجرای افزودن روزانه */
       lastImportAt: v.optional(v.number()),
       lastImportAdded: v.optional(v.number()),
