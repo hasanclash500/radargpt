@@ -439,7 +439,7 @@ export const generateWithAi = action({
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": process.env.SITE_URL ?? "https://meka.ir",
-        "X-Title": "MEKA Page Builder",
+        "X-Title": "Divosaz Page Builder",
       },
       body: JSON.stringify({
         model,
