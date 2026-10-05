@@ -6,6 +6,7 @@ import "@fontsource/vazirmatn/800.css";
 import { Toaster } from "@/components/ui/sonner";
 import { RequireAuth } from "@/components/RequireAuth";
 import FloatingSiteChat from "@/components/chat/FloatingSiteChat";
+import SiteThemeSync from "@/components/SiteThemeSync";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
@@ -147,6 +148,7 @@ createRoot(document.getElementById("root")!).render(
         disableTransitionOnChange
       >
         <ConvexAuthProvider client={convex}>
+        <SiteThemeSync />
         <BrowserRouter>
           <RouteSyncer />
           <Suspense fallback={<RouteLoading />}>
