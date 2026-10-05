@@ -65,7 +65,7 @@ async function advisorForUser(ctx: any, userId: string) {
   return {
     slug: row?.slug ?? "",
     publicProfile: row?.publicProfile ?? false,
-    displayName: profile?.displayName ?? "مشاور مکا",
+    displayName: profile?.displayName ?? "مشاور دیوساز",
     profileImageUrl: row?.profileImageStorageId
       ? await ctx.storage.getUrl(row.profileImageStorageId)
       : null,
