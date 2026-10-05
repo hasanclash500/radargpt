@@ -56,9 +56,9 @@ export default function DashboardSectionNav() {
     },
     {
       to: "/dashboard/chat",
-      label: "چت مشاوران",
+      label: "چت",
       icon: MessageCircle,
-      show: role.role === "manager" || role.role === "consultant",
+      show: true,
     },
     {
       to: "/dashboard/stories",
