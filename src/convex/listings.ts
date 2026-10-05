@@ -46,6 +46,40 @@ async function managerPhone(ctx: Ctx): Promise<string> {
   return (await globalSettings(ctx))?.managerPhone ?? "09120858095";
 }
 
+function buildListingSearchText(value: {
+  radarCode?: string;
+  city?: string;
+  neighborhood?: string;
+  title?: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  propertyType?: string;
+  dealType?: string;
+}) {
+  return toEnglishDigits(
+    [
+      value.radarCode,
+      value.city,
+      value.neighborhood,
+      value.title,
+      value.description,
+      value.address,
+      value.phone,
+      value.propertyType,
+      value.dealType,
+    ]
+      .filter(Boolean)
+      .join(" "),
+  )
+    .replace(/ي/g, "ی")
+    .replace(/ك/g, "ک")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+    .slice(0, 12000);
+}
+
 async function byKey(ctx: Ctx, key: string): Promise<Doc<"listings"> | null> {
   const rows = await ctx.db
     .query("listings")
@@ -301,6 +335,7 @@ export const listListings = query({
   args: {
     paginationOpts: paginationOptsValidator,
     view: v.optional(v.union(v.literal("member"), v.literal("imported"))),
+    search: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
@@ -309,8 +344,25 @@ export const listListings = query({
     }
 
     const view = args.view ?? "member";
-    const page =
-      view === "imported"
+    const search = toEnglishDigits(args.search ?? "")
+      .replace(/ي/g, "ی")
+      .replace(/ك/g, "ک")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase()
+      .slice(0, 200);
+
+    const page = search
+      ? await ctx.db
+          .query("listings")
+          .withSearchIndex("search_listings", (q) => {
+            const base = q.search("searchText", search).eq("listingKind", view);
+            return view === "member" && ownsOnlyListings(r.role)
+              ? base.eq("createdByUserId", r.userId)
+              : base;
+          })
+          .paginate(args.paginationOpts)
+      : view === "imported"
         ? await ctx.db
             .query("listings")
             .withIndex("by_kind_updated", (q) =>
