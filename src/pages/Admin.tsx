@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import BackupRestore from "@/components/admin/BackupRestore";
 import IntegrationSettings from "@/components/admin/IntegrationSettings";
 import MapSettings from "@/components/admin/MapSettings";
 import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
@@ -29,6 +30,7 @@ import {
   Building2,
   CloudDownload,
   Database,
+  DatabaseBackup,
   FolderOpen,
   Loader2,
   MapPinned,
@@ -98,6 +100,7 @@ export default function Admin() {
     "map",
     "integrations",
     "users",
+    "backup",
   ]);
   const adminTabs = new Set(["source", "categories", "fields", "folders"]);
   const allowedTabs = isManager ? managerTabs : adminTabs;
@@ -286,6 +289,12 @@ export default function Admin() {
       id: "users",
       label: "کاربران و نقش‌ها",
       icon: UsersRound,
+      show: isManager,
+    },
+    {
+      id: "backup",
+      label: "پشتیبان و بازیابی",
+      icon: DatabaseBackup,
       show: isManager,
     },
   ].filter((tab) => tab.show);
@@ -602,6 +611,7 @@ export default function Admin() {
         {activeTab === "map" && isManager && <MapSettings />}
         {activeTab === "integrations" && isManager && <IntegrationSettings />}
         {activeTab === "users" && isManager && <UserManagement />}
+        {activeTab === "backup" && isManager && <BackupRestore />}
       </div>
     </main>
   );
