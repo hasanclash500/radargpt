@@ -2,12 +2,12 @@ import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import {
   BellRing,
-  Bot,
-  BrainCircuit,
   Building2,
+  ClipboardList,
   LayoutDashboard,
   MessageCircle,
   PanelsTopLeft,
+  Search,
   Settings,
   UserRoundSearch,
   UserRound,
@@ -43,9 +43,36 @@ export default function DashboardSectionNav() {
       show: role.isPrivileged,
     },
     {
+      to: "/dashboard/leads",
+      label: "متقاضی‌ها",
+      icon: UserRoundSearch,
+      show:
+        role.role === "manager" ||
+        role.role === "admin" ||
+        role.role === "consultant",
+    },
+    {
+      to: "/dashboard/chat",
+      label: "گفتگو",
+      icon: MessageCircle,
+      show: true,
+    },
+    {
+      to: "/dashboard/reminders",
+      label: "پیگیری",
+      icon: BellRing,
+      show: role.isPrivileged,
+    },
+    {
+      to: "/dashboard/matches",
+      label: "تطبیق",
+      icon: ClipboardList,
+      show: role.canManageListings,
+    },
+    {
       to: "/dashboard/assistant",
-      label: "دستیار",
-      icon: Bot,
+      label: "جستجو",
+      icon: Search,
       show: true,
     },
     {
@@ -55,38 +82,14 @@ export default function DashboardSectionNav() {
       show: role.role === "manager" || role.role === "consultant",
     },
     {
-      to: "/dashboard/chat",
-      label: "چت",
-      icon: MessageCircle,
-      show: true,
-    },
-    {
       to: "/dashboard/stories",
       label: "استوری",
       icon: Play,
       show: role.role === "manager" || role.role === "consultant",
     },
     {
-      to: "/dashboard/leads",
-      label: "متقاضی‌ها",
-      icon: UserRoundSearch,
-      show: role.role === "manager" || role.role === "admin" || role.role === "consultant",
-    },
-    {
-      to: "/dashboard/matches",
-      label: "مچ هوشمند",
-      icon: BrainCircuit,
-      show: role.canManageListings,
-    },
-    {
-      to: "/dashboard/reminders",
-      label: "یادآوری",
-      icon: BellRing,
-      show: role.isPrivileged,
-    },
-    {
       to: "/dashboard/pages",
-      label: "صفحه‌ساز",
+      label: "صفحات",
       icon: PanelsTopLeft,
       show: role.canManageSite,
     },
@@ -105,8 +108,17 @@ export default function DashboardSectionNav() {
   ];
 
   return (
-    <nav className="z-30 border-b border-border/60 bg-background/92 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none] sm:px-6">
+    <nav className="z-30 border-b border-slate-200/80 bg-white/92 backdrop-blur dark:border-white/10 dark:bg-[#071a2a]/92">
+      <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-3 py-2 [scrollbar-width:none] sm:px-6">
+        <Link
+          to="/dashboard"
+          className="me-1 hidden shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 sm:flex dark:border-white/10 dark:bg-white/5"
+          aria-label="داشبورد دیوساز"
+        >
+          <img src="/divsaz-icon.svg" alt="" className="size-7 rounded-lg" />
+          <span className="text-[11px] font-black">دیوساز</span>
+        </Link>
+
         {items
           .filter((item) => item.show)
           .map((item) => {
@@ -130,13 +142,18 @@ export default function DashboardSectionNav() {
                 key={item.to}
                 to={item.to}
                 className={
-                  "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 text-xs font-extrabold transition-colors " +
+                  "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-[11px] font-black transition-colors " +
                   (active
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground")
+                    ? "bg-[#082f54] text-white shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white")
                 }
               >
-                <Icon className="size-4" />
+                <Icon
+                  className={
+                    "size-3.5 " +
+                    (active ? "text-[#e0b458]" : "text-current")
+                  }
+                />
                 {item.label}
               </Link>
             );
