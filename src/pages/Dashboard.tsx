@@ -81,13 +81,6 @@ export default function Dashboard() {
     [serverPages],
   );
   const loadingServer = status === "LoadingFirstPage" || status === "LoadingMore";
-  const serverSearchTerm = filters?.query?.trim?.() ?? "";
-  const serverSearch = useQuery(
-    api.listings.searchListings,
-    serverSearchTerm.length >= 2
-      ? { view: listingView, query: serverSearchTerm, limit: 200 }
-      : "skip",
-  );
 
   // یک بار پروفایل را همگام می‌کنیم؛ این کار نقش admin قدیمی مالک را به manager مهاجرت می‌دهد.
   const profileEnsuredRef = useRef(false);
@@ -153,13 +146,13 @@ export default function Dashboard() {
       if (!entries[0]?.isIntersecting) return;
       // افزایش تعداد کارت‌های واقعاً قابل نمایش؛ برای فایل محلی و سرور.
       setVisibleCount((current) => current + PAGE_SIZE);
-      if (!localTouched && filters.query.trim().length < 2 && status === "CanLoadMore") {
+      if (!localTouched && status === "CanLoadMore") {
         loadMore(PAGE_SIZE);
       }
     }, { rootMargin: "700px" });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [filters.query, loadMore, localTouched, status]);
+  }, [loadMore, localTouched, status]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -178,14 +171,12 @@ export default function Dashboard() {
 
   const deferredFilters = useDeferredValue(filters);
   const searchingServer =
-    !localTouched && serverSearchTerm.length >= 2 && serverSearch === undefined;
+    !localTouched &&
+    filters.query.trim().length >= 2 &&
+    (serverSearch !== filters.query.trim() || status === "LoadingFirstPage");
 
-  // منبع نمایش: فایل محلی، نتیجه جستجوی سراسری سرور، یا صفحه‌بندی عادی.
-  const displayListings = localTouched
-    ? listings
-    : serverSearchTerm.length >= 2
-      ? ((serverSearch ?? []) as Listing[])
-      : serverItems;
+  // منبع نمایش: فایل محلی یا نتیجه صفحه‌بندی‌شده سرور.
+  const displayListings = localTouched ? listings : serverItems;
 
   const settings = useMemo(
     () => ({
@@ -791,12 +782,12 @@ export default function Dashboard() {
                   })}
                 </div>
                 <div ref={sentinelRef} className="h-px w-full" aria-hidden />
-                {serverSearchTerm.length < 2 && status === "LoadingMore" && (
+                {status === "LoadingMore" && (
                   <p className="py-2 text-center text-xs text-muted-foreground">
                     در حال خواندن آگهی‌های بیشتر…
                   </p>
                 )}
-                {serverSearchTerm.length < 2 && status === "CanLoadMore" && (
+                {status === "CanLoadMore" && (
                   <div className="flex justify-center pt-1">
                     <Button type="button" variant="outline" size="sm"
                       onClick={() => loadMore(PAGE_SIZE)}>
