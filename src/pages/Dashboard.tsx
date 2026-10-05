@@ -177,33 +177,28 @@ export default function Dashboard() {
     migrationStartedRef.current = true;
     let cancelled = false;
 
-    void (async () => {
-      try {
-        if (needsKindMigration) {
-          for (let i = 0; i < 20 && !cancelled; i += 1) {
-            const result = await migrateLegacyListingKinds({ limit: 500 });
-            if (result.done) break;
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        try {
+          // هر بار ورود فقط یک بسته کوچک پردازش می‌شود تا بانک چند هزار تایی
+          // صف Mutation را اشغال نکند و ۶۰ آگهی اول فوری نمایش داده شوند.
+          if (cancelled) return;
+          if (needsKindMigration) {
+            await migrateLegacyListingKinds({ limit: 200 });
+          } else if (needsSearchBackfill) {
+            await backfillListingSearch({ limit: 200 });
+          } else if (needsLandingBackfill) {
+            await backfillLandingFlags({ limit: 200 });
           }
+        } catch (error) {
+          console.error("listing data migration failed", error);
         }
-        if (needsSearchBackfill) {
-          for (let i = 0; i < 20 && !cancelled; i += 1) {
-            const result = await backfillListingSearch({ limit: 500 });
-            if (result.done) break;
-          }
-        }
-        if (needsLandingBackfill) {
-          for (let i = 0; i < 20 && !cancelled; i += 1) {
-            const result = await backfillLandingFlags({ limit: 500 });
-            if (result.done) break;
-          }
-        }
-      } catch (error) {
-        console.error("listing data migration failed", error);
-      }
-    })();
+      })();
+    }, 1800);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [
     canManageListings,
@@ -228,6 +223,7 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [exportingAll, setExportingAll] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -1002,6 +998,19 @@ export default function Dashboard() {
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="بازگشت به بالای صفحه"
           title="بازگشت به بالا"
+        >
+          <ArrowUp className="size-5" />
+        </Button>
+      )}
+
+      {showBackToTop && (
+        <Button
+          type="button"
+          size="icon"
+          className="fixed bottom-24 start-4 z-40 size-11 rounded-full shadow-xl md:bottom-6 md:start-6"
+          aria-label="برگشت به بالای صفحه"
+          title="برگشت به بالا"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         >
           <ArrowUp className="size-5" />
         </Button>
