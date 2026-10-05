@@ -70,7 +70,7 @@ export default function DashboardSectionNav() {
       to: "/dashboard/leads",
       label: "متقاضی‌ها",
       icon: UserRoundSearch,
-      show: role.canManageListings,
+      show: role.isPrivileged,
     },
     {
       to: "/dashboard/matches",
