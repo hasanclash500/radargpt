@@ -252,7 +252,6 @@ export default function Dashboard() {
   const [exportingAll, setExportingAll] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setShowBackToTop(window.scrollY > 700);
