@@ -60,7 +60,7 @@ export default function DashboardLeads() {
             <Button asChild variant="outline" size="sm" className="gap-1.5">
               <Link to="/dashboard/matches">
                 <BrainCircuit className="size-4" />
-                مچ هوشمند
+                تطبیق فایل و متقاضی
               </Link>
             </Button>
             <ThemeToggle />
