@@ -83,6 +83,7 @@ export interface Listing {
   /** اطلاعات مدیریت انتشار عمومی؛ فقط در داشبورد استفاده می‌شوند. */
   createdByUserId?: string;
   isPublic?: boolean;
+  showOnLanding?: boolean;
   featuredOnHome?: boolean;
   publicSlug?: string;
   seoTitle?: string;
