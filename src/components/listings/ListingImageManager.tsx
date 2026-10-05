@@ -33,7 +33,7 @@ function autoAlt(listing: Listing, index: number) {
     "در",
     listing.city,
     index > 0 ? `- تصویر ${index + 1}` : "",
-    "| مکا",
+    "| دیوساز",
   ]
     .filter(Boolean)
     .join(" ")
