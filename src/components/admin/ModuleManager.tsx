@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -185,9 +184,6 @@ export default function ModuleManager() {
         </section>
       )}
 
-      <Button type="button" variant="outline" disabled className="hidden">
-        محل رزرو برای عملیات نصب ماژول
-      </Button>
     </div>
   );
 }
