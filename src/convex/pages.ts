@@ -136,7 +136,7 @@ export const ensureHomepageDraft = mutation({
 
     const now = Date.now();
     return await ctx.db.insert("sitePages", {
-      title: "صفحه اصلی مکا",
+      title: "صفحه اصلی دیوساز",
       slug: "home",
       pageType: "landing",
       status: "draft",
@@ -163,7 +163,7 @@ export const ensureHomepageDraft = mutation({
             eyebrow: "مشاور تخصصی املاک کسب‌وکار در شهریار",
             title: "فضای مناسب کار شما",
             highlight: "از سوله تا دفتر اداری",
-            text: "مکا برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛ با تمرکز روی موقعیت‌های واقعی کسب‌وکار و ارتباط مستقیم.",
+            text: "دیوساز برای خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار؛ با تمرکز روی موقعیت‌های واقعی کسب‌وکار و ارتباط مستقیم.",
             primaryLabel: "مشاهده آگهی‌ها",
             primaryHref: "/listings",
             secondaryLabel: "ثبت آگهی ملک",
@@ -174,15 +174,15 @@ export const ensureHomepageDraft = mutation({
           type: "listings",
           props: {
             eyebrow: "فایل‌های منتخب",
-            title: "ویترین آگهی‌های مکا",
-            text: "چند فایل منتخب از آگهی‌های منتشرشده مکا.",
+            title: "ویترین آگهی‌های دیوساز",
+            text: "چند فایل منتخب از آگهی‌های منتشرشده دیوساز.",
             limit: 8,
           },
         },
         {
           type: "services",
           props: {
-            title: "حوزه تخصصی مکا",
+            title: "حوزه تخصصی دیوساز",
             text: "تمرکز روی املاک صنعتی و اداری شهریار و اطراف.",
             items: [
               {
@@ -200,7 +200,7 @@ export const ensureHomepageDraft = mutation({
           type: "cta",
           props: {
             title: "ملک مناسب را سریع‌تر پیدا کنید",
-            text: "از دستیار هوشمند مکا برای جستجوی کلامی و صوتی در فایل‌های خود سایت استفاده کنید.",
+            text: "از دستیار هوشمند دیوساز برای جستجوی کلامی و صوتی در فایل‌های خود سایت استفاده کنید.",
             primaryLabel: "دستیار هوشمند",
             primaryHref: "/assistant",
             secondaryLabel: "ثبت تقاضای ملک",
@@ -210,8 +210,8 @@ export const ensureHomepageDraft = mutation({
         {
           type: "contact",
           props: {
-            title: "ارتباط با مکا",
-            text: "برای مشاوره مستقیم با دفتر مکا تماس بگیرید یا مسیر دفتر را در نشان باز کنید.",
+            title: "ارتباط با دیوساز",
+            text: "برای مشاوره مستقیم با دفتر دیوساز تماس بگیرید یا مسیر دفتر را در نشان باز کنید.",
             phone: "09120858095",
             address: "شهریار، روبروی شهرک اداری تجربه",
           },
@@ -415,15 +415,15 @@ export const generateWithAi = action({
     }
 
     const system = [
-      "تو طراح حرفه‌ای صفحات وب برای برند املاک مکا هستی.",
+      "تو طراح حرفه‌ای صفحات وب برای برند املاک دیوساز هستی.",
       "خروجی فقط JSON معتبر و بدون markdown باشد.",
       "هیچ HTML، JavaScript یا CSS خام تولید نکن.",
       "فقط از block type های مجاز استفاده کن: hero, intentHub, listings, services, split, richText, cta, contact.",
-      "زبان صفحه فارسی و راست‌به‌چپ است و رنگ‌بندی توسط قالب مکا اعمال می‌شود.",
+      "زبان صفحه فارسی و راست‌به‌چپ است و رنگ‌بندی توسط قالب دیوساز اعمال می‌شود.",
       "ساختار خروجی: {title:string, seoTitle:string, seoDescription:string, blocks:[{id:string,type:string,enabled:true,order:number,props:object}]}",
       "برای لینک داخلی فقط مسیرهای امن مثل /listings, /assistant, /request, /submit-listing, /blog یا #section استفاده کن.",
       "intentHub برای چهار مسیر خرید، اجاره، فروش و اجاره‌دادن است.",
-      "listings برای نمایش فایل‌های واقعی منتشرشده مکا است؛ ملک یا قیمت ساختگی داخل متن ایجاد نکن.",
+      "listings برای نمایش فایل‌های واقعی منتشرشده دیوساز است؛ ملک یا قیمت ساختگی داخل متن ایجاد نکن.",
       "services props: {title,text,items:[{title,text}]}",
       "hero props: {eyebrow,title,highlight,text,primaryLabel,primaryHref,secondaryLabel,secondaryHref}",
       "split props: {eyebrow,title,text,buttonLabel,buttonHref,imageUrl,imagePosition:'start'|'end'}",
@@ -471,7 +471,7 @@ export const generateWithAi = action({
 
     const generated = extractJson(content);
     return {
-      title: String(generated.title || "صفحه جدید مکا").slice(0, 160),
+      title: String(generated.title || "صفحه جدید دیوساز").slice(0, 160),
       seoTitle: String(generated.seoTitle || generated.title || "").slice(0, 180),
       seoDescription: String(generated.seoDescription || "").slice(0, 320),
       blocks: normalizeBlocks(Array.isArray(generated.blocks) ? generated.blocks : []),
