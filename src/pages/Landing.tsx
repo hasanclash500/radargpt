@@ -407,13 +407,23 @@ function FeaturedPublicListings() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center">
-                          <Building2 className="size-12 text-muted-foreground/25" />
-                        </div>
+                        <img
+                          src="/listing-placeholder.svg"
+                          alt="تصویر پیش‌فرض آگهی دیوساز"
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
                       )}
-                      <span className="absolute end-3 top-3 rounded-full border border-border/60 bg-background/90 px-3 py-1 text-[11px] font-extrabold shadow-sm">
-                        {item.propertyType}
-                      </span>
+                      <div className="absolute end-3 top-3 flex flex-wrap gap-1.5">
+                        {item.featuredOnHome && (
+                          <span className="rounded-full bg-gold px-2.5 py-1 text-[10px] font-black text-slate-950 shadow-sm">
+                            ویژه
+                          </span>
+                        )}
+                        <span className="rounded-full border border-border/60 bg-background/90 px-3 py-1 text-[11px] font-extrabold shadow-sm">
+                          {item.propertyType}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="p-4">
