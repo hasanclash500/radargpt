@@ -318,6 +318,9 @@ const schema = defineSchema(
       area: v.optional(v.number()),
       budget: v.optional(v.string()),
       details: v.optional(v.string()),
+      /** ثبت‌کننده داخلی متقاضی؛ برای ثبت عمومی خالی است. */
+      createdByUserId: v.optional(v.string()),
+      source: v.optional(v.union(v.literal("public"), v.literal("dashboard"))),
       status: v.union(
         v.literal("new"),
         v.literal("contacted"),
@@ -327,7 +330,8 @@ const schema = defineSchema(
       updatedAt: v.number(),
     })
       .index("by_status_created", ["status", "createdAt"])
-      .index("by_created", ["createdAt"]),
+      .index("by_created", ["createdAt"])
+      .index("by_creator_created", ["createdByUserId", "createdAt"]),
 
     /** اسرار اتصال پیام‌رسان؛ فقط در توابع سمت سرور و پنل مدیر استفاده می‌شود */
     integrationSecrets: defineTable({
