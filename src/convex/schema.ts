@@ -202,13 +202,26 @@ const schema = defineSchema(
       .index("by_created_by", ["createdByUserId"])
       .index("by_kind_updated", ["listingKind", "updatedAt"])
       .index("by_owner_kind_updated", ["createdByUserId", "listingKind", "updatedAt"])
+      .index("by_kind_date", ["listingKind", "date"])
+      .index("by_owner_kind_date", ["createdByUserId", "listingKind", "date"])
+      .index("by_kind_price", ["listingKind", "priceMillion"])
+      .index("by_owner_kind_price", ["createdByUserId", "listingKind", "priceMillion"])
+      .index("by_kind_area", ["listingKind", "area"])
+      .index("by_owner_kind_area", ["createdByUserId", "listingKind", "area"])
       .index("by_submitter_created", ["submittedByPhone", "createdAt"])
       .index("by_public_slug", ["publicSlug"])
       .index("by_public_published", ["isPublic", "publishedAt"])
       .index("by_publication_status", ["publicationStatus"])
       .searchIndex("search_listings", {
         searchField: "searchText",
-        filterFields: ["listingKind", "createdByUserId"],
+        filterFields: [
+          "listingKind",
+          "createdByUserId",
+          "city",
+          "dealType",
+          "propertyType",
+          "rooms",
+        ],
       }),
 
     /**
