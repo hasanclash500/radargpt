@@ -74,6 +74,8 @@ interface ListingCardProps {
   onApprovePublication?: () => Promise<void>;
   onRejectPublication?: (reason?: string) => Promise<void>;
   onClaimImported?: () => Promise<void>;
+  autoOpenEditor?: boolean;
+  onEditorOpened?: () => void;
 }
 
 /** کارت نمایش یک آگهی با اکشن‌های کپی تلفن، تماس، دیوار، نقشه و ارسال. */
@@ -82,6 +84,7 @@ export default function ListingCard({
   onShare, folders = [], onSaveNotes, onToggleFolder, onSaveLocation,
   onEditListing, onDeleteListing, onSavePublic,
   isAdmin = false, onApprovePublication, onRejectPublication, onClaimImported,
+  autoOpenEditor = false, onEditorOpened,
 }: ListingCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -250,7 +253,7 @@ export default function ListingCard({
             }}
           >
             <UserCheck className="size-4" />
-            برداشتن و انتقال به فایل‌های من
+            برداشتن و تکمیل فایل
           </Button>
         </div>
       )}
@@ -258,7 +261,14 @@ export default function ListingCard({
       {/* ویرایش کامل + یادداشت و بایگانی */}
       {onEditListing && (
         <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
-          <FullListingEditDialog listing={l} onSave={onEditListing} />
+          <FullListingEditDialog
+            listing={l}
+            onSave={onEditListing}
+            defaultOpen={autoOpenEditor}
+            onOpenChange={(open) => {
+              if (open && autoOpenEditor) onEditorOpened?.();
+            }}
+          />
           {onDeleteListing && (
             <Button
               type="button"
