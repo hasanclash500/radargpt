@@ -802,12 +802,13 @@ export const continueListingMaintenance = internalMutation({
       .query("appSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .take(1);
-    let settings = settingsRows[0] ?? null;
-    const ensureSettings = async () => {
+    let settings: any = settingsRows[0] ?? null;
+    const ensureSettings = async (): Promise<any> => {
       if (settings) return settings;
       const id = await ctx.db.insert("appSettings", { key: "global" });
       settings = await ctx.db.get(id);
-      return settings!;
+      if (!settings) throw new Error("ساخت تنظیمات عمومی انجام نشد.");
+      return settings;
     };
 
     const batch = 150;
