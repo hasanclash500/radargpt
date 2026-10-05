@@ -108,16 +108,16 @@ function PublicHeader() {
             <SheetContent side="right" dir="rtl" className="w-[88vw] max-w-sm p-0">
               <SheetHeader className="border-b border-border/60 p-5 pe-12 text-right">
                 <SheetTitle><MekaBrand compact /></SheetTitle>
-                <SheetDescription className="pt-2 text-right">دسترسی سریع به خدمات مکا</SheetDescription>
+                <SheetDescription className="pt-2 text-right">دسترسی سریع به خدمات دیوساز</SheetDescription>
               </SheetHeader>
               <div className="flex-1 space-y-1 overflow-y-auto p-3">
                 {[
                   ["/listings", Search, "آگهی‌ها و جستجوی ملک"],
-                  ["/assistant", Bot, "دستیار هوشمند مکا"],
+                  ["/assistant", Bot, "دستیار هوشمند دیوساز"],
                   ["/submit-listing", Building2, "ثبت آگهی ملک"],
                   ["/request", ClipboardList, "ثبت تقاضای ملک"],
                   ["/blog", Newspaper, "وبلاگ و راهنما"],
-                  ["/about", Sparkles, "درباره مکا"],
+                  ["/about", Sparkles, "درباره دیوساز"],
                 ].map(([href, Icon, label]: any) => (
                   <SheetClose asChild key={href}>
                     <Link to={href} className="flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-extrabold hover:bg-muted">
@@ -163,7 +163,7 @@ function HeroBlock({ props }: { props: Record<string, any> }) {
             </span>
           )}
           <h1 className="mt-5 text-4xl font-black leading-[1.25] sm:text-6xl">
-            {props.title || "مکا"}
+            {props.title || "دیوساز"}
             {props.highlight && <span className="mt-2 block text-primary">{props.highlight}</span>}
           </h1>
           {props.text && <p className="mt-5 max-w-2xl text-sm leading-8 text-muted-foreground sm:text-base">{props.text}</p>}
@@ -235,7 +235,7 @@ function ListingsBlock({ props }: { props: Record<string, any> }) {
       {props.eyebrow && <p className="text-xs font-extrabold text-primary">{props.eyebrow}</p>}
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h2 className="mt-1 text-2xl font-black">{props.title || "ویترین آگهی‌های مکا"}</h2>
+          <h2 className="mt-1 text-2xl font-black">{props.title || "ویترین آگهی‌های دیوساز"}</h2>
           {props.text && <p className="mt-2 text-sm text-muted-foreground">{props.text}</p>}
         </div>
         <Button asChild variant="outline" className="hidden sm:inline-flex">
@@ -270,7 +270,7 @@ function ServicesBlock({ props }: { props: Record<string, any> }) {
   return (
     <section className="border-y border-border/50 bg-card/30">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-        <h2 className="text-2xl font-black">{props.title || "خدمات مکا"}</h2>
+        <h2 className="text-2xl font-black">{props.title || "خدمات دیوساز"}</h2>
         {props.text && <p className="mt-2 text-sm leading-7 text-muted-foreground">{props.text}</p>}
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item: any, index: number) => (
@@ -343,7 +343,7 @@ function ContactBlock({ props }: { props: Record<string, any> }) {
   return (
     <section className="border-t border-border/60 bg-card/40">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <h2 className="text-2xl font-black">{props.title || "ارتباط با مکا"}</h2>
+        <h2 className="text-2xl font-black">{props.title || "ارتباط با دیوساز"}</h2>
         {props.text && <p className="mt-2 text-sm leading-7 text-muted-foreground">{props.text}</p>}
         <div className="mt-5 flex flex-wrap gap-3">
           <Button asChild className="gap-2"><a href={"tel:" + phone}><PhoneCall className="size-4" />{phone}</a></Button>
