@@ -42,6 +42,27 @@ async function globalSettings(ctx: Ctx) {
   return rows[0] ?? null;
 }
 
+async function adjustListingCounts(
+  ctx: Ctx,
+  importedDelta: number,
+  memberDelta: number,
+) {
+  if (importedDelta === 0 && memberDelta === 0) return;
+  const settings = await globalSettings(ctx);
+  if (!settings?.listingCountsReady) return;
+  await ctx.db.patch(settings._id, {
+    listingImportedCount: Math.max(
+      0,
+      (settings.listingImportedCount ?? 0) + importedDelta,
+    ),
+    listingMemberCount: Math.max(
+      0,
+      (settings.listingMemberCount ?? 0) + memberDelta,
+    ),
+    listingCountsUpdatedAt: Date.now(),
+  });
+}
+
 async function managerPhone(ctx: Ctx): Promise<string> {
   return (await globalSettings(ctx))?.managerPhone ?? "09120858095";
 }
@@ -497,8 +518,9 @@ export const countListingsByView = query({
   },
   handler: async (ctx, args) => {
     const r = await resolve(ctx);
-    if (!r || !canWorkListings(r.role)) return 0;
+    if (!r || !canWorkListings(r.role)) return null;
 
+    // شمارش فایل شخصی مشاور معمولاً کوچک است و با ایندکس مالک خوانده می‌شود.
     if (args.view === "member" && ownsOnlyListings(r.role)) {
       const rows = await ctx.db
         .query("listings")
@@ -511,13 +533,49 @@ export const countListingsByView = query({
       return rows.length;
     }
 
-    const rows = await ctx.db
-      .query("listings")
-      .withIndex("by_kind_date", (q) =>
-        q.eq("listingKind", args.view),
-      )
-      .collect();
-    return rows.length;
+    // برای مدیر/ادمین هیچ اسکن چند هزار رکوردی هنگام باز شدن صفحه انجام نمی‌شود.
+    const settings = await globalSettings(ctx);
+    if (!settings?.listingCountsReady) return null;
+    return args.view === "imported"
+      ? settings.listingImportedCount ?? 0
+      : settings.listingMemberCount ?? 0;
+  },
+});
+
+export const rebuildListingCounts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const r = await resolve(ctx);
+    if (!r || !canManageListings(r.role)) {
+      throw new Error("فقط مدیر یا ادمین می‌تواند شمارنده آگهی‌ها را بازسازی کند.");
+    }
+
+    const [importedRows, memberRows] = await Promise.all([
+      ctx.db
+        .query("listings")
+        .withIndex("by_kind_date", (q) => q.eq("listingKind", "imported"))
+        .collect(),
+      ctx.db
+        .query("listings")
+        .withIndex("by_kind_date", (q) => q.eq("listingKind", "member"))
+        .collect(),
+    ]);
+
+    const settings = await globalSettings(ctx);
+    const payload = {
+      listingCountsReady: true,
+      listingImportedCount: importedRows.length,
+      listingMemberCount: memberRows.length,
+      listingCountsUpdatedAt: Date.now(),
+    };
+    if (settings) await ctx.db.patch(settings._id, payload);
+    else await ctx.db.insert("appSettings", { key: "global", ...payload });
+
+    return {
+      imported: importedRows.length,
+      member: memberRows.length,
+      total: importedRows.length + memberRows.length,
+    };
   },
 });
 
@@ -674,6 +732,7 @@ export const upsertListings = mutation({
     let added = 0;
     let updated = 0;
     let skippedMember = 0;
+    let reclassifiedImported = 0;
     const now = Date.now();
     const importBatchId =
       args.importBatchId?.trim() || `import-${now.toString(36)}`;
@@ -693,6 +752,7 @@ export const upsertListings = mutation({
           skippedMember++;
           continue;
         }
+        if (existing.listingKind !== "imported") reclassifiedImported++;
         await ctx.db.patch(existing._id, {
           ...item,
           searchText: listingSearchText(item),
@@ -724,6 +784,7 @@ export const upsertListings = mutation({
         added++;
       }
     }
+    await adjustListingCounts(ctx, added + reclassifiedImported, 0);
     return {
       added,
       updated,
@@ -921,6 +982,7 @@ export const claimImportedListing = mutation({
       publicationRejectReason: undefined,
       updatedAt: now,
     });
+    await adjustListingCounts(ctx, -1, 1);
 
     const consultant = await actorDisplayName(ctx, r.userId);
     const activityTitle =
@@ -1342,8 +1404,13 @@ export const rejectPublication = mutation({
 export const countListings = query({
   args: {},
   handler: async (ctx) => {
-    const rows = await ctx.db.query("listings").take(2000);
-    return { count: rows.length };
+    const settings = await globalSettings(ctx);
+    if (!settings?.listingCountsReady) return { count: null };
+    return {
+      count:
+        (settings.listingImportedCount ?? 0) +
+        (settings.listingMemberCount ?? 0),
+    };
   },
 });
 
@@ -1377,6 +1444,11 @@ export const deleteListing = mutation({
     }
 
     await ctx.db.delete(row._id);
+    await adjustListingCounts(
+      ctx,
+      row.listingKind === "imported" ? -1 : 0,
+      row.listingKind === "member" ? -1 : 0,
+    );
     return true;
   },
 });
@@ -1498,6 +1570,7 @@ export const submitPublicListing = mutation({
     if (row) {
       await ctx.db.patch(id, { publicSlug: makePublicSlug(row) });
     }
+    await adjustListingCounts(ctx, 0, 1);
 
     await ctx.scheduler.runAfter(0, internal.integrations.notifyListingActivity, {
       event: "public_created",
@@ -1682,6 +1755,7 @@ export const createListing = mutation({
       createdAt: now,
       updatedAt: now,
     });
+    await adjustListingCounts(ctx, 0, 1);
 
     const consultant = await actorDisplayName(ctx, r.userId);
     const activityTitle =
