@@ -438,7 +438,7 @@ export const generateWithAi = action({
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": process.env.SITE_URL ?? "https://meka.ir",
+        "HTTP-Referer": process.env.SITE_URL ?? "https://divsaz.ir",
         "X-Title": "Divosaz Page Builder",
       },
       body: JSON.stringify({
