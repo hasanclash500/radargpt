@@ -89,7 +89,7 @@ function autoSeoTitle(row: Doc<"listings">) {
   const deal = row.dealType || "آگهی";
   const area = row.area ? ` ${row.area} متری` : "";
   const city = row.city || "شهریار";
-  return `${deal} ${type}${area} در ${city} | مکا`.slice(0, 65);
+  return `${deal} ${type}${area} در ${city} | دیوساز`.slice(0, 65);
 }
 
 function autoSeoDescription(row: Doc<"listings">) {
@@ -105,7 +105,7 @@ function autoSeoDescription(row: Doc<"listings">) {
     .filter(Boolean)
     .join("، ");
   const excerpt = (row.description ?? "").replace(/\s+/g, " ").trim().slice(0, 80);
-  return `${details}. ${excerpt} برای اطلاعات و هماهنگی بازدید با مکا تماس بگیرید.`
+  return `${details}. ${excerpt} برای اطلاعات و هماهنگی بازدید با دیوساز تماس بگیرید.`
     .replace(/\s+/g, " ")
     .slice(0, 160);
 }
@@ -159,7 +159,7 @@ async function publicContext(ctx: Ctx) {
   const profiles = await ctx.db.query("userProfiles").collect();
   const advisorProfiles = await ctx.db.query("advisorProfiles").collect();
   return {
-    officeName: settings?.officeName || "مکا",
+    officeName: settings?.officeName || "دیوساز",
     managerPhone: settings?.managerPhone || "09120858095",
     profiles,
     advisorProfiles,
@@ -175,7 +175,7 @@ function defaultImageAlt(row: Doc<"listings">, index: number) {
     "در",
     row.city || "شهریار",
     index > 0 ? `- تصویر ${index + 1}` : "",
-    "| مکا",
+    "| دیوساز",
   ]
     .filter(Boolean)
     .join(" ")
@@ -209,7 +209,7 @@ async function toPublicListing(
   const contacts: { name: string; phone: string; role: string; profileSlug?: string }[] = [];
   if (context.managerPhone) {
     contacts.push({
-      name: context.officeName || "مکا",
+      name: context.officeName || "دیوساز",
       phone: context.managerPhone,
       role: "مدیر",
     });
@@ -226,7 +226,7 @@ async function toPublicListing(
     );
     if (phone && !contacts.some((item) => item.phone === phone)) {
       contacts.push({
-        name: creator?.displayName || "مشاور مکا",
+        name: creator?.displayName || "مشاور دیوساز",
         phone,
         role: "مشاور ثبت‌کننده",
         profileSlug: advisorProfile?.slug,
@@ -267,7 +267,7 @@ async function toPublicListing(
         row.city,
         row.area ? `${row.area} متر` : "",
         "املاک صنعتی و اداری",
-        "مکا",
+        "دیوساز",
       ].filter((value): value is string => Boolean(value)),
     noIndex: row.noIndex ?? false,
     customFields: (row.customFields ?? [])
@@ -759,7 +759,7 @@ export const updatePublicSettings = mutation({
       .query("userProfiles")
       .withIndex("by_user", (q) => q.eq("userId", r.userId))
       .take(1);
-    const consultant = profiles[0]?.displayName || "مشاور مکا";
+    const consultant = profiles[0]?.displayName || "مشاور دیوساز";
     const title =
       row.title ||
       `${row.dealType || "آگهی"} ${row.propertyType || "ملک"}${row.area ? ` ${row.area} متری` : ""} در ${row.city || "شهریار"}`;
