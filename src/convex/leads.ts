@@ -100,7 +100,7 @@ export const createLead = mutation({
       ...(args.area != null ? { area: args.area } : {}),
       ...(budget ? { budget } : {}),
       ...(details ? { details } : {}),
-      registeredBy,
+      createdBy: registeredBy,
     });
 
     return { ok: true, id };
