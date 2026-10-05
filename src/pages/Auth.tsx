@@ -1,3 +1,4 @@
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -77,7 +78,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   }
 
   return (
-    <div dir="rtl" className="flex min-h-screen items-center justify-center bg-[#f6f7f9] px-4 py-10 dark:bg-[#061522]">
+    <div dir="rtl" className="relative flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
+      <div className="absolute end-4 top-4 z-10 rounded-xl border border-border/70 bg-card/80 shadow-sm backdrop-blur sm:end-6 sm:top-6">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-md overflow-hidden border-slate-200 shadow-2xl dark:border-white/10">
         <CardHeader className="text-center">
           <div className="mb-3 flex justify-center">
