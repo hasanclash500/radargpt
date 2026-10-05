@@ -77,7 +77,15 @@ export const saveIngested = internalMutation({
         .withIndex("by_key", (q) => q.eq("key", item.key))
         .unique();
       if (existing) {
-        if (existing.listingKind === "member") {
+        const existingLooksMember =
+          existing.listingKind === "member" ||
+          existing.submissionSource === "public_mobile" ||
+          Boolean(existing.isPublic) ||
+          existing.publicationStatus === "pending" ||
+          existing.publicationStatus === "approved" ||
+          (existing.listingImages?.length ?? 0) > 0 ||
+          (existing.customFields?.length ?? 0) > 0;
+        if (existingLooksMember) {
           skippedMember++;
           continue;
         }
