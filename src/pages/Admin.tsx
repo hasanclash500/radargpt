@@ -292,7 +292,7 @@ export default function Admin() {
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-black">
-              {isManager ? "مدیریت و تنظیمات مکا" : "تنظیمات آگهی‌ها"}
+              {isManager ? "مدیریت و تنظیمات دیوساز" : "تنظیمات آگهی‌ها"}
             </h1>
             <p className="mt-1 text-sm leading-7 text-muted-foreground">
               هر بخش به‌صورت مستقل باز می‌شود تا صفحه مدیریت شلوغ نباشد.
