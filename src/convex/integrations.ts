@@ -44,6 +44,7 @@ export const getIntegrationStatus = query({
         aiModel: "openrouter/free",
         notifyLeads: true,
         notifyPublicationRequests: true,
+        notifyChatMessages: true,
       };
     }
 
@@ -62,6 +63,7 @@ export const getIntegrationStatus = query({
       aiModel: config?.openRouterModel?.trim() || "openrouter/free",
       notifyLeads: config?.notifyLeads ?? true,
       notifyPublicationRequests: config?.notifyPublicationRequests ?? true,
+      notifyChatMessages: config?.notifyChatMessages ?? true,
     };
   },
 });
@@ -79,6 +81,7 @@ export const saveIntegrationSettings = mutation({
     clearOpenRouterApiKey: v.boolean(),
     notifyLeads: v.boolean(),
     notifyPublicationRequests: v.boolean(),
+    notifyChatMessages: v.boolean(),
   },
   handler: async (ctx, args) => {
     const role = await currentRole(ctx);
@@ -107,6 +110,7 @@ export const saveIntegrationSettings = mutation({
       openRouterModel: args.openRouterModel.trim() || "openrouter/free",
       notifyLeads: args.notifyLeads,
       notifyPublicationRequests: args.notifyPublicationRequests,
+      notifyChatMessages: args.notifyChatMessages,
       updatedAt: Date.now(),
     };
 
@@ -150,6 +154,7 @@ export const getSecretsInternal = internalQuery({
       openRouterModel: config.openRouterModel ?? "openrouter/free",
       notifyLeads: config.notifyLeads ?? true,
       notifyPublicationRequests: config.notifyPublicationRequests ?? true,
+      notifyChatMessages: config.notifyChatMessages ?? true,
     };
   },
 });
@@ -338,6 +343,42 @@ export const notifyPublicationRequest = internalAction({
       `کد داخلی: ${args.key}`,
       "",
       "✅ برای انتشار عمومی، مدیر باید این آگهی را در داشبورد دیوساز تأیید کند.",
+    ].filter(Boolean);
+
+    return await sendConfigured(ctx, text.join("\n"));
+  },
+});
+
+export const notifyChatMessage = internalAction({
+  args: {
+    senderName: v.string(),
+    senderRole: v.string(),
+    senderPhone: v.optional(v.string()),
+    recipientName: v.string(),
+    body: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const config = await ctx.runQuery(internal.integrations.getSecretsInternal, {});
+    if (!config?.notifyChatMessages) return { skipped: true };
+
+    const roleLabels: Record<string, string> = {
+      manager: "مدیر",
+      admin: "ادمین",
+      consultant: "مشاور",
+      user: "کاربر",
+      guest: "مهمان",
+    };
+
+    const text = [
+      "💬 پیام جدید در چت دیوساز",
+      "",
+      `فرستنده: ${args.senderName} (${roleLabels[args.senderRole] || args.senderRole})`,
+      args.senderPhone ? `موبایل: ${args.senderPhone}` : "",
+      `مخاطب: ${args.recipientName}`,
+      "",
+      `پیام: ${args.body}`,
+      "",
+      "🔔 برای پاسخ، وارد پنل یا چت سایت دیوساز شوید.",
     ].filter(Boolean);
 
     return await sendConfigured(ctx, text.join("\n"));
