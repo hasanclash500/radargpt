@@ -691,6 +691,7 @@ export const migrateLegacyListingKinds = mutation({
         await ctx.db.patch(row._id, {
           listingKind: "imported",
           searchText: listingSearchText(row),
+          showOnLanding: false,
           importBatchId: row.importBatchId || "legacy-import",
           createdByUserId: undefined,
           updatedAt: row.updatedAt ?? row.createdAt ?? now,
@@ -700,6 +701,8 @@ export const migrateLegacyListingKinds = mutation({
         await ctx.db.patch(row._id, {
           listingKind: "member",
           searchText: listingSearchText(row),
+          showOnLanding:
+            row.showOnLanding ?? Boolean(row.featuredOnHome && row.isPublic),
           updatedAt: row.updatedAt ?? row.createdAt ?? now,
         });
         member++;
