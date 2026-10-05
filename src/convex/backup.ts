@@ -146,15 +146,55 @@ export const restoreCore = mutation({
       const email = String(backupUser?.email || "").trim().toLowerCase();
       if (!oldId || !email) continue;
       const currentUser: any = usersByEmail.get(email);
+      const backupProfile = backupProfiles.find(
+        (profile: any) => String(profile?.userId || "") === oldId,
+      );
+
       if (!currentUser) {
         unmatchedUsers.push(email);
+
+        const advisorProfile = (
+          Array.isArray(core.advisorProfiles) ? core.advisorProfiles : []
+        ).find(
+          (profile: any) => String(profile?.userId || "") === oldId,
+        );
+
+        const existingPending = (
+          await ctx.db
+            .query("pendingUserRestores")
+            .withIndex("by_email", (q: any) => q.eq("email", email))
+            .take(1)
+        )[0];
+
+        const pendingData: any = {
+          email,
+          officeRole: backupProfile?.officeRole,
+          displayName: backupProfile?.displayName,
+          publicPhone: backupProfile?.publicPhone,
+          advisorProfile: advisorProfile
+            ? (() => {
+                const value = { ...advisorProfile };
+                delete value.backupId;
+                delete value.backupCreationTime;
+                delete value._id;
+                delete value._creationTime;
+                delete value.userId;
+                return value;
+              })()
+            : undefined,
+          createdAt: existingPending?.createdAt || Date.now(),
+          updatedAt: Date.now(),
+        };
+
+        if (existingPending) {
+          await ctx.db.patch(existingPending._id, pendingData);
+        } else {
+          await ctx.db.insert("pendingUserRestores", pendingData);
+        }
         continue;
       }
 
       userIdMap[oldId] = String(currentUser._id);
-      const backupProfile = backupProfiles.find(
-        (profile: any) => String(profile?.userId || "") === oldId,
-      );
       if (!backupProfile) continue;
 
       const existing = (
