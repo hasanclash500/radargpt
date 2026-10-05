@@ -48,6 +48,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const headerInputRef = useRef<HTMLInputElement>(null);
   const [listingView, setListingView] = useState<"member" | "imported">("member");
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
   // نقش کاربر و منابع سرور
   const roleData = useQuery(api.roles.myRole);
@@ -61,6 +62,7 @@ export default function Dashboard() {
   const createListing = useMutation(api.listings.createListing);
   const claimImportedListing = useMutation(api.listings.claimImportedListing);
   const migrateLegacyListingKinds = useMutation(api.listings.migrateLegacyListingKinds);
+  const backfillListingSearch = useMutation(api.listings.backfillListingSearch);
   const updatePublicSettings = useMutation(api.listings.updatePublicSettings);
   const approvePublication = useMutation(api.listings.approvePublication);
   const rejectPublication = useMutation(api.listings.rejectPublication);
@@ -78,6 +80,13 @@ export default function Dashboard() {
     [serverPages],
   );
   const loadingServer = status === "LoadingFirstPage" || status === "LoadingMore";
+  const serverSearchTerm = filters?.query?.trim?.() ?? "";
+  const serverSearch = useQuery(
+    api.listings.searchListings,
+    serverSearchTerm.length >= 2
+      ? { view: listingView, query: serverSearchTerm, limit: 200 }
+      : "skip",
+  );
 
   // یک بار پروفایل را همگام می‌کنیم؛ این کار نقش admin قدیمی مالک را به manager مهاجرت می‌دهد.
   const profileEnsuredRef = useRef(false);
@@ -105,6 +114,10 @@ export default function Dashboard() {
           const result = await migrateLegacyListingKinds({ limit: 500 });
           if (result.done) break;
         }
+        for (let i = 0; i < 20 && !cancelled; i += 1) {
+          const result = await backfillListingSearch({ limit: 500 });
+          if (result.done) break;
+        }
       } catch (error) {
         console.error("listing kind migration failed", error);
       }
@@ -113,7 +126,7 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [canManageListings, migrateLegacyListingKinds]);
+  }, [canManageListings, migrateLegacyListingKinds, backfillListingSearch]);
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [localTouched, setLocalTouched] = useState(false);
@@ -123,7 +136,6 @@ export default function Dashboard() {
   const [busyLabel, setBusyLabel] = useState("در حال پردازش فایل…");
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
@@ -140,11 +152,13 @@ export default function Dashboard() {
       if (!entries[0]?.isIntersecting) return;
       // افزایش تعداد کارت‌های واقعاً قابل نمایش؛ برای فایل محلی و سرور.
       setVisibleCount((current) => current + PAGE_SIZE);
-      if (!localTouched && status === "CanLoadMore") loadMore(PAGE_SIZE);
+      if (!localTouched && filters.query.trim().length < 2 && status === "CanLoadMore") {
+        loadMore(PAGE_SIZE);
+      }
     }, { rootMargin: "700px" });
     observer.observe(el);
     return () => observer.disconnect();
-  }, [loadMore, localTouched, status]);
+  }, [filters.query, loadMore, localTouched, status]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -153,9 +167,15 @@ export default function Dashboard() {
   }, [listingView]);
 
   const deferredFilters = useDeferredValue(filters);
+  const searchingServer =
+    !localTouched && serverSearchTerm.length >= 2 && serverSearch === undefined;
 
-  // منبع نمایش: دادهٔ محلی تازه‌وارد، وگرنه آگهی‌های ذخیره‌شدهٔ سرور
-  const displayListings = localTouched ? listings : serverItems;
+  // منبع نمایش: فایل محلی، نتیجه جستجوی سراسری سرور، یا صفحه‌بندی عادی.
+  const displayListings = localTouched
+    ? listings
+    : serverSearchTerm.length >= 2
+      ? ((serverSearch ?? []) as Listing[])
+      : serverItems;
 
   const settings = useMemo(
     () => ({
@@ -572,6 +592,13 @@ export default function Dashboard() {
 
         {canManageListings && <PendingPublicationPanel />}
 
+        {searchingServer && (
+          <div className="flex items-center gap-2 rounded-2xl border border-primary/20 bg-primary/[0.04] px-4 py-3 text-xs font-bold text-primary">
+            <Loader2 className="size-4 animate-spin" />
+            در حال جستجو در کل بانک آگهی‌ها…
+          </div>
+        )}
+
         <section className="rounded-2xl border border-border/70 bg-card p-2 shadow-sm">
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -608,7 +635,7 @@ export default function Dashboard() {
           </p>
         </section>
 
-        {!parsing && displayListings.length === 0 && !loadingServer && (
+        {!parsing && !searchingServer && displayListings.length === 0 && !loadingServer && (
           <section className="space-y-4">
             {listingView === "imported" && canManageListings ? (
               <UploadZone onFile={(f) => void handleFile(f)} onSample={handleSample}
@@ -754,12 +781,12 @@ export default function Dashboard() {
                   })}
                 </div>
                 <div ref={sentinelRef} className="h-px w-full" aria-hidden />
-                {status === "LoadingMore" && (
+                {serverSearchTerm.length < 2 && status === "LoadingMore" && (
                   <p className="py-2 text-center text-xs text-muted-foreground">
                     در حال خواندن آگهی‌های بیشتر…
                   </p>
                 )}
-                {status === "CanLoadMore" && (
+                {serverSearchTerm.length < 2 && status === "CanLoadMore" && (
                   <div className="flex justify-center pt-1">
                     <Button type="button" variant="outline" size="sm"
                       onClick={() => loadMore(PAGE_SIZE)}>
