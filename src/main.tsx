@@ -5,6 +5,7 @@ import "@fontsource/vazirmatn/700.css";
 import "@fontsource/vazirmatn/800.css";
 import { Toaster } from "@/components/ui/sonner";
 import { RequireAuth } from "@/components/RequireAuth";
+import FloatingSiteChat from "@/components/chat/FloatingSiteChat";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
@@ -237,8 +238,8 @@ createRoot(document.getElementById("root")!).render(
                 path="/dashboard/chat"
                 element={
                   <RequireAuth
-                    title="ورود به چت مشاوران"
-                    description="گفت‌وگوی داخلی مدیر و مشاوران دیوساز"
+                    title="ورود به چت دیوساز"
+                    description="گفت‌وگوی خصوصی با مدیر و مشاوران دیوساز"
                   >
                     <AdvisorChat />
                   </RequireAuth>
@@ -302,6 +303,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          <FloatingSiteChat />
         </BrowserRouter>
           <Toaster />
         </ConvexAuthProvider>
