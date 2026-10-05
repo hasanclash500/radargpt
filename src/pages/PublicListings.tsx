@@ -439,6 +439,9 @@ export default function PublicListings() {
                       <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
                         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">{item.dealType}</span>
                         <span className="rounded-full bg-muted px-2.5 py-1 text-muted-foreground">{item.propertyType}</span>
+                        {item.featuredOnHome && (
+                          <span className="rounded-full bg-gold/15 px-2.5 py-1 font-black text-gold">ویژه</span>
+                        )}
                       </div>
                       <h3 className="mt-3 line-clamp-2 text-base font-black leading-7 sm:text-lg">
                         <Link to={"/listings/" + item.slug} className="hover:text-primary">{item.title}</Link>
