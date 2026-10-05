@@ -122,6 +122,8 @@ export function applyFilters(listings: Listing[], f: Filters): Listing[] {
   const pMax = moneyMillion(f.priceMax);
   const aMin = num(f.areaMin);
   const aMax = num(f.areaMax);
+  const dateFrom = normalizeDateInput(f.dateFrom);
+  const dateTo = normalizeDateInput(f.dateTo);
 
   const filtered = listings.filter((l) => {
     if (f.city !== "همه" && l.city !== f.city) return false;
@@ -136,8 +138,8 @@ export function applyFilters(listings: Listing[], f: Filters): Listing[] {
     if (aMin !== null && (l.area === null || l.area < aMin)) return false;
     if (aMax !== null && (l.area === null || l.area > aMax)) return false;
     // تاریخ ثبت؛ تاریخ نامشخص با هر بازه‌ای سازگار نیست
-    if (f.dateFrom && (!l.date || l.date < f.dateFrom)) return false;
-    if (f.dateTo && (!l.date || l.date > f.dateTo)) return false;
+    if (dateFrom && (!l.date || l.date < dateFrom)) return false;
+    if (dateTo && (!l.date || l.date > dateTo)) return false;
     if (q) {
       const haystack = `${l.city} ${l.title} ${l.description} ${l.radarCode} ${l.phone} ${l.dealType} ${l.propertyType}`.toLowerCase();
       if (!haystack.includes(q)) return false;
