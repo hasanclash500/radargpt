@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
 import { faNum, formatPrice } from "@/lib/format";
 import { todayJalaliString } from "@/lib/jalali";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import {
   ArrowLeft,
   BellRing,
@@ -32,7 +32,7 @@ import {
   Users,
   UsersRound,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -116,6 +116,11 @@ function DashboardLinkCard({ card }: { card: DashboardCard }) {
 export default function DashboardHome() {
   const { isAuthenticated, isLoading: authLoading, signOut } = useAuth();
   const roleData = useQuery(api.roles.myRole, isAuthenticated ? {} : "skip");
+  const settingsRow = useQuery(
+    api.folders.getSettings,
+    isAuthenticated ? {} : "skip",
+  );
+  const rebuildListingCounts = useMutation(api.listings.rebuildListingCounts);
   const [now] = useState(() => Date.now());
   const [today] = useState(() => todayJalaliString());
   const navigate = useNavigate();
@@ -125,6 +130,32 @@ export default function DashboardHome() {
   const isAdmin = role === "admin";
   const isConsultant = role === "consultant";
   const isStaff = isManager || isAdmin || isConsultant;
+
+  const counterRebuildStartedRef = useRef(false);
+  useEffect(() => {
+    if (
+      !(isManager || isAdmin) ||
+      !settingsRow?.listingKindMigrationDone ||
+      settingsRow?.listingCountsReady ||
+      counterRebuildStartedRef.current
+    ) {
+      return;
+    }
+    counterRebuildStartedRef.current = true;
+    const timer = window.setTimeout(() => {
+      void rebuildListingCounts().catch((error) => {
+        counterRebuildStartedRef.current = false;
+        console.error("dashboard listing counter rebuild failed", error);
+      });
+    }, 1400);
+    return () => window.clearTimeout(timer);
+  }, [
+    isManager,
+    isAdmin,
+    settingsRow?.listingKindMigrationDone,
+    settingsRow?.listingCountsReady,
+    rebuildListingCounts,
+  ]);
 
   const leadRows = useQuery(api.leads.listLeads, isStaff ? {} : "skip");
   const pendingPublications = useQuery(
