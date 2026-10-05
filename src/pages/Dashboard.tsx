@@ -32,7 +32,7 @@ import { DEAL_TYPES, PROPERTY_TYPES, parseHtmlFile, type Listing } from "@/lib/p
 import { SAMPLE_HTML } from "@/lib/sample";
 import { DEFAULT_SHARE_SETTINGS, type ShareSettings, type ShareableListing } from "@/lib/share";
 import {
-  BellRing, BookOpen, Building2, Coins, FileCode2, FileJson, FileSpreadsheet, FileText, Loader2,
+  ArrowUp, BellRing, BookOpen, Building2, Coins, FileCode2, FileJson, FileSpreadsheet, FileText, Loader2,
   LogOut, MapPinned, Radar, RotateCcw, Ruler, SearchX, Send, Settings, Upload, X,
 } from "lucide-react";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
@@ -131,6 +131,9 @@ export default function Dashboard() {
     () => serverPages.flat() as Listing[],
     [serverPages],
   );
+  const exactViewCount = useQuery(api.listings.countListingsByView, {
+    view: listingView,
+  });
   const loadingServer = status === "LoadingFirstPage" || status === "LoadingMore";
 
   // یک بار پروفایل را همگام می‌کنیم؛ این کار نقش admin قدیمی مالک را به manager مهاجرت می‌دهد.
@@ -225,6 +228,14 @@ export default function Dashboard() {
   const [syncing, setSyncing] = useState(false);
   const [exportingAll, setExportingAll] = useState(false);
   const [syncProgress, setSyncProgress] = useState<{ done: number; total: number } | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setShowBackToTop(window.scrollY > 700);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -818,7 +829,16 @@ export default function Dashboard() {
           <>
             <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[
-                { icon: Building2, label: "بارگذاری‌شده", value: faNum(stats.count) },
+                {
+                  icon: Building2,
+                  label:
+                    listingView === "imported"
+                      ? "کل آگهی‌های واردشده"
+                      : role === "consultant"
+                        ? "کل فایل‌های من"
+                        : "کل آگهی‌های اعضا",
+                  value: faNum(exactViewCount ?? stats.count),
+                },
                 { icon: MapPinned, label: "شهرها", value: faNum(stats.cities) },
                 { icon: Coins, label: "میانگین قیمت", value: stats.avgPrice ? formatPrice(stats.avgPrice) : "—" },
                 { icon: Ruler, label: "میانگین متراژ", value: stats.avgArea ? `${faNum(stats.avgArea)} متر` : "—" },
@@ -973,6 +993,19 @@ export default function Dashboard() {
           </>
         )}
       </div>
+
+      {showBackToTop && (
+        <Button
+          type="button"
+          size="icon"
+          className="fixed bottom-24 end-4 z-40 size-12 rounded-full shadow-xl md:bottom-6 md:end-24"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="بازگشت به بالای صفحه"
+          title="بازگشت به بالا"
+        >
+          <ArrowUp className="size-5" />
+        </Button>
+      )}
 
       <ShareDialog open={shareOpen} onOpenChange={setShareOpen}
         listings={shareList} settings={shareSettings}
