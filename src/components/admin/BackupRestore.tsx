@@ -65,7 +65,7 @@ export default function BackupRestore() {
       let done = false;
 
       while (!done) {
-        const page = await convex.query(api.backup.exportListingsPage, {
+        const page: any = await convex.query(api.backup.exportListingsPage, {
           paginationOpts: { numItems: 300, cursor },
         });
         listings.push(...page.page);
