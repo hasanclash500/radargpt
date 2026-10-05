@@ -438,14 +438,18 @@ export default function Dashboard() {
             )}
             {canSeePhone && <PublicContactDialog />}
             <ThemeToggle />
-            <input ref={headerInputRef} type="file"
-              accept={".html,.htm,.txt," + IMPORT_ACCEPT + ",text/html,text/plain"}
-              className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
-            <Button type="button" variant="outline" size="sm" className="gap-1.5"
-              onClick={() => headerInputRef.current?.click()} disabled={parsing}>
-              <Upload className="size-4" /><span className="hidden sm:inline">فایل جدید</span>
-            </Button>
+            {canManageListings && (
+              <>
+                <input ref={headerInputRef} type="file"
+                  accept={".html,.htm,.txt," + IMPORT_ACCEPT + ",text/html,text/plain"}
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f); e.target.value = ""; }} />
+                <Button type="button" variant="outline" size="sm" className="gap-1.5"
+                  onClick={() => headerInputRef.current?.click()} disabled={parsing}>
+                  <Upload className="size-4" /><span className="hidden sm:inline">ورود فایل</span>
+                </Button>
+              </>
+            )}
             {canSeePhone && (
               <ManualListingDialog open={manualOpen} onOpenChange={setManualOpen}
                 onSave={handleManualSave} />
@@ -511,22 +515,65 @@ export default function Dashboard() {
 
         {canManageListings && <PendingPublicationPanel />}
 
+        <section className="rounded-2xl border border-border/70 bg-card p-2 shadow-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setListingView("member")}
+              className={
+                "rounded-xl px-3 py-3 text-sm font-black transition-colors " +
+                (listingView === "member"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted")
+              }
+            >
+              {role === "consultant" ? "فایل‌های من" : "آگهی‌های اعضا"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setListingView("imported")}
+              className={
+                "rounded-xl px-3 py-3 text-sm font-black transition-colors " +
+                (listingView === "imported"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted")
+              }
+            >
+              بانک ایمپورت
+            </button>
+          </div>
+          <p className="px-2 pb-1 pt-2 text-[11px] leading-6 text-muted-foreground">
+            {listingView === "imported"
+              ? "فایل‌های خام واردشده در این بخش می‌مانند. هر فایل با «برداشتن فایل» از بانک مشترک خارج و به نام همان عضو ثبت می‌شود."
+              : role === "consultant"
+                ? "فقط فایل‌هایی که خودتان ثبت کرده یا از بانک ایمپورت برداشته‌اید نمایش داده می‌شوند."
+                : "فایل‌های ثبت‌شده اعضا و فایل‌هایی که از بانک ایمپورت تحویل گرفته شده‌اند."}
+          </p>
+        </section>
 
         {!parsing && displayListings.length === 0 && !loadingServer && (
-          <section className="space-y-6">
-            <UploadZone onFile={(f) => void handleFile(f)} onSample={handleSample}
-              loading={parsing} progress={progress} busyLabel={busyLabel} />
-            <div className="grid gap-4 sm:grid-cols-3">
-              {HINTS.map(({ icon: Icon, title, body }) => (
-                <div key={title} className="rounded-2xl border border-border/70 bg-card/70 p-4">
-                  <div className="mb-2 flex size-9 items-center justify-center rounded-lg bg-primary/12 text-primary ring-1 ring-primary/25">
-                    <Icon className="size-4" />
-                  </div>
-                  <h3 className="mb-1 text-sm font-extrabold">{title}</h3>
-                  <p className="text-xs leading-6 text-muted-foreground">{body}</p>
-                </div>
-              ))}
-            </div>
+          <section className="space-y-4">
+            {listingView === "imported" && canManageListings ? (
+              <UploadZone onFile={(f) => void handleFile(f)} onSample={handleSample}
+                loading={parsing} progress={progress} busyLabel={busyLabel} />
+            ) : (
+              <div className="rounded-3xl border border-dashed border-border bg-card px-5 py-14 text-center">
+                <Building2 className="mx-auto size-10 text-muted-foreground/35" />
+                <h2 className="mt-3 font-black">
+                  {listingView === "imported" ? "بانک ایمپورت خالی است" : "هنوز فایلی در این بخش نیست"}
+                </h2>
+                <p className="mx-auto mt-2 max-w-lg text-xs leading-6 text-muted-foreground">
+                  {listingView === "imported"
+                    ? "مدیر یا ادمین می‌تواند فایل CSV، اکسل، JSON یا HTML را وارد کند."
+                    : "آگهی جدید ثبت کنید یا یک فایل را از بانک ایمپورت بردارید."}
+                </p>
+                {listingView === "member" && canSeePhone && (
+                  <Button type="button" className="mt-4" onClick={() => setManualOpen(true)}>
+                    ثبت آگهی جدید
+                  </Button>
+                )}
+              </div>
+            )}
           </section>
         )}
 
@@ -534,7 +581,7 @@ export default function Dashboard() {
           <>
             <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[
-                { icon: Building2, label: "کل آگهی‌ها", value: faNum(stats.count) },
+                { icon: Building2, label: "بارگذاری‌شده", value: faNum(stats.count) },
                 { icon: MapPinned, label: "شهرها", value: faNum(stats.cities) },
                 { icon: Coins, label: "میانگین قیمت", value: stats.avgPrice ? formatPrice(stats.avgPrice) : "—" },
                 { icon: Ruler, label: "میانگین متراژ", value: stats.avgArea ? `${faNum(stats.avgArea)} متر` : "—" },
@@ -557,7 +604,7 @@ export default function Dashboard() {
             {/* نوار انتخاب و ارسال */}
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/70 bg-card/70 px-4 py-2.5">
               <p className="text-sm text-muted-foreground">
-                <span className="font-extrabold text-foreground">{faNum(filtered.length)}</span> آگهی از {faNum(displayListings.length)} مورد
+                <span className="font-extrabold text-foreground">{faNum(filtered.length)}</span> آگهی در داده‌های بارگذاری‌شده
                 {filtersActive && " (با اعمال فیلترها)"}
               </p>
               {syncing && syncProgress && (
@@ -600,6 +647,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   {visible.map((l) => {
                     const key = listingKey(l);
+                    const imported = l.listingKind === "imported" || listingView === "imported";
                     return (
                       <ListingCard key={key} listing={l} canSeePhone={canSeePhone}
                         managerPhone={settings.managerPhone}
@@ -607,14 +655,14 @@ export default function Dashboard() {
                         onToggleSelect={() => toggleSelect(key)}
                         onShare={() => { setSelected(new Set([key])); setShareOpen(true); }}
                         folders={folderList}
-                        onSaveNotes={canSeePhone ? async (notes) => { await saveNotes({ key, notes }); } : undefined}
-                        onToggleFolder={canSeePhone ? async (fid) => { await toggleFolder({ key, folderId: fid }); } : undefined}
-                        onSaveLocation={canSeePhone ? async (patch) => { await updateListing({ key, patch }); } : undefined}
-                        onEditListing={canSeePhone ? async (patch) => {
+                        onSaveNotes={canSeePhone && !imported ? async (notes) => { await saveNotes({ key, notes }); } : undefined}
+                        onToggleFolder={canSeePhone && !imported ? async (fid) => { await toggleFolder({ key, folderId: fid }); } : undefined}
+                        onSaveLocation={canSeePhone && !imported ? async (patch) => { await updateListing({ key, patch }); } : undefined}
+                        onEditListing={canSeePhone && !imported ? async (patch) => {
                           await updateListing({ key, patch });
                           setLocalTouched(false);
                         } : undefined}
-                        onDeleteListing={canSeePhone ? async () => {
+                        onDeleteListing={canSeePhone && (!imported || canManageListings) ? async () => {
                           await deleteListing({ key });
                           setSelected((current) => {
                             const next = new Set(current);
@@ -624,7 +672,7 @@ export default function Dashboard() {
                           setListings((current) => current.filter((item) => listingKey(item) !== key));
                           setLocalTouched(false);
                         } : undefined}
-                        onSavePublic={canSeePhone ? async (settings) => {
+                        onSavePublic={canSeePhone && !imported ? async (settings) => {
                           const result = await updatePublicSettings({ key, ...settings });
                           if (result.publicationStatus === "pending") {
                             toast.success("درخواست انتشار برای مدیر یا ادمین ارسال شد");
@@ -634,8 +682,16 @@ export default function Dashboard() {
                         onApprovePublication={canManageListings ? async () => {
                           await approvePublication({ key });
                         } : undefined}
-                        onRejectPublication={canManageListings ? async (reason) => {
+                        onRejectPublication={canManageListings && !imported ? async (reason) => {
                           await rejectPublication({ key, reason });
+                        } : undefined}
+                        onClaimImported={imported ? async () => {
+                          await claimImportedListing({ key });
+                          setSelected((current) => {
+                            const next = new Set(current);
+                            next.delete(key);
+                            return next;
+                          });
                         } : undefined} />
                     );
                   })}
