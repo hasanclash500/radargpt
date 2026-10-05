@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PersianDateTimePicker } from "@/components/ui/persian-date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
@@ -46,7 +47,7 @@ type StoryForm = {
   stickerStyle: string;
   background: string;
   durationSec: number;
-  startsAt: string;
+  startsAt: number | null;
 };
 
 const EMPTY: StoryForm = {
@@ -61,15 +62,8 @@ const EMPTY: StoryForm = {
   stickerStyle: "soft",
   background: "#0f5132",
   durationSec: 15,
-  startsAt: "",
+  startsAt: null,
 };
-
-function toLocalInput(timestamp?: number | null) {
-  if (!timestamp) return "";
-  const date = new Date(timestamp);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
 
 async function videoDuration(file: File) {
   const url = URL.createObjectURL(file);
@@ -331,9 +325,7 @@ export default function StoryManager() {
 
     setBusy("save");
     try {
-      const startsAt = form.startsAt
-        ? new Date(form.startsAt).getTime()
-        : undefined;
+      const startsAt = form.startsAt ?? undefined;
       const id = await saveDraft({
         id: form.id,
         ownerUserId: form.ownerUserId,
@@ -366,9 +358,7 @@ export default function StoryManager() {
     if (!id) return;
     setBusy("publish");
     try {
-      const startsAt = form.startsAt
-        ? new Date(form.startsAt).getTime()
-        : undefined;
+      const startsAt = form.startsAt ?? undefined;
       await publishStory({ id, startsAt });
       toast.success(
         startsAt && startsAt > Date.now() + 30_000
@@ -402,7 +392,7 @@ export default function StoryManager() {
       stickerStyle: story.stickerStyle || "soft",
       background: story.background || "#0f5132",
       durationSec: story.durationSec || 15,
-      startsAt: toLocalInput(story.startsAt),
+      startsAt: story.startsAt ?? null,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -669,14 +659,13 @@ export default function StoryManager() {
 
               <div className="space-y-1.5">
                 <Label>زمان شروع اختیاری</Label>
-                <Input
-                  dir="ltr"
-                  type="datetime-local"
+                <PersianDateTimePicker
                   value={form.startsAt}
-                  onChange={(e) => update("startsAt", e.target.value)}
+                  onChange={(startsAt) => update("startsAt", startsAt)}
+                  placeholder="انتخاب تاریخ شمسی و ساعت"
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  اگر خالی باشد، استوری بلافاصله منتشر می‌شود.
+                  تاریخ به‌صورت شمسی انتخاب می‌شود. اگر خالی باشد، استوری بلافاصله منتشر می‌شود.
                 </p>
               </div>
 
