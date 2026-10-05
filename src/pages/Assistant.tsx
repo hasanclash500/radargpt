@@ -52,6 +52,7 @@ const SUGGESTIONS = [
   "دفتر اداری حدود ۱۵۰ متر برای خرید معرفی کن",
   "فایل‌های نزدیک به بودجه ۵ میلیارد را پیدا کن",
   "در معامله ملک صنعتی چه نکات حقوقی مهم است؟",
+  "یک سؤال عمومی دارم؛ چطور می‌توانم بهتر تصمیم‌گیری کنم؟",
 ];
 
 function speak(text: string) {
@@ -103,7 +104,7 @@ function ListingResultCard({ item }: { item: AssistantListing }) {
           <p className="mt-1 text-xs font-extrabold text-primary">{price}</p>
           <Button asChild size="sm" variant="outline" className="mt-3 h-8 gap-1.5 text-[11px]">
             <Link to={item.slug ? `/listings/${item.slug}` : "/listings"}>
-              مشاهده آگهی در مکا
+              مشاهده آگهی در دیوساز
               <ExternalLink className="size-3.5" />
             </Link>
           </Button>
@@ -143,16 +144,16 @@ export default function AssistantPage() {
       id: 1,
       role: "assistant",
       text:
-        "سلام، من دستیار هوشمند مکا هستم. برای معرفی ملک فقط داخل آگهی‌های منتشرشده همین سایت جستجو می‌کنم. می‌توانید نوع ملک، شهر، متراژ و حدود قیمت را بنویسید یا با میکروفن بگویید.",
+        "سلام، من دستیار هوشمند دیوساز هستم. برای معرفی ملک فقط داخل آگهی‌های منتشرشده همین سایت جستجو می‌کنم. می‌توانید نوع ملک، شهر، متراژ و حدود قیمت را بنویسید یا با میکروفن بگویید.",
     },
   ]);
   const nextId = useRef(2);
 
   useSeo({
-    title: "دستیار هوشمند املاک مکا",
+    title: "دستیار هوشمند املاک دیوساز",
     description:
-      "جستجوی کلامی و صوتی در آگهی‌های خود مکا و دریافت اطلاعات عمومی ملکی و حقوقی.",
-    keywords: ["دستیار هوشمند املاک", "جستجوی صوتی ملک", "مکا"],
+      "جستجوی کلامی و صوتی در آگهی‌های خود دیوساز و دریافت اطلاعات عمومی ملکی و حقوقی.",
+    keywords: ["دستیار هوشمند املاک", "جستجوی صوتی ملک", "دیوساز"],
     type: "website",
   });
 
@@ -247,7 +248,7 @@ export default function AssistantPage() {
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Bot className="size-5" />
             </span>
-            دستیار مکا
+            دستیار دیوساز
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
@@ -265,19 +266,19 @@ export default function AssistantPage() {
           <div className="rounded-2xl border border-primary/20 bg-primary/[0.045] p-4">
             <div className="flex items-center gap-2">
               <Search className="size-5 text-primary" />
-              <p className="font-extrabold">جستجوی ملک فقط در مکا</p>
+              <p className="font-extrabold">جستجوی ملک فقط در دیوساز</p>
             </div>
             <p className="mt-2 text-xs leading-6 text-muted-foreground">
-              هیچ آگهی از سایت‌های دیگر وارد پیشنهادها نمی‌شود. کارت‌های ملک مستقیماً از دیتابیس آگهی‌های عمومی مکا ساخته می‌شوند.
+              هیچ آگهی از سایت‌های دیگر وارد پیشنهادها نمی‌شود. کارت‌های ملک مستقیماً از دیتابیس آگهی‌های عمومی دیوساز ساخته می‌شوند.
             </p>
           </div>
           <div className="rounded-2xl border border-border/70 bg-card p-4">
             <div className="flex items-center gap-2">
               <ShieldCheck className="size-5 text-primary" />
-              <p className="font-extrabold">اطلاعات حقوقی عمومی</p>
+              <p className="font-extrabold">حقوقی و پرسش‌های عمومی</p>
             </div>
             <p className="mt-2 text-xs leading-6 text-muted-foreground">
-              پاسخ حقوقی جنبه عمومی و آموزشی دارد؛ برای قرارداد، اختلاف یا اقدام حقوقی باید اسناد واقعی توسط وکیل یا کارشناس بررسی شود.
+              دستیار به پرسش‌های عمومی هم پاسخ می‌دهد. پاسخ‌های حقوقی جنبه عمومی و آموزشی دارند و برای قرارداد، اختلاف یا اقدام حقوقی باید اسناد واقعی توسط وکیل یا کارشناس بررسی شوند.
             </p>
           </div>
         </div>
@@ -326,7 +327,7 @@ export default function AssistantPage() {
             {sending && (
               <div className="me-auto inline-flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-xs text-muted-foreground">
                 <Loader2 className="size-4 animate-spin text-primary" />
-                در حال بررسی آگهی‌های مکا…
+                در حال بررسی آگهی‌های دیوساز…
               </div>
             )}
           </div>
@@ -395,7 +396,7 @@ export default function AssistantPage() {
 
             <p className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground">
               <Sparkles className="size-3.5 text-primary" />
-              پیشنهاد ملک فقط از آگهی‌های منتشرشده سایت مکا است.
+              پیشنهاد ملک فقط از آگهی‌های منتشرشده سایت دیوساز است.
             </p>
           </div>
         </div>
