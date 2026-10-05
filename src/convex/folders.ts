@@ -103,6 +103,15 @@ export const getSettings = query({
         settings?.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS,
       mapProvider: settings?.mapProvider ?? "neshan",
       sourceUrl: canSeeImportSettings ? (settings?.sourceUrl ?? "") : "",
+      listingKindMigrationDone: canSeeImportSettings
+        ? Boolean(settings?.listingKindMigrationDone)
+        : true,
+      listingSearchBackfillDone: canSeeImportSettings
+        ? Boolean(settings?.listingSearchBackfillDone)
+        : true,
+      landingVisibilityMigrationDone: canSeeImportSettings
+        ? Boolean(settings?.landingVisibilityMigrationDone)
+        : true,
       lastImportAt: canSeeImportSettings ? settings?.lastImportAt : undefined,
       lastImportAdded: canSeeImportSettings ? settings?.lastImportAdded : undefined,
       lastImportUpdated: canSeeImportSettings ? settings?.lastImportUpdated : undefined,
