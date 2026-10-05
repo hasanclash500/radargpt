@@ -85,6 +85,21 @@ const schema = defineSchema(
       .index("by_role", ["officeRole"]),
 
     /**
+     * بازیابی امن کاربران بدون ذخیره رمز عبور.
+     * اگر حساب هنوز در Auth ساخته نشده باشد، نقش/پروفایل با ایمیل نگه داشته
+     * می‌شود و در اولین ورود یا ثبت‌نام همان ایمیل اعمال می‌شود.
+     */
+    pendingUserRestores: defineTable({
+      email: v.string(),
+      officeRole: v.optional(officeRoleValidator),
+      displayName: v.optional(v.string()),
+      publicPhone: v.optional(v.string()),
+      advisorProfile: v.optional(v.any()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }).index("by_email", ["email"]),
+
+    /**
      * آگهی‌ها روی سرور ذخیره می‌شوند تا هر روز بتوان آگهی تازه اضافه کرد و
      * دسترسی شمارهٔ تلفن واقعاً کنترل شود: فیلد phone فقط برای مدیر/مشاور
      * در پاسخ query برگردانده می‌شود و بقیه شمارهٔ مدیر را می‌بینند.
