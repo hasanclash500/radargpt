@@ -114,7 +114,7 @@ function StoryViewer({
         {story.contentType === "image" && story.mediaUrl ? (
           <img
             src={story.mediaUrl}
-            alt={story.title || "استوری مکا"}
+            alt={story.title || "استوری دیوساز"}
             className="absolute inset-0 h-full w-full object-cover"
           />
         ) : story.contentType === "video" && story.mediaUrl ? (
