@@ -7,6 +7,7 @@ import type * as assistant from "../assistant.js";
 import type * as advisorChat from "../advisorChat.js";
 import type * as advisors from "../advisors.js";
 import type * as auth from "../auth.js";
+import type * as backup from "../backup.js";
 import type * as folders from "../folders.js";
 import type * as ingest from "../ingest.js";
 import type * as integrations from "../integrations.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   advisorChat: typeof advisorChat;
   advisors: typeof advisors;
   auth: typeof auth;
+  backup: typeof backup;
   folders: typeof folders;
   ingest: typeof ingest;
   integrations: typeof integrations;
