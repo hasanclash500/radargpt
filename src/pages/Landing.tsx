@@ -480,7 +480,7 @@ export default function Landing() {
       "@context": "https://schema.org",
       "@type": "RealEstateAgent",
       name: "دیوساز",
-      alternateName: "MEKA",
+      alternateName: "Divosaz",
       telephone: PHONE,
       description: "مشاور تخصصی املاک صنعتی و اداری شهریار",
       address: {
