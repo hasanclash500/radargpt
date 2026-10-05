@@ -467,6 +467,12 @@ export default function Dashboard() {
       if (exportingAll) return;
       setExportingAll(true);
       try {
+        if (localTouched && scope === "current") {
+          await exportExcel(filtered);
+          toast.success(`فایل اکسل ${faNum(filtered.length)} آگهی آماده شد`);
+          return;
+        }
+
         const all: Listing[] = [];
         const views: Array<"member" | "imported"> =
           scope === "all" && canManageListings
@@ -477,8 +483,13 @@ export default function Dashboard() {
           let cursor: string | null = null;
           let done = false;
           while (!done) {
+            const queryArgs =
+              scope === "current"
+                ? { ...serverListingArgs, view }
+                : { view, sort: "date-desc" as const };
+
             const page: any = await convex.query(api.listings.listListings, {
-              view,
+              ...queryArgs,
               paginationOpts: { numItems: 300, cursor },
             });
             all.push(...(page.page as Listing[]));
@@ -490,12 +501,17 @@ export default function Dashboard() {
           }
         }
 
-        if (all.length === 0) {
+        const exportRows =
+          scope === "current" && (Boolean(serverSearch) || hasActiveFilters(filters))
+            ? applyFilters(all, filters)
+            : all;
+
+        if (exportRows.length === 0) {
           toast.error("آگهی‌ای برای خروجی وجود ندارد");
           return;
         }
-        await exportExcel(all);
-        toast.success(`فایل اکسل ${faNum(all.length)} آگهی آماده شد`);
+        await exportExcel(exportRows);
+        toast.success(`فایل اکسل ${faNum(exportRows.length)} آگهی آماده شد`);
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : "تهیه خروجی کامل ناموفق بود",
@@ -504,7 +520,17 @@ export default function Dashboard() {
         setExportingAll(false);
       }
     },
-    [canManageListings, convex, exportingAll, listingView],
+    [
+      canManageListings,
+      convex,
+      exportingAll,
+      filtered,
+      filters,
+      listingView,
+      localTouched,
+      serverListingArgs,
+      serverSearch,
+    ],
   );
 
   const handleSignOut = async () => { await signOut(); navigate("/"); };
@@ -630,12 +656,12 @@ export default function Dashboard() {
                 </DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => void exportAllExcel("current")} disabled={exportingAll}>
                   <FileSpreadsheet className="size-4" />
-                  {exportingAll ? "در حال جمع‌آوری…" : "اکسل کل این بخش"}
+                  {exportingAll ? "در حال جمع‌آوری…" : "اکسل همه نتایج فیلتر فعلی"}
                 </DropdownMenuItem>
                 {canManageListings && (
                   <DropdownMenuItem onClick={() => void exportAllExcel("all")} disabled={exportingAll}>
                     <FileSpreadsheet className="size-4" />
-                    اکسل همه آگهی‌ها
+                    اکسل کل آگهی‌ها (اعضا + ایمپورت)
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => void doExport("csv")}><FileText className="size-4" />فایل CSV</DropdownMenuItem>
