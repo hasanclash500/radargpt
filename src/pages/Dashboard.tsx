@@ -136,6 +136,12 @@ export default function Dashboard() {
   const isManager = roleData?.canManageSite ?? role === "manager";
   const canManageListings =
     roleData?.canManageListings ?? (role === "manager" || role === "admin");
+  const migrationPending =
+    canManageListings &&
+    Boolean(settingsRow) &&
+    (!settingsRow?.listingKindMigrationDone ||
+      !settingsRow?.listingSearchBackfillDone ||
+      !settingsRow?.landingVisibilityMigrationDone);
 
   const migrationStartedRef = useRef(false);
   useEffect(() => {
@@ -667,6 +673,18 @@ export default function Dashboard() {
         )}
 
         {canManageListings && <PendingPublicationPanel />}
+
+        {migrationPending && (
+          <div className="flex items-start gap-3 rounded-2xl border border-sky-500/25 bg-sky-500/[0.06] px-4 py-3">
+            <Loader2 className="mt-0.5 size-4 shrink-0 animate-spin text-sky-600 dark:text-sky-300" />
+            <div>
+              <p className="text-xs font-black">در حال آماده‌سازی بانک آگهی‌های قدیمی</p>
+              <p className="mt-1 text-[11px] leading-6 text-muted-foreground">
+                این کار فقط یک‌بار انجام می‌شود: فایل‌های ایمپورت از فایل‌های اعضا جدا و ایندکس جستجوی سریع ساخته می‌شود. می‌توانید هم‌زمان از پنل استفاده کنید.
+              </p>
+            </div>
+          </div>
+        )}
 
         {searchingServer && (
           <div className="flex items-center gap-2 rounded-2xl border border-primary/20 bg-primary/[0.04] px-4 py-3 text-xs font-bold text-primary">
