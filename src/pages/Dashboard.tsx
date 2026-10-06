@@ -571,7 +571,7 @@ export default function Dashboard() {
   const folderList = (folders ?? []) as { _id: string; name: string; color?: string }[];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen w-full max-w-[100dvw] overflow-x-clip">
       <header className="glass sticky top-0 z-40 border-b border-border/60">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
