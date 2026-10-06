@@ -372,6 +372,26 @@ html[data-site-theme="light"] {
   }
 }
 
+@media (max-width: 360px) {
+  .dashboard-action-grid,
+  .dashboard-metrics-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .divsaz-brand-subtitle {
+    display: none !important;
+  }
+
+  .dashboard-mobile-nav {
+    padding-inline: 0.25rem !important;
+  }
+
+  .dashboard-mobile-nav a,
+  .dashboard-mobile-nav button {
+    font-size: 9px !important;
+  }
+}
+
 @keyframes radar-ping {
   0% {
     transform: scale(0.6);
