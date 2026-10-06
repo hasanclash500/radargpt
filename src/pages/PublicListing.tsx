@@ -1,22 +1,21 @@
-import { ThemeToggle } from "@/components/ThemeToggle";
-import FavoriteButton from "@/components/listings/FavoriteButton";
-import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
+import PublicListingGallery from "@/components/listings/PublicListingGallery";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
-import { formatArea, formatPrice, formatRooms } from "@/lib/format";
+import { faNum, formatArea, formatPrice, formatRooms } from "@/lib/format";
 import { formatJalaliDate } from "@/lib/jalali";
 import { useQuery } from "convex/react";
 import {
-  ArrowRight,
+  BadgeCheck,
   Building2,
   CalendarDays,
+  ChevronLeft,
+  CircleDot,
+  Factory,
   MapPin,
   PhoneCall,
   Ruler,
-  Share2,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 
@@ -30,20 +29,48 @@ function priceForSchema(item: any) {
   return undefined;
 }
 
+function mainPrice(item: any) {
+  if (item.rentMillion != null && item.rentMillion > 0) {
+    return `اجاره ${formatPrice(item.rentMillion)}`;
+  }
+  if (item.priceMillion != null && item.priceMillion > 0) {
+    return formatPrice(item.priceMillion);
+  }
+  if (item.depositMillion != null && item.depositMillion > 0) {
+    return `ودیعه ${formatPrice(item.depositMillion)}`;
+  }
+  return "قیمت توافقی";
+}
+
+function FeatureCard({
+  label,
+  value,
+  icon: Icon = BadgeCheck,
+}: {
+  label: string;
+  value: string;
+  icon?: typeof BadgeCheck;
+}) {
+  return (
+    <div className="rounded-2xl border border-border/70 bg-muted/35 p-4">
+      <div className="flex items-start gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Icon className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <strong className="block text-sm leading-6">{value}</strong>
+          <span className="mt-0.5 block text-[10px] text-muted-foreground">
+            {label}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PublicListing() {
   const { slug = "" } = useParams();
   const listing = useQuery(api.listings.getPublicBySlug, { slug });
-  const [activeImage, setActiveImage] = useState(0);
-  const images = useMemo(() => listing?.images || [], [listing?.images]);
-
-  useEffect(() => {
-    if (!images.length) {
-      setActiveImage(0);
-      return;
-    }
-    const featured = images.findIndex((image: any) => image.featured);
-    setActiveImage(featured >= 0 ? featured : 0);
-  }, [images]);
 
   const canonical =
     typeof window !== "undefined"
@@ -51,7 +78,8 @@ export default function PublicListing() {
       : undefined;
 
   const schemaPrice = listing ? priceForSchema(listing) : undefined;
-  const isLease = listing?.dealType?.includes("اجاره") || listing?.rentMillion != null;
+  const isLease =
+    listing?.dealType?.includes("اجاره") || listing?.rentMillion != null;
 
   useSeo({
     title: listing?.seoTitle || "آگهی ملک | دیوساز",
@@ -69,12 +97,18 @@ export default function PublicListing() {
               "@type": "RealEstateListing",
               name: listing.title,
               description: listing.description,
-              image: listing.images?.map((image: any) => image.url).filter(Boolean),
-              additionalProperty: (listing.customFields || []).map((field: any) => ({
-                "@type": "PropertyValue",
-                name: field.label,
-                value: field.unit ? `${field.value} ${field.unit}` : field.value,
-              })),
+              image: listing.images
+                ?.map((image: any) => image.url)
+                .filter(Boolean),
+              additionalProperty: (listing.customFields || []).map(
+                (field: any) => ({
+                  "@type": "PropertyValue",
+                  name: field.label,
+                  value: field.unit
+                    ? `${field.value} ${field.unit}`
+                    : field.value,
+                }),
+              ),
               datePosted: new Date(listing.publishedAt).toISOString(),
               dateModified: new Date(listing.updatedAt).toISOString(),
               url: canonical,
@@ -101,32 +135,6 @@ export default function PublicListing() {
                 },
               },
             },
-            {
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                {
-                  "@type": "ListItem",
-                  position: 1,
-                  name: "دیوساز",
-                  item: typeof window !== "undefined" ? window.location.origin : undefined,
-                },
-                {
-                  "@type": "ListItem",
-                  position: 2,
-                  name: "آگهی‌ها",
-                  item:
-                    typeof window !== "undefined"
-                      ? `${window.location.origin}/listings`
-                      : undefined,
-                },
-                {
-                  "@type": "ListItem",
-                  position: 3,
-                  name: listing.title,
-                  item: canonical,
-                },
-              ],
-            },
           ],
         }
       : undefined,
@@ -146,13 +154,13 @@ export default function PublicListing() {
         toast.success("لینک آگهی کپی شد");
       }
     } catch {
-      // کاربر اشتراک را لغو کرده است.
+      // لغو اشتراک توسط کاربر
     }
   };
 
   if (listing === undefined) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         در حال بارگذاری آگهی…
       </div>
     );
@@ -160,9 +168,9 @@ export default function PublicListing() {
 
   if (listing === null) {
     return (
-      <main className="flex min-h-screen items-center justify-center p-5 text-center">
+      <main className="flex min-h-screen items-center justify-center bg-background p-5 text-center">
         <div>
-          <h1 className="text-2xl font-extrabold">این آگهی عمومی نیست</h1>
+          <h1 className="text-2xl font-black">این آگهی عمومی نیست</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             ممکن است آگهی حذف یا از حالت عمومی خارج شده باشد.
           </p>
@@ -174,257 +182,326 @@ export default function PublicListing() {
     );
   }
 
+  const consultant =
+    listing.contacts?.find((contact: any) =>
+      String(contact.role || "").includes("مشاور"),
+    ) ?? listing.contacts?.[0];
+
+  const publicFields = (listing.customFields || []).filter(
+    (field: any) => String(field.value ?? "").trim().length > 0,
+  );
+
+  const requestIntent = isLease ? "rent" : "buy";
+  const requestParams = new URLSearchParams({
+    intent: requestIntent,
+    property: listing.propertyType || "",
+    city: listing.city || "شهریار",
+    area: listing.area != null ? String(listing.area) : "",
+    details: `درخواست بازدید برای آگهی: ${listing.title} - ${canonical || ""}`,
+  });
+
   return (
-    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background">
-      <header className="glass sticky top-0 z-40 border-b border-border/60">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <Link to="/listings" className="flex items-center gap-2 text-sm font-extrabold">
-            <ArrowRight className="size-4" />
-            آگهی‌های دیوساز
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden rounded-xl sm:inline-flex">
-              <Link to="/saved">ذخیره‌شده‌ها</Link>
-            </Button>
-            <FavoriteButton
-              slug={listing.slug}
-              className="rounded-xl bg-background/90"
-            />
-            <ThemeToggle />
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-xl"
-              onClick={() => void share()}
-              aria-label="اشتراک آگهی"
-            >
-              <Share2 className="size-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+    <main
+      dir="rtl"
+      className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background pb-24 text-foreground lg:pb-0"
+    >
+      <PublicListingGallery
+        slug={listing.slug}
+        title={listing.title}
+        images={listing.images || []}
+        onShare={() => void share()}
+      />
 
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="pointer-events-none absolute inset-0 grid-overlay opacity-40" />
-        <div className="pointer-events-none absolute inset-0 glow-emerald opacity-70" />
-        <div className="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 font-bold text-primary">
-              {listing.dealType}
-            </span>
-            <span className="rounded-full border border-border/70 px-3 py-1.5 text-muted-foreground">
-              {listing.propertyType}
-            </span>
-            {listing.featuredOnHome && (
-              <span className="rounded-full border border-gold/30 bg-gold/10 px-3 py-1.5 font-black text-gold">
-                ویژه
-              </span>
-            )}
-          </div>
-
-          <h1 className="mt-5 max-w-4xl text-3xl font-extrabold leading-[1.45] tracking-tight sm:text-4xl">
-            {listing.title}
-          </h1>
-
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <MapPin className="size-4 text-primary" />
-              {listing.city}
-            </span>
-            {listing.area != null && (
-              <span className="flex items-center gap-1.5">
-                <Ruler className="size-4 text-primary" />
-                {formatArea(listing.area)}
-              </span>
-            )}
-            {listing.dateRaw && (
-              <span className="flex items-center gap-1.5">
-                <CalendarDays className="size-4 text-primary" />
-                {listing.dateRaw}
-              </span>
-            )}
-          </div>
+      <section className="border-b border-border/60 bg-card">
+        <div className="mx-auto max-w-5xl px-4 py-4 sm:px-6">
+          {consultant ? (
+            consultant.profileSlug ? (
+              <Link
+                to={"/consultants/" + consultant.profileSlug}
+                className="flex items-center gap-3 rounded-2xl transition-colors hover:bg-muted/55"
+              >
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Building2 className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <strong className="block truncate text-sm">
+                    {consultant.name || "مشاور دیوساز"}
+                  </strong>
+                  <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                    {consultant.role || "مشاور دیوساز"}
+                  </span>
+                </div>
+                <ChevronLeft className="me-auto size-5 text-muted-foreground" />
+              </Link>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Building2 className="size-5" />
+                </span>
+                <div>
+                  <strong className="block text-sm">
+                    {consultant.name || "دیوساز"}
+                  </strong>
+                  <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                    {consultant.role || "مشاور املاک"}
+                  </span>
+                </div>
+              </div>
+            )
+          ) : null}
         </div>
       </section>
 
-      {images.length > 0 && (
-        <section
-          aria-label="گالری تصاویر ملک"
-          className="mx-auto max-w-5xl px-4 pt-7 sm:px-6"
-        >
-          <div className="overflow-hidden rounded-[2rem] border border-border/70 bg-muted">
-            <img
-              src={images[activeImage]?.url}
-              alt={images[activeImage]?.alt || listing.title}
-              className="aspect-[4/3] w-full object-contain p-2 sm:aspect-[16/9]"
-              fetchPriority="high"
-            />
-          </div>
-
-          {images.length > 1 && (
-            <div className="mt-3 flex snap-x gap-2 overflow-x-auto pb-2">
-              {images.map((image: any, index: number) => (
-                <button
-                  key={`${image.url}-${index}`}
-                  type="button"
-                  onClick={() => setActiveImage(index)}
-                  className={`relative w-24 shrink-0 snap-start overflow-hidden rounded-xl border transition-all sm:w-28 ${
-                    activeImage === index
-                      ? "border-primary ring-2 ring-primary/20"
-                      : "border-border/70 opacity-75 hover:opacity-100"
-                  }`}
-                  aria-label={`نمایش تصویر ${index + 1}`}
-                >
-                  <img
-                    src={image.url}
-                    alt={image.alt || `${listing.title} - تصویر ${index + 1}`}
-                    className="aspect-[4/3] w-full object-contain p-1"
-                    loading="lazy"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-      {images.length === 0 ? (
-        <section aria-label="تصویر آگهی" className="mx-auto max-w-5xl px-4 pt-7 sm:px-6">
-          <div className="aspect-[16/9] overflow-hidden rounded-[2rem] border border-border/70 bg-muted">
-            <ListingPlaceholder />
-          </div>
-        </section>
-      ) : null}
-
-      <div className="mx-auto grid max-w-5xl gap-7 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_300px] lg:py-10">
-        <article className="min-w-0">
-          <section className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-              <p className="text-xs text-muted-foreground">متراژ</p>
-              <p className="mt-2 font-extrabold">{formatArea(listing.area)}</p>
-            </div>
-            <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-              <p className="text-xs text-muted-foreground">اتاق</p>
-              <p className="mt-2 font-extrabold">{formatRooms(listing.rooms)}</p>
-            </div>
-            <div className="rounded-2xl border border-border/70 bg-card/70 p-4">
-              <p className="text-xs text-muted-foreground">نوع ملک</p>
-              <p className="mt-2 font-extrabold">{listing.propertyType}</p>
-            </div>
-          </section>
-
-          {(listing.customFields?.length ?? 0) > 0 && (
-            <section className="mt-5 rounded-[1.8rem] border border-border/70 bg-card/70 p-5 sm:p-7">
-              <h2 className="text-xl font-extrabold">مشخصات تخصصی</h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {listing.customFields.map((field: any) => (
-                  <div
-                    key={field.fieldId}
-                    className="flex items-start justify-between gap-4 rounded-xl border border-border/60 bg-background/45 p-3"
-                  >
-                    <span className="text-xs text-muted-foreground">{field.label}</span>
-                    <strong className="text-left text-sm">
-                      {field.type === "date" ? formatJalaliDate(field.value) : field.value}
-                      {field.unit ? ` ${field.unit}` : ""}
-                    </strong>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section className="mt-5 rounded-[1.8rem] border border-border/70 bg-card/70 p-5 sm:p-7">
-            <h2 className="text-xl font-extrabold">توضیحات کامل ملک</h2>
-            <div className="mt-4 whitespace-pre-line text-[15px] leading-8 text-foreground/80 sm:text-base sm:leading-9">
-              {listing.description || "برای دریافت توضیحات تکمیلی با دیوساز تماس بگیرید."}
-            </div>
-          </section>
-
-          <section className="mt-5 rounded-[1.8rem] border border-primary/20 bg-primary/5 p-5">
-            <h2 className="font-extrabold">حریم خصوصی آگهی</h2>
-            <p className="mt-2 text-xs leading-6 text-muted-foreground">
-              برای حفظ حریم خصوصی مالک، آدرس دقیق، محله، شماره مالک، یادداشت‌های داخلی
-              و لینک منبع در این صفحه نمایش داده نمی‌شوند. موقعیت عمومی فقط در سطح شهر
-              اعلام شده است.
-            </p>
-          </section>
-        </article>
-
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-[1.8rem] border border-border/70 bg-card p-5">
-            <p className="text-xs text-muted-foreground">شرایط مالی</p>
-            <div className="mt-3 space-y-2">
-              {listing.depositMillion != null && (
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-muted-foreground">ودیعه</span>
-                  <strong>{formatPrice(listing.depositMillion)}</strong>
-                </div>
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_310px]">
+          <article className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[11px] font-black text-emerald-700 dark:text-emerald-300">
+                <CircleDot className="size-3 fill-current" />
+                فعال
+              </span>
+              {listing.dealType && (
+                <span className="rounded-full bg-primary/10 px-3 py-1.5 text-[11px] font-black text-primary">
+                  {listing.dealType}
+                </span>
               )}
-              {listing.rentMillion != null && listing.rentMillion > 0 && (
-                <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-muted-foreground">اجاره ماهانه</span>
-                  <strong className="text-primary">
-                    {formatPrice(listing.rentMillion)}
-                  </strong>
-                </div>
+              {listing.featuredOnHome && (
+                <span className="rounded-full bg-amber-400/20 px-3 py-1.5 text-[11px] font-black text-amber-700 dark:text-amber-300">
+                  ویژه
+                </span>
               )}
-              {(listing.rentMillion == null || listing.rentMillion <= 0) && listing.priceMillion > 0 && (
-                <p className="text-xl font-extrabold text-primary">
-                  {formatPrice(listing.priceMillion)}
+            </div>
+
+            <h1 className="mt-4 text-2xl font-black leading-[1.5] sm:text-3xl">
+              {listing.title}
+            </h1>
+
+            <strong className="mt-5 block text-3xl font-black tracking-tight sm:text-4xl">
+              {mainPrice(listing)}
+            </strong>
+
+            {listing.depositMillion != null &&
+              listing.depositMillion > 0 &&
+              listing.rentMillion != null &&
+              listing.rentMillion > 0 && (
+                <p className="mt-2 text-sm font-bold text-muted-foreground">
+                  ودیعه {formatPrice(listing.depositMillion)}
                 </p>
               )}
-              {(listing.rentMillion == null || listing.rentMillion <= 0) && listing.priceMillion <= 0 && (
-                <p className="font-bold">قیمت توافقی</p>
+
+            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-bold">
+              {listing.rooms != null && (
+                <span>{formatRooms(listing.rooms)}</span>
+              )}
+              {listing.area != null && (
+                <>
+                  <span className="text-muted-foreground/35">|</span>
+                  <span>{formatArea(listing.area)}</span>
+                </>
+              )}
+              {listing.propertyType && (
+                <>
+                  <span className="text-muted-foreground/35">|</span>
+                  <span>{listing.propertyType}</span>
+                </>
               )}
             </div>
-          </div>
 
-          <div className="rounded-[1.8rem] border border-border/70 bg-card p-5">
-            <div className="flex items-center gap-2">
-              <Building2 className="size-5 text-primary" />
-              <h2 className="font-extrabold">تماس برای این ملک</h2>
-            </div>
-            <div className="mt-4 space-y-3">
-              {listing.contacts.map((contact: any) => (
-                <div
-                  key={contact.role + "-" + contact.phone}
-                  className="rounded-xl border border-border/70 p-3 transition-colors hover:border-primary/40"
-                >
-                  <div className="flex items-center justify-between gap-3">
+            <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="size-4 shrink-0 text-primary" />
+              {listing.city}
+            </p>
+
+            <div className="mt-7 rounded-[1.7rem] border border-blue-200/70 bg-blue-50 p-5 text-slate-900 dark:border-blue-900/40 dark:bg-blue-950/25 dark:text-foreground">
+              <p className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                شرایط مالی این فایل
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                {listing.depositMillion != null &&
+                  listing.depositMillion > 0 && (
                     <div>
-                      {contact.profileSlug ? (
-                        <Link
-                          to={"/consultants/" + contact.profileSlug}
-                          className="text-sm font-extrabold hover:text-primary"
-                        >
-                          {contact.name}
-                        </Link>
-                      ) : (
-                        <p className="text-sm font-extrabold">{contact.name}</p>
-                      )}
-                      <p className="mt-1 text-[10px] text-muted-foreground">{contact.role}</p>
+                      <span className="block text-[10px] text-muted-foreground">
+                        ودیعه
+                      </span>
+                      <strong className="mt-1 block">
+                        {formatPrice(listing.depositMillion)}
+                      </strong>
                     </div>
-                    <a
-                      href={"tel:" + contact.phone}
-                      className="flex items-center gap-1.5 font-mono text-xs text-primary"
-                      dir="ltr"
-                    >
-                      <PhoneCall className="size-4" />
-                      {contact.phone}
-                    </a>
-                  </div>
-                  {contact.profileSlug && (
-                    <Link
-                      to={"/consultants/" + contact.profileSlug}
-                      className="mt-2 inline-flex text-[10px] font-bold text-primary"
-                    >
-                      مشاهده پروفایل مشاور
-                    </Link>
                   )}
-                </div>
-              ))}
+                {listing.rentMillion != null && listing.rentMillion > 0 && (
+                  <div>
+                    <span className="block text-[10px] text-muted-foreground">
+                      اجاره ماهانه
+                    </span>
+                    <strong className="mt-1 block text-blue-700 dark:text-blue-300">
+                      {formatPrice(listing.rentMillion)}
+                    </strong>
+                  </div>
+                )}
+                {(listing.rentMillion == null || listing.rentMillion <= 0) &&
+                  listing.priceMillion > 0 && (
+                    <div>
+                      <span className="block text-[10px] text-muted-foreground">
+                        قیمت فروش
+                      </span>
+                      <strong className="mt-1 block text-blue-700 dark:text-blue-300">
+                        {formatPrice(listing.priceMillion)}
+                      </strong>
+                    </div>
+                  )}
+                {listing.pricePerMeter != null &&
+                  listing.pricePerMeter > 0 && (
+                    <div>
+                      <span className="block text-[10px] text-muted-foreground">
+                        قیمت هر متر
+                      </span>
+                      <strong className="mt-1 block">
+                        {formatPrice(listing.pricePerMeter)}
+                      </strong>
+                    </div>
+                  )}
+              </div>
             </div>
-          </div>
-        </aside>
+
+            <section className="mt-7">
+              <h2 className="text-lg font-black">مشخصات اصلی</h2>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <FeatureCard
+                  label="نوع ملک"
+                  value={listing.propertyType || "ملک"}
+                  icon={Factory}
+                />
+                <FeatureCard
+                  label="متراژ"
+                  value={
+                    listing.area != null ? formatArea(listing.area) : "ثبت نشده"
+                  }
+                  icon={Ruler}
+                />
+                <FeatureCard
+                  label="تعداد اتاق"
+                  value={
+                    listing.rooms != null
+                      ? formatRooms(listing.rooms)
+                      : "ثبت نشده"
+                  }
+                  icon={Building2}
+                />
+                <FeatureCard
+                  label="تاریخ آگهی"
+                  value={listing.dateRaw || "فعال"}
+                  icon={CalendarDays}
+                />
+              </div>
+            </section>
+
+            {publicFields.length > 0 && (
+              <section className="mt-7">
+                <h2 className="text-lg font-black">مشخصات تخصصی ملک</h2>
+                <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                  این موارد بر اساس نوع ملک و فیلدهای تخصصی تعریف‌شده در پنل
+                  دیوساز نمایش داده می‌شوند.
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {publicFields.map((field: any) => (
+                    <FeatureCard
+                      key={field.fieldId}
+                      label={field.label}
+                      value={
+                        field.type === "date"
+                          ? formatJalaliDate(field.value)
+                          : `${field.value}${field.unit ? " " + field.unit : ""}`
+                      }
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section className="mt-7 rounded-[1.7rem] border border-border/70 bg-card p-5 sm:p-6">
+              <h2 className="text-lg font-black">توضیحات کامل ملک</h2>
+              <div className="mt-4 whitespace-pre-line text-sm leading-8 text-foreground/80 sm:text-base sm:leading-9">
+                {listing.description ||
+                  "برای دریافت توضیحات تکمیلی و هماهنگی بازدید با دیوساز تماس بگیرید."}
+              </div>
+            </section>
+
+            <section className="mt-5 rounded-[1.7rem] border border-primary/15 bg-primary/5 p-5">
+              <h2 className="font-black">حریم خصوصی فایل</h2>
+              <p className="mt-2 text-xs leading-6 text-muted-foreground">
+                آدرس دقیق، شماره مالک، یادداشت‌های داخلی و لینک منبع عمومی
+                نمی‌شوند. برای دریافت جزئیات کامل و هماهنگی بازدید با مشاور
+                دیوساز تماس بگیرید.
+              </p>
+            </section>
+          </article>
+
+          <aside className="hidden space-y-4 lg:block lg:sticky lg:top-6 lg:self-start">
+            <div className="rounded-[1.7rem] border border-border/70 bg-card p-5 shadow-sm">
+              <h2 className="font-black">هماهنگی این فایل</h2>
+              <p className="mt-2 text-xs leading-6 text-muted-foreground">
+                برای جزئیات، بازدید و بررسی شرایط ملک با تیم دیوساز در ارتباط
+                باشید.
+              </p>
+              {consultant?.phone && (
+                <Button asChild className="mt-4 w-full gap-2 rounded-xl">
+                  <a href={"tel:" + consultant.phone}>
+                    <PhoneCall className="size-4" />
+                    تماس با مشاور
+                  </a>
+                </Button>
+              )}
+              <Button
+                asChild
+                variant="outline"
+                className="mt-2 w-full rounded-xl"
+              >
+                <Link to={"/request?" + requestParams.toString()}>
+                  درخواست بازدید
+                </Link>
+              </Button>
+            </div>
+
+            <div className="rounded-[1.7rem] border border-border/70 bg-muted/35 p-5">
+              <span className="text-[10px] text-muted-foreground">
+                کد صفحه عمومی
+              </span>
+              <strong className="mt-1 block font-mono text-xs" dir="ltr">
+                {listing.slug}
+              </strong>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 p-3 shadow-[0_-12px_35px_rgba(15,23,42,.12)] backdrop-blur-xl lg:hidden">
+        <div className="mx-auto grid max-w-xl grid-cols-[0.9fr_1.3fr] gap-2">
+          {consultant?.phone ? (
+            <Button
+              asChild
+              variant="outline"
+              className="h-13 gap-2 rounded-2xl border-primary text-primary"
+            >
+              <a href={"tel:" + consultant.phone}>
+                <PhoneCall className="size-4" />
+                تماس با مشاور
+              </a>
+            </Button>
+          ) : (
+            <Button
+              disabled
+              variant="outline"
+              className="h-13 rounded-2xl"
+            >
+              تماس با مشاور
+            </Button>
+          )}
+          <Button asChild className="h-13 rounded-2xl font-black">
+            <Link to={"/request?" + requestParams.toString()}>
+              درخواست بازدید
+            </Link>
+          </Button>
+        </div>
       </div>
     </main>
   );

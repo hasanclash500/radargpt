@@ -114,7 +114,7 @@ export default function PublicListings() {
     { initialNumItems: 36 },
   );
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("q") || "");
   const [propertyType, setPropertyType] = useState(() => searchParams.get("property") || "همه");
   const [dealType, setDealType] = useState(() => searchParams.get("deal") || "همه");
   const [city, setCity] = useState(() => searchParams.get("city") || "همه");
@@ -128,9 +128,13 @@ export default function PublicListings() {
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [sort, setSort] = useState<SortKey>("newest");
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(
+    () => searchParams.get("advanced") === "1",
+  );
   const [sortOpen, setSortOpen] = useState(false);
-  const [displayMode, setDisplayMode] = useState<"list" | "map">("list");
+  const [displayMode, setDisplayMode] = useState<"list" | "map">(
+    () => (searchParams.get("mode") === "map" ? "map" : "list"),
+  );
   const [mapBounds, setMapBounds] = useState<ListingMapBounds>(DEFAULT_LISTING_MAP_BOUNDS);
 
   const publicMapArgs = useMemo(() => ({

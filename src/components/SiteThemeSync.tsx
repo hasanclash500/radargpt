@@ -41,7 +41,7 @@ export default function SiteThemeSync() {
     }
     const fallback = isDivosazTheme(settings.siteTheme)
       ? settings.siteTheme
-      : "navy";
+      : "light";
     apply(fallback);
   }, [apply, settings?.siteTheme]);
 
@@ -59,7 +59,7 @@ export default function SiteThemeSync() {
       }
       const fallback = isDivosazTheme(settings?.siteTheme)
         ? settings.siteTheme
-        : "navy";
+        : "light";
       apply(fallback);
     };
 

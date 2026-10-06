@@ -28,6 +28,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { toast } from "sonner";
 
 type Intent = "buy" | "rent" | "sell" | "lease_out";
@@ -67,16 +68,27 @@ const INTENTS: Array<{
 export default function PropertyLeadSection() {
   const settings = useQuery(api.folders.getSettings, {});
   const createLead = useMutation(api.leads.createLead);
-  const [intent, setIntent] = useState<Intent | null>(null);
+  const [searchParams] = useSearchParams();
+  const initialIntent = (() => {
+    const value = searchParams.get("intent");
+    return value === "buy" ||
+      value === "rent" ||
+      value === "sell" ||
+      value === "lease_out"
+      ? value
+      : null;
+  })() as Intent | null;
+  const [intent, setIntent] = useState<Intent | null>(initialIntent);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
     phone: "",
-    city: "شهریار",
-    propertyType: PROPERTY_TYPES[0] as string,
-    area: "",
+    city: searchParams.get("city") || "شهریار",
+    propertyType:
+      searchParams.get("property") || (PROPERTY_TYPES[0] as string),
+    area: searchParams.get("area") || "",
     budget: "",
-    details: "",
+    details: searchParams.get("details") || "",
     website: "",
   });
 
