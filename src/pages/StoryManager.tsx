@@ -398,7 +398,7 @@ export default function StoryManager() {
   };
 
   return (
-    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass border-b border-border/60">
         <div className="mx-auto flex h-16 w-full min-w-0 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
@@ -417,7 +417,7 @@ export default function StoryManager() {
       <DashboardSectionNav />
 
       <section className="mx-auto w-full min-w-0 max-w-7xl space-y-4 px-3 py-5 sm:px-6 sm:py-8">
-        <div className="grid w-full min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="responsive-two-pane grid w-full min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="rounded-[2rem] border border-primary/20 bg-primary/[0.04] p-5">
             <div className="flex items-center gap-3">
               <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -450,7 +450,7 @@ export default function StoryManager() {
           </div>
         )}
 
-        <div className="grid w-full min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="responsive-two-pane grid w-full min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
           <section className="rounded-[2rem] border border-border/70 bg-card p-4 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
