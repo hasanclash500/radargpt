@@ -407,7 +407,7 @@ export default function BlogAdmin() {
     "توضیحات مقاله در نتایج جست‌وجو اینجا نمایش داده می‌شود.";
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background">
+    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
         <div className="mx-auto flex min-h-16 max-w-[1500px] items-center justify-between gap-3 px-4 py-2 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
