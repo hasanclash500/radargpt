@@ -102,6 +102,8 @@ export const getSettings = query({
       listingFieldConfigs:
         settings?.listingFieldConfigs ?? DEFAULT_LISTING_FIELD_CONFIGS,
       mapProvider: settings?.mapProvider ?? "neshan",
+      neshanMapEnabled: settings?.neshanMapEnabled ?? true,
+      osmMapEnabled: settings?.osmMapEnabled ?? true,
       sourceUrl: canSeeImportSettings ? (settings?.sourceUrl ?? "") : "",
       listingKindMigrationDone: canSeeImportSettings
         ? Boolean(settings?.listingKindMigrationDone)
@@ -149,6 +151,8 @@ export const getMapSettings = query({
       provider: settings?.mapProvider ?? "neshan",
       neshanMapKey: settings?.neshanMapKey ?? "",
       neshanConfigured: Boolean(settings?.neshanMapKey?.trim()),
+      neshanMapEnabled: settings?.neshanMapEnabled ?? true,
+      osmMapEnabled: settings?.osmMapEnabled ?? true,
     };
   },
 });
@@ -163,6 +167,8 @@ export const getMapAdminSettings = query({
         allowed: false,
         provider: "osm" as const,
         neshanConfigured: false,
+        neshanMapEnabled: true,
+        osmMapEnabled: true,
         keyHint: "",
       };
     }
@@ -177,6 +183,8 @@ export const getMapAdminSettings = query({
       allowed: true,
       provider: settings?.mapProvider ?? "neshan",
       neshanConfigured: Boolean(key),
+      neshanMapEnabled: settings?.neshanMapEnabled ?? true,
+      osmMapEnabled: settings?.osmMapEnabled ?? true,
       keyHint: key ? `${key.slice(0, 7)}••••${key.slice(-4)}` : "",
     };
   },
@@ -188,11 +196,17 @@ export const updateMapSettings = mutation({
     provider: v.union(v.literal("neshan"), v.literal("osm")),
     neshanMapKey: v.optional(v.string()),
     clearNeshanMapKey: v.boolean(),
+    neshanMapEnabled: v.boolean(),
+    osmMapEnabled: v.boolean(),
   },
   handler: async (ctx, args) => {
     const current = await currentRole(ctx);
     if (!current || !canManageSite(current.role)) {
       throw new Error("فقط مدیر اصلی اجازهٔ تغییر تنظیمات نقشه را دارد.");
+    }
+
+    if (!args.neshanMapEnabled && !args.osmMapEnabled) {
+      throw new Error("حداقل یکی از نقشه‌های نشان یا OpenStreetMap باید فعال باشد.");
     }
 
     const rows = await ctx.db
@@ -207,10 +221,19 @@ export const updateMapSettings = mutation({
       ? undefined
       : incoming || previousKey;
 
+    const mapProvider =
+      args.provider === "neshan" && !args.neshanMapEnabled
+        ? "osm"
+        : args.provider === "osm" && !args.osmMapEnabled
+          ? "neshan"
+          : args.provider;
+
     const data = {
       key: "global",
-      mapProvider: args.provider,
+      mapProvider,
       neshanMapKey,
+      neshanMapEnabled: args.neshanMapEnabled,
+      osmMapEnabled: args.osmMapEnabled,
       updatedAt: Date.now(),
     };
 
