@@ -151,11 +151,12 @@ function ListingTrendChart({
     );
 
   return (
-    <div className="mt-4">
-      <div className="overflow-x-auto [scrollbar-width:none]">
+    <div className="mt-4 min-w-0 max-w-full">
+      <div className="w-full max-w-full overflow-hidden">
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="h-[220px] min-w-[620px] w-full"
+          preserveAspectRatio="none"
+          className="h-[170px] w-full max-w-full sm:h-[220px]"
           role="img"
           aria-label="نمودار فعالیت آگهی‌های ۳۰ روز اخیر"
         >
@@ -657,9 +658,9 @@ export default function DashboardHome() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background pb-24 text-foreground lg:pb-0">
-      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-xl lg:hidden">
-        <div className="flex h-16 items-center justify-between px-3 sm:px-5">
+    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background pb-24 text-foreground lg:pb-0">
+      <header className="sticky top-0 z-50 w-full max-w-[100dvw] border-b border-border/70 bg-background/90 backdrop-blur-xl lg:hidden">
+        <div className="flex h-16 w-full min-w-0 items-center justify-between gap-2 px-3 sm:px-5">
           <MekaBrand compact link />
           <div className="flex items-center gap-1">
             <ThemeToggle />
@@ -685,7 +686,7 @@ export default function DashboardHome() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[1600px] gap-0 lg:min-h-screen">
+      <div className="mx-auto flex w-full min-w-0 max-w-full gap-0 lg:min-h-screen lg:max-w-[1600px]">
         <aside className="hidden w-[255px] shrink-0 border-l border-border/70 bg-card/70 lg:block">
           <div className="sticky top-0 flex h-screen flex-col p-4">
             <div className="px-2 py-2">
@@ -771,29 +772,29 @@ export default function DashboardHome() {
           </div>
         </aside>
 
-        <section className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
+        <section className="min-w-0 w-full max-w-full flex-1 overflow-x-clip px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
           <div className="mb-4 hidden items-center justify-end gap-2 lg:flex">
             <ThemeToggle />
           </div>
 
-          <section className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-card p-5 shadow-sm sm:p-7">
+          <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:rounded-[2rem] sm:p-7">
             <div className="pointer-events-none absolute -start-20 -top-24 size-72 rounded-full bg-primary/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -end-20 size-72 rounded-full bg-[color:var(--gold)]/10 blur-3xl" />
-            <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center">
-              <div>
-                <div className="flex items-center gap-3">
+            <div className="relative grid min-w-0 gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center">
+              <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-3">
                   <img
                     src="/divsaz-icon.svg"
                     alt=""
                     className="size-12 rounded-2xl shadow-lg ring-1 ring-border sm:size-14"
                   />
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-[11px] font-black text-[color:var(--gold)]">
                       {isAuthenticated
                         ? "داشبورد " + (ROLE_LABELS[role] || role)
                         : "پنل خدمات دیوساز"}
                     </p>
-                    <h1 className="mt-1 text-2xl font-black sm:text-3xl">
+                    <h1 className="mt-1 break-words text-xl font-black leading-8 sm:text-3xl">
                       {welcomeTitle}
                     </h1>
                   </div>
@@ -803,7 +804,7 @@ export default function DashboardHome() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid min-w-0 grid-cols-2 gap-2">
                 {(isStaff
                   ? [
                       {
@@ -857,7 +858,7 @@ export default function DashboardHome() {
           </section>
 
           {metrics.length > 0 && (
-            <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <section className="mt-4 grid w-full min-w-0 grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 xl:grid-cols-6">
               {metrics.map((metric) => {
                 const Icon = metric.icon;
                 const body = (
@@ -876,7 +877,7 @@ export default function DashboardHome() {
                   </>
                 );
                 const cls =
-                  "flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm transition hover:border-primary/30";
+                  "flex min-w-0 items-center gap-2.5 rounded-2xl border border-border/70 bg-card p-3 shadow-sm transition hover:border-primary/30 sm:gap-3 sm:p-3.5";
                 return metric.to ? (
                   <Link key={metric.label} to={metric.to} className={cls}>
                     {body}
@@ -891,7 +892,7 @@ export default function DashboardHome() {
           )}
 
           {isStaff && (
-            <section className="mt-4 rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+            <section className="mt-4 w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <h2 className="font-black">روند فعالیت آگهی‌ها در ۳۰ روز اخیر</h2>
@@ -950,9 +951,9 @@ export default function DashboardHome() {
 
           {isStaff && (
             <>
-              <section className="mt-5 grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-                <div className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
-                  <div className="flex items-center justify-between gap-3">
+              <section className="mt-5 grid w-full min-w-0 max-w-full gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+                <div className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+                  <div className="flex min-w-0 items-center justify-between gap-3">
                     <div>
                       <h2 className="font-black">آخرین آگهی‌های اعضا</h2>
                       <p className="mt-1 text-[11px] text-muted-foreground">
@@ -964,35 +965,23 @@ export default function DashboardHome() {
                     </Button>
                   </div>
 
-                  <div className="mt-4 overflow-x-auto">
-                    <div className="min-w-[620px]">
-                      <div className="grid grid-cols-[minmax(220px,1fr)_100px_100px_110px] gap-3 border-b border-border/70 px-2 pb-2 text-[10px] font-bold text-muted-foreground">
-                        <span>عنوان</span>
-                        <span>نوع</span>
-                        <span>وضعیت</span>
-                        <span>تاریخ</span>
-                      </div>
+                  <div className="mt-4 min-w-0 max-w-full">
+                    <div className="space-y-2 sm:hidden">
                       {(recentListings ?? []).map((item: any) => (
                         <div
                           key={item.id}
-                          className="grid grid-cols-[minmax(220px,1fr)_100px_100px_110px] items-center gap-3 border-b border-border/50 px-2 py-3 text-xs last:border-0"
+                          className="min-w-0 rounded-2xl border border-border/60 bg-background/55 p-3"
                         >
-                          <span className="min-w-0">
-                            <strong className="block truncate">
-                              {item.title || (item.propertyType + " در " + item.city)}
-                            </strong>
-                            <span className="mt-1 block truncate text-[10px] text-muted-foreground">
-                              {item.area ? faNum(item.area) + " متر" : "متراژ درج نشده"}
-                              {item.priceMillion > 0
-                                ? " · " + formatPrice(item.priceMillion)
-                                : ""}
+                          <strong className="block break-words text-xs leading-6">
+                            {item.title || (item.propertyType + " در " + item.city)}
+                          </strong>
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <span className="rounded-full bg-muted px-2 py-1">
+                              {item.dealType || "—"}
                             </span>
-                          </span>
-                          <span>{item.dealType}</span>
-                          <span>
                             <span
                               className={
-                                "rounded-full px-2 py-1 text-[10px] font-bold " +
+                                "rounded-full px-2 py-1 font-bold " +
                                 (item.isPublic
                                   ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                                   : item.publicationStatus === "pending"
@@ -1006,20 +995,76 @@ export default function DashboardHome() {
                                   ? "در انتظار"
                                   : "داخلی"}
                             </span>
-                          </span>
-                          <span className="text-muted-foreground">{item.date || "—"}</span>
+                            <span>{item.date || "—"}</span>
+                          </div>
+                          <p className="mt-2 break-words text-[10px] leading-5 text-muted-foreground">
+                            {item.area ? faNum(item.area) + " متر" : "متراژ درج نشده"}
+                            {item.priceMillion > 0
+                              ? " · " + formatPrice(item.priceMillion)
+                              : ""}
+                          </p>
                         </div>
                       ))}
-                      {(recentListings ?? []).length === 0 && (
-                        <p className="py-8 text-center text-xs text-muted-foreground">
-                          هنوز آگهی اعضا ثبت نشده است.
-                        </p>
-                      )}
                     </div>
+
+                    <div className="hidden max-w-full overflow-x-auto sm:block">
+                      <div className="min-w-[620px]">
+                        <div className="grid grid-cols-[minmax(220px,1fr)_100px_100px_110px] gap-3 border-b border-border/70 px-2 pb-2 text-[10px] font-bold text-muted-foreground">
+                          <span>عنوان</span>
+                          <span>نوع</span>
+                          <span>وضعیت</span>
+                          <span>تاریخ</span>
+                        </div>
+                        {(recentListings ?? []).map((item: any) => (
+                          <div
+                            key={item.id}
+                            className="grid grid-cols-[minmax(220px,1fr)_100px_100px_110px] items-center gap-3 border-b border-border/50 px-2 py-3 text-xs last:border-0"
+                          >
+                            <span className="min-w-0">
+                              <strong className="block truncate">
+                                {item.title || (item.propertyType + " در " + item.city)}
+                              </strong>
+                              <span className="mt-1 block truncate text-[10px] text-muted-foreground">
+                                {item.area ? faNum(item.area) + " متر" : "متراژ درج نشده"}
+                                {item.priceMillion > 0
+                                  ? " · " + formatPrice(item.priceMillion)
+                                  : ""}
+                              </span>
+                            </span>
+                            <span>{item.dealType}</span>
+                            <span>
+                              <span
+                                className={
+                                  "rounded-full px-2 py-1 text-[10px] font-bold " +
+                                  (item.isPublic
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                    : item.publicationStatus === "pending"
+                                      ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                                      : "bg-muted text-muted-foreground")
+                                }
+                              >
+                                {item.isPublic
+                                  ? "منتشرشده"
+                                  : item.publicationStatus === "pending"
+                                    ? "در انتظار"
+                                    : "داخلی"}
+                              </span>
+                            </span>
+                            <span className="text-muted-foreground">{item.date || "—"}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {(recentListings ?? []).length === 0 && (
+                      <p className="py-8 text-center text-xs text-muted-foreground">
+                        هنوز آگهی اعضا ثبت نشده است.
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+                <div className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                   <h2 className="font-black">دسترسی سریع</h2>
                   <div className="mt-4 grid grid-cols-2 gap-2">
                     {cards.slice(0, 6).map((card) => {
@@ -1045,8 +1090,8 @@ export default function DashboardHome() {
                 </div>
               </section>
 
-              <section className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
-                <div className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
+              <section className="mt-4 grid w-full min-w-0 max-w-full gap-4 lg:grid-cols-2 xl:grid-cols-3">
+                <div className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <h2 className="font-black">آخرین متقاضی‌ها</h2>
                     <Button asChild variant="ghost" size="sm">
@@ -1075,7 +1120,7 @@ export default function DashboardHome() {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
+                <div className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <h2 className="font-black">آخرین گفتگوها</h2>
                     <Button asChild variant="ghost" size="sm">
@@ -1115,7 +1160,7 @@ export default function DashboardHome() {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-border/70 bg-card p-4 shadow-sm lg:col-span-2 xl:col-span-1">
+                <div className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm lg:col-span-2 xl:col-span-1">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="size-5 text-[color:var(--gold)]" />
                     <h2 className="font-black">وضعیت کارهای امروز</h2>
@@ -1165,7 +1210,7 @@ export default function DashboardHome() {
         </section>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 w-[100dvw] max-w-[100dvw] border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
           <Link
             to="/dashboard"
