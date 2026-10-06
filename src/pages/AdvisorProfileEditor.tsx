@@ -130,7 +130,7 @@ export default function AdvisorProfileEditor() {
 
   if (!profile?.allowed) {
     return (
-      <main dir="rtl" className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
+      <main dir="rtl" className="responsive-page flex min-h-screen w-full max-w-[100dvw] items-center justify-center overflow-x-clip bg-muted/30 p-3 sm:p-4">
         <div className="max-w-md rounded-3xl border border-border bg-card p-6 text-center">
           <UserRound className="mx-auto size-10 text-muted-foreground" />
           <h1 className="mt-4 text-xl font-black">پروفایل مشاور برای این حساب فعال نیست</h1>
@@ -229,7 +229,7 @@ export default function AdvisorProfileEditor() {
   };
 
   return (
-    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass border-b border-border/60">
         <div className="mx-auto flex h-16 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
