@@ -7,7 +7,7 @@
  */
 
 import { CSV_HEADERS } from "./exporters";
-import { neshanSearchUrl } from "./neshan";
+import { neshanSearchUrl, parseMapCoordinates } from "./neshan";
 import { parsePriceMillion, toEnglishDigits, type Listing } from "./parser";
 import type { DealType, PropertyType } from "./parser";
 
@@ -58,6 +58,8 @@ const FIELD_ALIASES: Record<string, string[]> = {
   dateRaw: ["date_raw", "تاریخ خام"],
   poster: ["آگهی‌دهنده", "poster", "آگهی دهنده", "منبع"],
   address: ["آدرس", "ادرس", "address", "نشانی"],
+  latitude: ["عرض جغرافیایی", "latitude", "lat"],
+  longitude: ["طول جغرافیایی", "longitude", "lng", "lon"],
 };
 
 function normalizeKey(key: string): string {
@@ -202,6 +204,10 @@ function rowToListing(row: Record<string, unknown>): Listing | null {
   const { date, dateRaw } = normalizeDate(mapped.date ?? mapped.dateRaw);
 
   const divarUrl = str(mapped.divarUrl);
+  const importedMapsUrl = str(mapped.mapsUrl);
+  const parsedMapPoint = parseMapCoordinates(importedMapsUrl);
+  const latitude = num(mapped.latitude) ?? parsedMapPoint?.lat;
+  const longitude = num(mapped.longitude) ?? parsedMapPoint?.lng;
   const cityLabel = city;
   const fallbackTitle =
     str(mapped.title) || `${cityLabel}، ${str(mapped.propertyType) || "ملک"}`;
@@ -230,8 +236,10 @@ function rowToListing(row: Record<string, unknown>): Listing | null {
     phone,
     divarUrl,
     mapsUrl:
-      str(mapped.mapsUrl) ||
+      importedMapsUrl ||
       (city ? neshanSearchUrl(city) : ""),
+    latitude,
+    longitude,
     date,
     dateRaw,
     poster: str(mapped.poster),
