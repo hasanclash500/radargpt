@@ -273,6 +273,105 @@ html[data-site-theme="light"] {
   }
 }
 
+
+/* Responsive guardrails for dashboard/web-app pages.
+   Some Android browsers can report a desktop-like layout viewport when zoomed.
+   Coarse-pointer devices therefore force the single-column mobile shell up to
+   1200 CSS pixels so the UI never collapses into a narrow desktop column. */
+.responsive-page {
+  width: 100%;
+  max-width: 100dvw;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.responsive-page > * {
+  min-width: 0;
+}
+
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1200px) {
+  html,
+  body,
+  #root {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  .responsive-page {
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+    margin-inline: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  .responsive-page > header > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .responsive-page section,
+  .responsive-page article,
+  .responsive-page aside,
+  .responsive-page nav {
+    min-width: 0;
+  }
+
+  .responsive-page img,
+  .responsive-page svg,
+  .responsive-page video,
+  .responsive-page canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .responsive-two-pane,
+  .dashboard-hero-grid,
+  .dashboard-staff-grid,
+  .dashboard-bottom-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .dashboard-main-row {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+  }
+
+  .dashboard-desktop-sidebar {
+    display: none !important;
+  }
+
+  .dashboard-mobile-header {
+    display: block !important;
+  }
+
+  .dashboard-main-content {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+    padding-inline: 0.75rem !important;
+  }
+
+  .dashboard-mobile-nav {
+    display: block !important;
+  }
+
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"] {
+    width: calc(100vw - 0.75rem) !important;
+    max-width: calc(100vw - 0.75rem) !important;
+    max-height: calc(100dvh - 0.75rem);
+    overflow-x: hidden;
+  }
+}
+
 @keyframes radar-ping {
   0% {
     transform: scale(0.6);
