@@ -274,11 +274,11 @@ export default function Dashboard() {
   const displayListings = localTouched ? listings : serverItems;
 
   useEffect(() => {
-    if (!pendingMapSelectionKey) return;
+    if (!pendingMapSelectionKey || searchingServer) return;
     if (!displayListings.some((item) => listingKey(item) === pendingMapSelectionKey)) return;
     setSelected(new Set([pendingMapSelectionKey]));
     setPendingMapSelectionKey(null);
-  }, [displayListings, pendingMapSelectionKey]);
+  }, [displayListings, pendingMapSelectionKey, searchingServer]);
 
   const settings = useMemo(
     () => ({
