@@ -454,7 +454,14 @@ export default function ListingMapExplorer({
   };
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm">
+    <section
+      className={
+        "overflow-hidden bg-card shadow-sm " +
+        (mode === "public"
+          ? "rounded-none border-y border-border/70 sm:rounded-3xl sm:border"
+          : "rounded-3xl border border-border/70")
+      }
+    >
       {mode === "internal" && (
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/70 px-3 py-3 sm:px-4">
           <div>
