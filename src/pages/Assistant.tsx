@@ -77,7 +77,7 @@ function ListingResultCard({ item }: { item: AssistantListing }) {
 
   return (
     <article className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-      <div className="grid grid-cols-[minmax(0,1fr)_110px] sm:grid-cols-[minmax(0,1fr)_150px]">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_150px] sm:gap-0">
         <div className="min-w-0 p-3.5 sm:p-4">
           <div className="flex flex-wrap gap-1.5">
             <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-extrabold text-primary">
@@ -240,7 +240,7 @@ export default function AssistantPage() {
   };
 
   return (
-    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
         <div className="mx-auto flex h-16 w-full min-w-0 max-w-5xl items-center justify-between gap-2 px-3 sm:px-6">
           <Link to={backHref} className="flex items-center gap-2.5 font-extrabold">
