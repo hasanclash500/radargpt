@@ -214,6 +214,7 @@ export default function ListingMapExplorer({
   const [readyVersion, setReadyVersion] = useState(0);
   const [loadError, setLoadError] = useState("");
   const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [selectedPoint, setSelectedPoint] = useState<ListingMapItem | null>(null);
 
   useEffect(() => {
     boundsCallbackRef.current = onBoundsChange;
@@ -374,6 +375,7 @@ export default function ListingMapExplorer({
 
       marker.on("click", () => {
         setActiveKey(point.key);
+        setSelectedPoint(point);
         map.panTo([point.latitude, point.longitude], {
           animate: true,
           duration: 0.25,
@@ -407,14 +409,16 @@ export default function ListingMapExplorer({
   }, [points, activeKey, readyVersion, mode]);
 
   useEffect(() => {
-    if (activeKey && !points.some((point) => point.key === activeKey)) {
-      setActiveKey(null);
-    }
+    if (!activeKey) return;
+    const refreshed = points.find((point) => point.key === activeKey);
+    if (refreshed) setSelectedPoint(refreshed);
   }, [activeKey, points]);
 
   const activePoint = useMemo(
-    () => points.find((point) => point.key === activeKey) ?? null,
-    [activeKey, points],
+    () =>
+      points.find((point) => point.key === activeKey) ??
+      (selectedPoint?.key === activeKey ? selectedPoint : null),
+    [activeKey, points, selectedPoint],
   );
   const selectedPublicListing = useQuery(
     api.listings.getPublicBySlug,
@@ -635,7 +639,10 @@ export default function ListingMapExplorer({
 
               <button
                 type="button"
-                onClick={() => setActiveKey(null)}
+                onClick={() => {
+                setActiveKey(null);
+                setSelectedPoint(null);
+              }}
                 className="absolute end-3 top-3 z-20 flex size-10 items-center justify-center rounded-full bg-background/95 shadow-md"
                 aria-label="بستن کارت آگهی"
               >
