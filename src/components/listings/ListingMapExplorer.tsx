@@ -199,6 +199,11 @@ export default function ListingMapExplorer({
 
     if (!mapAvailable) {
       setLoadError("هیچ موتور نقشه قابل استفاده‌ای فعال نیست.");
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      layerRef.current = null;
       return;
     }
 
