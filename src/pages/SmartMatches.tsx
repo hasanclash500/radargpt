@@ -146,7 +146,7 @@ export default function SmartMatches() {
   return (
     <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="gap-1">
               <Link to="/admin">
@@ -165,7 +165,7 @@ export default function SmartMatches() {
 
       <DashboardSectionNav />
 
-      <section className="mx-auto max-w-6xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">
+      <section className="mx-auto w-full min-w-0 max-w-6xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">
         <div className="rounded-3xl border border-primary/20 bg-primary/[0.04] p-5">
           <div className="flex items-start gap-3">
             <Sparkles className="mt-1 size-6 shrink-0 text-primary" />
@@ -236,7 +236,7 @@ export default function SmartMatches() {
                     <Target className="size-4 text-primary" />
                     {group.matches.length.toLocaleString("fa-IR")} فایل پیشنهادی
                   </p>
-                  <div className="grid gap-3 lg:grid-cols-2">
+                  <div className="grid w-full min-w-0 gap-3 lg:grid-cols-2">
                     {group.matches.map((match: any) => (
                       <ListingMatchCard
                         key={String(match.listing.id)}
