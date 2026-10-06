@@ -474,16 +474,18 @@ export default function PublicListings() {
         </div>
 
         {displayMode === "map" ? (
-          <ListingMapExplorer
-            mode="public"
-            points={publicMapListings?.points ?? []}
-            loading={publicMapListings === undefined}
-            truncated={publicMapListings?.truncated ?? false}
-            onBoundsChange={setMapBounds}
-            onOpenListing={(point) => {
-              if (point.slug) navigate("/listings/" + point.slug);
-            }}
-          />
+          <div className="-mx-3 sm:mx-0">
+            <ListingMapExplorer
+              mode="public"
+              points={publicMapListings?.points ?? []}
+              loading={publicMapListings === undefined}
+              truncated={publicMapListings?.truncated ?? false}
+              onBoundsChange={setMapBounds}
+              onOpenListing={(point) => {
+                if (point.slug) navigate("/listings/" + point.slug);
+              }}
+            />
+          </div>
         ) : status === "LoadingFirstPage" ? (
           <div className="py-24 text-center text-sm text-muted-foreground">در حال دریافت آگهی‌ها…</div>
         ) : filtered.length === 0 ? (
