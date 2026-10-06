@@ -505,7 +505,7 @@ export default function Landing() {
   });
 
   return (
-    <main dir="rtl" className="relative min-h-screen overflow-x-clip bg-background pb-24 md:pb-0">
+    <main dir="rtl" className="responsive-page relative min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background pb-24 md:pb-0">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[720px]">
         <div className="absolute inset-0 grid-overlay opacity-50" />
         <div className="absolute inset-0 glow-emerald opacity-80" />
