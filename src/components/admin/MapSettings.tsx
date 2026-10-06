@@ -2,9 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
-import { CheckCircle2, KeyRound, Loader2, Map, ShieldCheck, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  KeyRound,
+  Loader2,
+  Map,
+  Power,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +22,8 @@ export default function MapSettings() {
   const saveSettings = useMutation(api.folders.updateMapSettings);
 
   const [provider, setProvider] = useState<"neshan" | "osm">("neshan");
+  const [neshanEnabled, setNeshanEnabled] = useState(true);
+  const [osmEnabled, setOsmEnabled] = useState(true);
   const [keyDraft, setKeyDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [clearKey, setClearKey] = useState(false);
@@ -20,9 +31,34 @@ export default function MapSettings() {
   useEffect(() => {
     if (!status?.allowed) return;
     setProvider(status.provider === "osm" ? "osm" : "neshan");
-  }, [status?.allowed, status?.provider]);
+    setNeshanEnabled(status.neshanMapEnabled ?? true);
+    setOsmEnabled(status.osmMapEnabled ?? true);
+  }, [
+    status?.allowed,
+    status?.provider,
+    status?.neshanMapEnabled,
+    status?.osmMapEnabled,
+  ]);
 
   if (!status?.allowed) return null;
+
+  const toggleNeshan = (checked: boolean) => {
+    if (!checked && !osmEnabled) {
+      toast.error("حداقل یکی از نقشه‌ها باید فعال باشد");
+      return;
+    }
+    setNeshanEnabled(checked);
+    if (!checked && provider === "neshan") setProvider("osm");
+  };
+
+  const toggleOsm = (checked: boolean) => {
+    if (!checked && !neshanEnabled) {
+      toast.error("حداقل یکی از نقشه‌ها باید فعال باشد");
+      return;
+    }
+    setOsmEnabled(checked);
+    if (!checked && provider === "osm") setProvider("neshan");
+  };
 
   const save = async () => {
     setSaving(true);
@@ -31,6 +67,8 @@ export default function MapSettings() {
         provider,
         neshanMapKey: keyDraft.trim() || undefined,
         clearNeshanMapKey: clearKey,
+        neshanMapEnabled: neshanEnabled,
+        osmMapEnabled: osmEnabled,
       });
       setKeyDraft("");
       setClearKey(false);
@@ -52,61 +90,109 @@ export default function MapSettings() {
           نقشه و موقعیت ملک
         </CardTitle>
         <CardDescription>
-          نقشه پیش‌فرض فرم‌های دیوساز را انتخاب کنید. نشان با کلید Web SDK کار
-          می‌کند و OpenStreetMap بدون کلید به‌عنوان گزینه جایگزین در دسترس است.
+          هر سرویس را می‌توانید مستقل برای کل سایت فعال یا غیرفعال کنید. سرویس
+          غیرفعال از انتخاب‌گر نقشه و گزینه‌های مسیریابی کاربران حذف می‌شود.
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-5">
         <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setProvider("neshan")}
+          <div
             className={
-              "rounded-2xl border p-4 text-right transition-colors " +
-              (provider === "neshan"
+              "rounded-2xl border p-4 transition-colors " +
+              (provider === "neshan" && neshanEnabled
                 ? "border-primary bg-primary/8"
-                : "border-border hover:bg-muted")
+                : "border-border")
             }
           >
-            <div className="flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Map className="size-4" />
-              </span>
-              <div>
-                <p className="text-sm font-black">نشان</p>
-                <p className="mt-1 text-[10px] text-muted-foreground">
-                  انتخاب اول برای کاربران داخل ایران
-                </p>
+            <button
+              type="button"
+              disabled={!neshanEnabled}
+              onClick={() => setProvider("neshan")}
+              className="w-full text-right disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Map className="size-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-black">نشان</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    انتخاب اول برای کاربران داخل ایران
+                  </p>
+                </div>
               </div>
+            </button>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-3">
+              <Label htmlFor="neshan-map-enabled" className="text-xs font-bold">
+                نمایش نشان در سایت
+              </Label>
+              <Switch
+                id="neshan-map-enabled"
+                checked={neshanEnabled}
+                onCheckedChange={toggleNeshan}
+                aria-label="فعال یا غیرفعال کردن نشان"
+              />
             </div>
-          </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => setProvider("osm")}
+          <div
             className={
-              "rounded-2xl border p-4 text-right transition-colors " +
-              (provider === "osm"
+              "rounded-2xl border p-4 transition-colors " +
+              (provider === "osm" && osmEnabled
                 ? "border-primary bg-primary/8"
-                : "border-border hover:bg-muted")
+                : "border-border")
             }
           >
-            <div className="flex items-center gap-2">
-              <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Map className="size-4" />
-              </span>
-              <div>
-                <p className="text-sm font-black">OpenStreetMap</p>
-                <p className="mt-1 text-[10px] text-muted-foreground">
-                  بدون API Key و مناسب به‌عنوان fallback
-                </p>
+            <button
+              type="button"
+              disabled={!osmEnabled}
+              onClick={() => setProvider("osm")}
+              className="w-full text-right disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <div className="flex items-center gap-2">
+                <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Map className="size-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-black">OpenStreetMap</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    بدون API Key و مناسب به‌عنوان fallback
+                  </p>
+                </div>
               </div>
+            </button>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/60 pt-3">
+              <Label htmlFor="osm-map-enabled" className="text-xs font-bold">
+                نمایش OpenStreetMap در سایت
+              </Label>
+              <Switch
+                id="osm-map-enabled"
+                checked={osmEnabled}
+                onCheckedChange={toggleOsm}
+                aria-label="فعال یا غیرفعال کردن OpenStreetMap"
+              />
             </div>
-          </button>
+          </div>
         </div>
 
-        <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+        <div className="flex items-start gap-2 rounded-2xl border border-border/70 bg-muted/20 p-3 text-[11px] leading-6 text-muted-foreground">
+          <Power className="mt-1 size-4 shrink-0 text-primary" />
+          <p>
+            نقشه پیش‌فرض فعلی:{" "}
+            <strong className="text-foreground">
+              {provider === "neshan" ? "نشان" : "OpenStreetMap"}
+            </strong>
+            . حداقل یک سرویس باید فعال بماند.
+          </p>
+        </div>
+
+        <div
+          className={
+            "rounded-2xl border border-border/70 bg-muted/20 p-4 " +
+            (!neshanEnabled ? "opacity-70" : "")
+          }
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <KeyRound className="size-4 text-primary" />
@@ -123,6 +209,12 @@ export default function MapSettings() {
               </span>
             )}
           </div>
+
+          {!neshanEnabled && (
+            <p className="mt-2 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+              نشان فعلاً در سایت غیرفعال است؛ کلید برای استفاده بعدی حفظ می‌شود.
+            </p>
+          )}
 
           {status.neshanConfigured && status.keyHint && (
             <p dir="ltr" className="mt-2 text-xs text-muted-foreground">
