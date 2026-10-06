@@ -509,6 +509,9 @@ const schema = defineSchema(
         v.union(v.literal("neshan"), v.literal("osm")),
       ),
       neshanMapKey: v.optional(v.string()),
+      /** فعال/غیرفعال بودن هر موتور نقشه در کل رابط کاربری */
+      neshanMapEnabled: v.optional(v.boolean()),
+      osmMapEnabled: v.optional(v.boolean()),
       /** سن آگهی برای ورود به صف پیگیری، بر حسب ماه؛ پیش‌فرض ۱۱ ماه */
       reminderAgeMonths: v.optional(v.number()),
       /** مدت نمایش یادآوریِ سررسیدشده؛ پیش‌فرض ۱۰ روز */
