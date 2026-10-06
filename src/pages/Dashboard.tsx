@@ -179,6 +179,7 @@ export default function Dashboard() {
     (!settingsRow?.listingKindMigrationDone ||
       !settingsRow?.listingSearchBackfillDone ||
       !settingsRow?.landingVisibilityMigrationDone ||
+      !settingsRow?.listingCoordinatesBackfillDone ||
       !settingsRow?.listingCountsReady);
 
   const maintenanceStartedRef = useRef(false);
