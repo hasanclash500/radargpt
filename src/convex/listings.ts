@@ -990,6 +990,8 @@ const listingFields = {
   description: v.optional(v.string()),
   address: v.optional(v.string()),
   mapsUrl: v.optional(v.string()),
+  latitude: v.optional(v.number()),
+  longitude: v.optional(v.number()),
   divarUrl: v.optional(v.string()),
   date: v.optional(v.string()),
   dateRaw: v.optional(v.string()),
