@@ -41,7 +41,7 @@ export default function DashboardLeads() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
         <div className="mx-auto flex h-16 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
