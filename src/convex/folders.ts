@@ -94,7 +94,8 @@ export const getSettings = query({
       officeName: settings?.officeName ?? "دیوساز",
       managerPhone: settings?.managerPhone ?? "09120858095",
       shareFooter: settings?.shareFooter ?? "",
-      siteTheme: settings?.siteTheme ?? "navy",
+      siteTheme: settings?.siteTheme ?? "light",
+      homepageVariant: settings?.homepageVariant ?? "classic",
       enabledModules: settings?.enabledModules ?? [],
       customCities: settings?.customCities ?? [],
       customDeals: settings?.customDeals ?? [],
@@ -254,6 +255,9 @@ export const updateSettings = mutation({
     siteTheme: v.optional(
       v.union(v.literal("navy"), v.literal("emerald"), v.literal("light")),
     ),
+    homepageVariant: v.optional(
+      v.union(v.literal("classic"), v.literal("modern")),
+    ),
     enabledModules: v.optional(v.array(v.string())),
     customCities: v.optional(v.array(v.string())),
     customDeals: v.optional(v.array(v.string())),
@@ -276,6 +280,7 @@ export const updateSettings = mutation({
         args.managerPhone !== undefined ||
         args.shareFooter !== undefined ||
         args.siteTheme !== undefined ||
+        args.homepageVariant !== undefined ||
         args.enabledModules !== undefined ||
         args.mapProvider !== undefined)
     ) {
