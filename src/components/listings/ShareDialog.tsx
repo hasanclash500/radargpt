@@ -134,7 +134,7 @@ export default function ShareDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         dir="rtl"
-        className="flex max-h-[calc(100dvh-12px)] w-[calc(100vw-12px)] max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-h-[92vh] sm:w-full sm:rounded-2xl"
+        className="flex max-h-[calc(100dvh-12px)] w-[calc(100dvw-12px)] max-w-[calc(100dvw-12px)] flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-h-[92vh] sm:max-w-2xl sm:rounded-2xl"
       >
         <DialogHeader className="shrink-0 border-b border-border/60 px-4 pb-3 pt-5 text-right sm:px-5">
           <DialogTitle className="flex items-center gap-2 text-xl">
