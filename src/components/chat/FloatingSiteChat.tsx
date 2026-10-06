@@ -222,7 +222,7 @@ export default function FloatingSiteChat() {
       className="fixed bottom-24 end-4 z-[80] md:bottom-6 md:end-6"
     >
       {open && (
-        <div className="absolute bottom-16 end-0 flex h-[min(72dvh,640px)] w-[calc(100vw-24px)] max-w-[390px] flex-col overflow-hidden rounded-[1.6rem] border border-border/70 bg-background shadow-2xl">
+        <div className="absolute bottom-16 end-0 flex h-[min(72dvh,640px)] w-[calc(100dvw-24px)] max-w-[390px] flex-col overflow-hidden rounded-[1.6rem] border border-border/70 bg-background shadow-2xl">
           <div className="flex shrink-0 items-center gap-2 border-b border-border/70 bg-card px-3 py-3">
             {(selectedId || pendingPerson) && (
               <Button
