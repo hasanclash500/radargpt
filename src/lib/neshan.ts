@@ -19,6 +19,72 @@ export function neshanSearchUrl(query: string) {
     : "https://neshan.org/maps";
 }
 
+export type MapCoordinates = { lat: number; lng: number };
+
+function validCoordinates(lat: number, lng: number): MapCoordinates | null {
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    lat < -90 ||
+    lat > 90 ||
+    lng < -180 ||
+    lng > 180
+  ) {
+    return null;
+  }
+  return { lat, lng };
+}
+
+/**
+ * مختصات را از لینک‌های رایج نقشه استخراج می‌کند تا فایل‌های CSV/Excel/JSON
+ * هنگام ورود، لوکیشن ثبت‌شده را از دست ندهند.
+ */
+export function parseMapCoordinates(value?: string | null): MapCoordinates | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+
+  try {
+    const url = new URL(raw);
+
+    const latParam = url.searchParams.get("lat") ?? url.searchParams.get("mlat");
+    const lngParam =
+      url.searchParams.get("lng") ??
+      url.searchParams.get("lon") ??
+      url.searchParams.get("mlon");
+    if (latParam && lngParam) {
+      const parsed = validCoordinates(Number(latParam), Number(lngParam));
+      if (parsed) return parsed;
+    }
+
+    for (const key of ["q", "query", "destination", "daddr"]) {
+      const pair = url.searchParams.get(key)?.match(
+        /(-?\d{1,2}(?:\.\d+)?)\s*[,،]\s*(-?\d{1,3}(?:\.\d+)?)/,
+      );
+      if (pair) {
+        const parsed = validCoordinates(Number(pair[1]), Number(pair[2]));
+        if (parsed) return parsed;
+      }
+    }
+  } catch {
+    // بعضی ورودی‌ها لینک کامل نیستند؛ الگوهای متنی پایین همچنان بررسی می‌شوند.
+  }
+
+  const atPair = raw.match(
+    /@(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/,
+  );
+  if (atPair) {
+    const parsed = validCoordinates(Number(atPair[1]), Number(atPair[2]));
+    if (parsed) return parsed;
+  }
+
+  const genericPair = raw.match(
+    /(?:lat(?:itude)?|عرض)\s*[=:]\s*(-?\d{1,2}(?:\.\d+)?)[^\d-]+(?:lng|lon(?:gitude)?|طول)\s*[=:]\s*(-?\d{1,3}(?:\.\d+)?)/i,
+  );
+  return genericPair
+    ? validCoordinates(Number(genericPair[1]), Number(genericPair[2]))
+    : null;
+}
+
 export function listingNeshanUrl(input: {
   latitude?: number | null;
   longitude?: number | null;
