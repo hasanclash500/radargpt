@@ -8,7 +8,7 @@ export default function MekaBrand({
   link?: boolean;
 }) {
   const content = (
-    <div className="flex items-center gap-2.5" dir="rtl">
+    <div className="divsaz-brand flex max-w-full min-w-0 items-center gap-2 sm:gap-2.5" dir="rtl">
       <img
         src="/divsaz-icon.svg"
         alt=""
@@ -18,10 +18,10 @@ export default function MekaBrand({
           (compact ? "size-9" : "size-11")
         }
       />
-      <span className="min-w-0">
+      <span className="min-w-0 overflow-hidden">
         <span
           className={
-            "block whitespace-nowrap font-black leading-none tracking-[-0.035em] text-foreground " +
+            "block truncate whitespace-nowrap font-black leading-none tracking-[-0.035em] text-foreground " +
             (compact ? "text-[21px]" : "text-[29px]")
           }
           aria-label="دیوساز"
@@ -30,7 +30,7 @@ export default function MekaBrand({
         </span>
         <span
           className={
-            "mt-1 block whitespace-nowrap font-bold text-muted-foreground " +
+            "divsaz-brand-subtitle mt-1 block truncate whitespace-nowrap font-bold text-muted-foreground " +
             (compact ? "text-[9px]" : "text-[11px]")
           }
         >
@@ -41,7 +41,7 @@ export default function MekaBrand({
   );
 
   return link ? (
-    <Link to="/" aria-label="دیوساز - صفحه اصلی">
+    <Link to="/" aria-label="دیوساز - صفحه اصلی" className="min-w-0 max-w-full">
       {content}
     </Link>
   ) : (
