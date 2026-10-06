@@ -37,6 +37,7 @@ import {
   Search,
   KeyRound,
   HandCoins,
+  Heart,
   HomeIcon,
   Grid3X3,
   ClipboardList,
@@ -549,6 +550,7 @@ export default function Landing() {
                 <div className="flex-1 overflow-y-auto p-3">
                   <div className="grid gap-1.5">
                     <MenuLink to="/listings" icon={Search} label="آگهی‌ها و جستجوی ملک" />
+                    <MenuLink to="/saved" icon={Heart} label="آگهی‌های ذخیره‌شده من" />
                     <MenuLink to="/assistant" icon={Bot} label="دستیار هوشمند دیوساز" highlight />
                     <MenuLink to="/submit-listing" icon={Building2} label="ثبت آگهی ملک" />
                     <MenuLink to="/request" icon={ClipboardList} label="ثبت متقاضی / تقاضای ملک" />
