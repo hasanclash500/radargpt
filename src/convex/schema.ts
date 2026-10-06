@@ -258,7 +258,8 @@ const schema = defineSchema(
       createdAt: v.number(),
     })
       .index("by_user_created", ["userId", "createdAt"])
-      .index("by_user_listing", ["userId", "listingId"]),
+      .index("by_user_listing", ["userId", "listingId"])
+      .index("by_listing", ["listingId"]),
 
     /**
      * پروفایل عمومی مشاور/مدیر. اطلاعات تماس و شبکه‌های اجتماعی فقط در صورت
