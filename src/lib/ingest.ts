@@ -5,7 +5,7 @@
  * (برای افزودن روزانهٔ آگهی) قابل استفاده باشد. منطق از importers.ts استخراج شده.
  */
 
-import { neshanSearchUrl } from "./neshan";
+import { neshanSearchUrl, parseMapCoordinates } from "./neshan";
 import { parsePriceMillion, toEnglishDigits, type Listing } from "./parser";
 import type { DealType, PropertyType } from "./parser";
 import { CSV_HEADERS } from "./exporters";
@@ -83,6 +83,8 @@ export const FIELD_ALIASES: Record<string, string[]> = {
   dateRaw: ["date_raw", "تاریخ خام"],
   poster: ["آگهی‌دهنده", "poster", "آگهی دهنده", "منبع"],
   address: ["آدرس", "ادرس", "address", "نشانی"],
+  latitude: ["عرض جغرافیایی", "latitude", "lat"],
+  longitude: ["طول جغرافیایی", "longitude", "lng", "lon"],
 };
 
 function normalizeKey(key: string): string {
@@ -213,6 +215,10 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
   // تاریخ ممکن است YYYY-MM-DD (خروجی JSON) یا YYYY/M/D (خروجی CSV) باشد
   const { date, dateRaw } = normalizeDate(mapped.date ?? mapped.dateRaw);
   const divarUrl = str(mapped.divarUrl);
+  const importedMapsUrl = str(mapped.mapsUrl);
+  const parsedMapPoint = parseMapCoordinates(importedMapsUrl);
+  const latitude = toNumber(mapped.latitude) ?? parsedMapPoint?.lat;
+  const longitude = toNumber(mapped.longitude) ?? parsedMapPoint?.lng;
 
   return {
     id: radarCode || `${phone}-${divarUrl || city}`,
@@ -236,8 +242,10 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
     phone,
     divarUrl,
     mapsUrl:
-      str(mapped.mapsUrl) ||
+      importedMapsUrl ||
       (city ? neshanSearchUrl(city) : ""),
+    latitude,
+    longitude,
     date,
     dateRaw,
     poster: str(mapped.poster),
