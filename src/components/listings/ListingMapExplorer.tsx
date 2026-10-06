@@ -1,14 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
-import { faNum, formatArea, formatPrice } from "@/lib/format";
+import { faDecimalNum, faNum, formatArea, formatPrice } from "@/lib/format";
 import { neshanAppLocationUrl } from "@/lib/neshan";
 import { useQuery } from "convex/react";
 import {
+  ChevronLeft,
   ExternalLink,
+  Focus,
+  ImageOff,
   LocateFixed,
   Map as MapIcon,
   MapPin,
   Navigation,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -133,6 +137,33 @@ async function ensureMapSdk(provider: MapProvider, neshanKey: string) {
 
 function roundBound(value: number) {
   return Number(value.toFixed(5));
+}
+
+function compactMapPrice(point: ListingMapItem) {
+  const value =
+    point.rentMillion != null && point.rentMillion > 0
+      ? point.rentMillion
+      : point.priceMillion != null && point.priceMillion > 0
+        ? point.priceMillion
+        : point.depositMillion != null && point.depositMillion > 0
+          ? point.depositMillion
+          : null;
+  if (value == null) return "ملک";
+  if (value >= 1000) return `${faDecimalNum(value / 1000)} میلیارد`;
+  return `${faDecimalNum(value)} میلیون`;
+}
+
+function markerCaption(point: ListingMapItem) {
+  if (point.rentMillion != null && point.rentMillion > 0) {
+    return `اجاره ${compactMapPrice(point)}`;
+  }
+  if (point.priceMillion != null && point.priceMillion > 0) {
+    return compactMapPrice(point);
+  }
+  if (point.depositMillion != null && point.depositMillion > 0) {
+    return `ودیعه ${compactMapPrice(point)}`;
+  }
+  return "آگهی";
 }
 
 export default function ListingMapExplorer({
@@ -308,13 +339,36 @@ export default function ListingMapExplorer({
       }
 
       const active = point.key === activeKey;
-      const marker = L.circleMarker([point.latitude, point.longitude], {
-        radius: active ? 10 : 8,
-        color: active ? "#d4a72c" : "#0f172a",
-        fillColor: active ? "#f2c94c" : "#1d4ed8",
-        fillOpacity: 0.92,
-        weight: active ? 4 : 2,
-      }).addTo(layer);
+      const marker =
+        mode === "public"
+          ? L.marker([point.latitude, point.longitude], {
+              icon: L.divIcon({
+                className: "",
+                iconSize: [118, 36],
+                iconAnchor: [59, 18],
+                html:
+                  '<div dir="rtl" style="' +
+                  "display:flex;align-items:center;justify-content:center;" +
+                  "width:118px;height:36px;padding:0 9px;border-radius:9999px;" +
+                  "font-family:inherit;font-size:11px;font-weight:900;white-space:nowrap;" +
+                  "box-shadow:0 5px 14px rgba(15,23,42,.22);" +
+                  (active
+                    ? "background:#0f172a;color:#fff;border:2px solid #f2c94c;"
+                    : "background:#fff;color:#0f172a;border:2px solid #0f4c81;") +
+                  '">' +
+                  markerCaption(point) +
+                  "</div>",
+              }),
+              riseOnHover: true,
+              riseOffset: active ? 1000 : 300,
+            }).addTo(layer)
+          : L.circleMarker([point.latitude, point.longitude], {
+              radius: active ? 10 : 8,
+              color: active ? "#d4a72c" : "#0f172a",
+              fillColor: active ? "#f2c94c" : "#1d4ed8",
+              fillOpacity: 0.92,
+              weight: active ? 4 : 2,
+            }).addTo(layer);
 
       marker.on("click", () => {
         setActiveKey(point.key);
@@ -343,7 +397,7 @@ export default function ListingMapExplorer({
         }
       }
     }
-  }, [points, activeKey, readyVersion]);
+  }, [points, activeKey, readyVersion, mode]);
 
   useEffect(() => {
     if (activeKey && !points.some((point) => point.key === activeKey)) {
@@ -355,6 +409,35 @@ export default function ListingMapExplorer({
     () => points.find((point) => point.key === activeKey) ?? null,
     [activeKey, points],
   );
+  const selectedPublicListing = useQuery(
+    api.listings.getPublicBySlug,
+    mode === "public" && activePoint?.slug
+      ? { slug: activePoint.slug }
+      : "skip",
+  );
+  const selectedPublicImage =
+    selectedPublicListing?.images?.find((image: any) => image.featured) ??
+    selectedPublicListing?.images?.[0] ??
+    null;
+
+  const fitAllPoints = () => {
+    const map = mapRef.current;
+    if (!map) return;
+    const valid = points.filter(
+      (point) =>
+        Number.isFinite(point.latitude) &&
+        Number.isFinite(point.longitude),
+    );
+    if (valid.length === 0) return;
+    if (valid.length === 1) {
+      map.setView([valid[0].latitude, valid[0].longitude], 15);
+      return;
+    }
+    map.fitBounds(
+      valid.map((point) => [point.latitude, point.longitude]),
+      { padding: [36, 36], maxZoom: 15 },
+    );
+  };
 
   const useMyLocation = () => {
     if (!navigator.geolocation || !mapRef.current) return;
