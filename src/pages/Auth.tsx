@@ -78,7 +78,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   }
 
   return (
-    <div dir="rtl" className="relative flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
+    <div dir="rtl" className="responsive-page relative flex min-h-screen w-full max-w-[100dvw] items-center justify-center overflow-x-clip bg-background px-3 py-8 text-foreground sm:px-4 sm:py-10">
       <div className="absolute end-4 top-4 z-10 rounded-xl border border-border/70 bg-card/80 shadow-sm backdrop-blur sm:end-6 sm:top-6">
         <ThemeToggle />
       </div>
