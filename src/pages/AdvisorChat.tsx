@@ -229,7 +229,7 @@ export default function AdvisorChat() {
   };
 
   return (
-    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/20">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/20">
       <header className="border-b border-border/60 bg-background">
         <div className="mx-auto flex h-16 w-full min-w-0 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ export default function AdvisorChat() {
           </section>
         )}
 
-        <div className="w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm lg:grid lg:h-[calc(100dvh-210px)] lg:min-h-[620px] lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="responsive-two-pane w-full min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card shadow-sm lg:grid lg:h-[calc(100dvh-210px)] lg:min-h-[620px] lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside
             className={
               "border-border/60 bg-card lg:block lg:border-l " +
