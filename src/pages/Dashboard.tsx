@@ -573,7 +573,7 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen w-full max-w-[100dvw] overflow-x-clip">
       <header className="glass sticky top-0 z-40 border-b border-border/60">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-3 lg:px-8">
+        <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:py-3 lg:px-8">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/25">
               <Radar className="size-5" />
@@ -681,7 +681,7 @@ export default function Dashboard() {
 
       <DashboardSectionNav />
 
-      <div className="mx-auto w-full max-w-7xl space-y-4 px-3 py-4 sm:space-y-5 sm:px-6 sm:py-6 lg:px-8">
+      <div className="mx-auto w-full min-w-0 max-w-7xl space-y-4 overflow-x-clip px-3 py-4 sm:space-y-5 sm:px-6 sm:py-6 lg:px-8">
         {parsing && (
           <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-sm">
             <div className="mb-3 flex items-center gap-2.5">
@@ -871,7 +871,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3">
                   {visible.map((l) => {
                     const key = listingKey(l);
                     const imported = l.listingKind === "imported" || listingView === "imported";
