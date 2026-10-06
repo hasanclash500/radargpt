@@ -14,7 +14,7 @@ export default function SitePage() {
 
   if (!page) {
     return (
-      <main dir="rtl" className="flex min-h-screen items-center justify-center bg-background p-4">
+      <main dir="rtl" className="responsive-page flex min-h-screen w-full max-w-[100dvw] items-center justify-center overflow-x-clip bg-background p-4">
         <div className="text-center">
           <h1 className="text-2xl font-black">صفحه پیدا نشد</h1>
           <p className="mt-2 text-sm text-muted-foreground">این برگه منتشر نشده یا وجود ندارد.</p>
