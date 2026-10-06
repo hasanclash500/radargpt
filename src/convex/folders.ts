@@ -112,6 +112,9 @@ export const getSettings = query({
       landingVisibilityMigrationDone: canSeeImportSettings
         ? Boolean(settings?.landingVisibilityMigrationDone)
         : true,
+      listingCoordinatesBackfillDone: canSeeImportSettings
+        ? Boolean(settings?.listingCoordinatesBackfillDone)
+        : true,
       listingCountsReady: canSeeImportSettings
         ? Boolean(settings?.listingCountsReady)
         : true,
