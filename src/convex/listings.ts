@@ -965,6 +965,110 @@ export const getPublicBySlug = query({
   },
 });
 
+export const myFavoriteSlugs = query({
+  args: {},
+  handler: async (ctx) => {
+    const authUserId = await getAuthUserId(ctx);
+    if (authUserId === null) return [];
+
+    const rows = await ctx.db
+      .query("listingFavorites")
+      .withIndex("by_user_created", (q) =>
+        q.eq("userId", String(authUserId)),
+      )
+      .order("desc")
+      .take(500);
+
+    const slugs = await Promise.all(
+      rows.map(async (favorite) => {
+        const listing = await ctx.db.get(favorite.listingId);
+        if (!listing?.isPublic) return null;
+        return listing.publicSlug || makePublicSlug(listing);
+      }),
+    );
+
+    return slugs.filter((slug): slug is string => Boolean(slug));
+  },
+});
+
+export const setFavorite = mutation({
+  args: {
+    slug: v.string(),
+    favorite: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const authUserId = await getAuthUserId(ctx);
+    if (authUserId === null) {
+      throw new Error("AUTH_REQUIRED");
+    }
+
+    const listings = await ctx.db
+      .query("listings")
+      .withIndex("by_public_slug", (q) => q.eq("publicSlug", args.slug))
+      .take(2);
+    const listing = listings[0];
+    if (!listing || !listing.isPublic) {
+      throw new Error("آگهی عمومی یافت نشد.");
+    }
+
+    const userId = String(authUserId);
+    const existing = await ctx.db
+      .query("listingFavorites")
+      .withIndex("by_user_listing", (q) =>
+        q.eq("userId", userId).eq("listingId", listing._id),
+      )
+      .take(2);
+
+    if (args.favorite) {
+      if (!existing[0]) {
+        await ctx.db.insert("listingFavorites", {
+          userId,
+          listingId: listing._id,
+          createdAt: Date.now(),
+        });
+      }
+      return { favorite: true };
+    }
+
+    for (const row of existing) {
+      await ctx.db.delete(row._id);
+    }
+    return { favorite: false };
+  },
+});
+
+export const listMyFavorites = query({
+  args: {},
+  handler: async (ctx) => {
+    const authUserId = await getAuthUserId(ctx);
+    if (authUserId === null) return [];
+
+    const rows = await ctx.db
+      .query("listingFavorites")
+      .withIndex("by_user_created", (q) =>
+        q.eq("userId", String(authUserId)),
+      )
+      .order("desc")
+      .take(200);
+
+    const context = await publicContext(ctx);
+    const result = await Promise.all(
+      rows.map(async (favorite) => {
+        const listing = await ctx.db.get(favorite.listingId);
+        if (!listing?.isPublic) return null;
+        return {
+          ...(await toPublicListing(ctx, listing, context)),
+          savedAt: favorite.createdAt,
+        };
+      }),
+    );
+
+    return result.filter((item): item is NonNullable<typeof item> =>
+      Boolean(item),
+    );
+  },
+});
+
 const customFieldValidator = v.object({
   fieldId: v.string(),
   label: v.string(),
@@ -1934,6 +2038,14 @@ export const deleteListing = mutation({
       .collect();
     for (const reminder of reminders) {
       await ctx.db.delete(reminder._id);
+    }
+
+    const favorites = await ctx.db
+      .query("listingFavorites")
+      .withIndex("by_listing", (q) => q.eq("listingId", row._id))
+      .collect();
+    for (const favorite of favorites) {
+      await ctx.db.delete(favorite._id);
     }
 
     await ctx.db.delete(row._id);
