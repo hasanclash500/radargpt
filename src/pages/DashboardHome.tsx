@@ -804,7 +804,7 @@ export default function DashboardHome() {
                 </p>
               </div>
 
-              <div className="grid min-w-0 grid-cols-2 gap-2">
+              <div className="dashboard-action-grid grid min-w-0 grid-cols-2 gap-2">
                 {(isStaff
                   ? [
                       {
@@ -858,7 +858,7 @@ export default function DashboardHome() {
           </section>
 
           {metrics.length > 0 && (
-            <section className="mt-4 grid w-full min-w-0 grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <section className="dashboard-metrics-grid mt-4 grid w-full min-w-0 grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 xl:grid-cols-6">
               {metrics.map((metric) => {
                 const Icon = metric.icon;
                 const body = (
