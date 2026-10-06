@@ -254,18 +254,26 @@ export default function MapPicker({
 
   const providerButtons = useMemo(
     () => [
-      {
-        id: "neshan" as const,
-        label: "نشان",
-        available: Boolean(configuredKey),
-      },
-      {
-        id: "osm" as const,
-        label: "OpenStreetMap",
-        available: true,
-      },
+      ...(neshanEnabled
+        ? [
+            {
+              id: "neshan" as const,
+              label: "نشان",
+              available: Boolean(configuredKey),
+            },
+          ]
+        : []),
+      ...(osmEnabled
+        ? [
+            {
+              id: "osm" as const,
+              label: "OpenStreetMap",
+              available: true,
+            },
+          ]
+        : []),
     ],
-    [configuredKey],
+    [configuredKey, neshanEnabled, osmEnabled],
   );
 
   return (
@@ -332,16 +340,19 @@ export default function MapPicker({
             </span>
           </div>
 
-          {requestedProvider === "neshan" && !configuredKey && (
-            <p className="px-4 pt-3 text-[11px] leading-6 text-amber-700 dark:text-amber-400">
-              کلید نشان هنوز در پنل مدیریت ذخیره نشده است؛ OpenStreetMap
-              به‌عنوان نقشه جایگزین فعال شده است.
-            </p>
-          )}
+          {neshanEnabled &&
+            requestedProvider === "neshan" &&
+            !configuredKey &&
+            osmEnabled && (
+              <p className="px-4 pt-3 text-[11px] leading-6 text-amber-700 dark:text-amber-400">
+                کلید نشان هنوز در پنل مدیریت ذخیره نشده است؛ OpenStreetMap
+                به‌عنوان نقشه جایگزین فعال شده است.
+              </p>
+            )}
 
           {loadError && (
             <p className="px-4 pt-3 text-[11px] leading-6 text-destructive">
-              {loadError} می‌توانید OpenStreetMap را انتخاب کنید.
+              {loadError}
             </p>
           )}
 
