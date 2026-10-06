@@ -229,7 +229,7 @@ export default function AdvisorChat() {
   };
 
   return (
-    <main dir="rtl" className="min-h-screen bg-muted/20">
+    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/20">
       <header className="border-b border-border/60 bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2">
