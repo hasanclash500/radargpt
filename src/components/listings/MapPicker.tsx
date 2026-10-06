@@ -151,6 +151,11 @@ export default function MapPicker({
     if (!mapAvailable) {
       setLoading(false);
       setLoadError("هیچ موتور نقشه قابل استفاده‌ای فعال نیست.");
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      markerRef.current = null;
       return;
     }
 
