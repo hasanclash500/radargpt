@@ -122,6 +122,7 @@ export default function Admin() {
     managerPhone: string;
     shareFooter: string;
     siteTheme: "navy" | "emerald" | "light";
+    homepageVariant: "classic" | "modern";
   } | null>(null);
 
   const draft = sourceDraft ?? {
@@ -129,7 +130,8 @@ export default function Admin() {
     officeName: "",
     managerPhone: "",
     shareFooter: "",
-    siteTheme: "navy",
+    siteTheme: "light",
+    homepageVariant: "classic",
   };
 
   if (settings && !hydrated) {
@@ -139,7 +141,8 @@ export default function Admin() {
       officeName: settings.officeName ?? "",
       managerPhone: settings.managerPhone ?? "",
       shareFooter: settings.shareFooter ?? "",
-      siteTheme: (settings.siteTheme ?? "navy") as "navy" | "emerald" | "light",
+      siteTheme: (settings.siteTheme ?? "light") as "navy" | "emerald" | "light",
+      homepageVariant: (settings.homepageVariant ?? "classic") as "classic" | "modern",
     });
   }
 
@@ -163,6 +166,7 @@ export default function Admin() {
         managerPhone: draft.managerPhone.trim(),
         shareFooter: draft.shareFooter,
         siteTheme: draft.siteTheme,
+        homepageVariant: draft.homepageVariant,
       });
       toast.success("اطلاعات دفتر ذخیره شد.");
     } catch (error) {
@@ -488,6 +492,48 @@ export default function Admin() {
                       <span className={"mb-2 block h-10 rounded-xl border border-border/50 " + theme.swatch} />
                       <strong className="block text-xs">{theme.label}</strong>
                       <span className="mt-1 block text-[10px] text-muted-foreground">{theme.note}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label>نسخه صفحه اصلی سایت</Label>
+                  <Button asChild type="button" variant="ghost" size="sm" className="h-8 text-xs">
+                    <Link to="/landing-v2" target="_blank">پیش‌نمایش لندینگ جدید</Link>
+                  </Button>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[
+                    {
+                      value: "classic" as const,
+                      label: "لندینگ فعلی",
+                      note: "نسخه فعلی سایت بدون تغییر",
+                    },
+                    {
+                      value: "modern" as const,
+                      label: "لندینگ جدید",
+                      note: "طراحی روشن، جستجوی برجسته و ویترین مدرن",
+                    },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() =>
+                        setSourceDraft({ ...draft, homepageVariant: option.value })
+                      }
+                      className={
+                        "rounded-2xl border p-4 text-right transition-all " +
+                        (draft.homepageVariant === option.value
+                          ? "border-primary bg-primary/5 ring-2 ring-primary/15"
+                          : "border-border/70 hover:border-primary/35")
+                      }
+                    >
+                      <strong className="block text-sm">{option.label}</strong>
+                      <span className="mt-1 block text-[10px] leading-5 text-muted-foreground">
+                        {option.note}
+                      </span>
                     </button>
                   ))}
                 </div>
