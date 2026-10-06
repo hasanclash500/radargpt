@@ -2,6 +2,7 @@ import BrandStorySection from "@/components/BrandStorySection";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
+import NavigationAppChooser from "@/components/navigation/NavigationAppChooser";
 import {
   Sheet,
   SheetClose,
@@ -357,7 +358,16 @@ function ContactBlock({ props }: { props: Record<string, any> }) {
         {props.text && <p className="mt-2 text-sm leading-7 text-muted-foreground">{props.text}</p>}
         <div className="mt-5 flex flex-wrap gap-3">
           <Button asChild className="gap-2"><a href={"tel:" + phone}><PhoneCall className="size-4" />{phone}</a></Button>
-          <Button asChild variant="outline" className="gap-2"><a href={mapUrl} target="_blank" rel="noreferrer"><Navigation className="size-4" />مسیریابی با نشان</a></Button>
+          <NavigationAppChooser
+            query={`${address}، ${mapLocation}`}
+            neshanUrl={mapUrl}
+            trigger={
+              <Button type="button" variant="outline" className="gap-2">
+                <Navigation className="size-4" />
+                مسیریابی
+              </Button>
+            }
+          />
         </div>
         <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><MapPin className="size-4 text-primary" />{address}</p>
         <p className="mt-2 text-[11px] text-muted-foreground">موقعیت روی نقشه: {mapLocation}</p>

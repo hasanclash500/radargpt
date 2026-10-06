@@ -1,5 +1,6 @@
 import { ArticleContent } from "@/components/blog/ArticleContent";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import NavigationAppChooser from "@/components/navigation/NavigationAppChooser";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
@@ -191,16 +192,16 @@ export default function BlogArticle() {
                     09120858095
                   </a>
                 </Button>
-                <Button variant="outline" asChild className="gap-2 rounded-xl">
-                  <a
-                    href="https://nshn.ir/2bveXP_xCgqA"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <MapPin className="size-4" />
-                    مسیریابی
-                  </a>
-                </Button>
+                <NavigationAppChooser
+                  query="شهریار، روبروی شهرک اداری، مجتمع تجاری اداری شهریار"
+                  neshanUrl="https://nshn.ir/2bveXP_xCgqA"
+                  trigger={
+                    <Button type="button" variant="outline" className="gap-2 rounded-xl">
+                      <MapPin className="size-4" />
+                      مسیریابی
+                    </Button>
+                  }
+                />
               </div>
             </div>
           </div>

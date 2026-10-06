@@ -106,7 +106,10 @@ function ensureStyle(href: string, marker: string) {
 }
 
 async function ensureMapSdk(provider: MapProvider, neshanKey: string) {
-  if (provider === "neshan" && neshanKey) {
+  if (provider === "neshan") {
+    if (!neshanKey) {
+      throw new Error("برای نمایش نقشه نشان، کلید Web SDK لازم است.");
+    }
     ensureStyle(
       "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css",
       "neshan",
@@ -153,13 +156,21 @@ export default function ListingMapExplorer({
     ENV_NESHAN_MAP_KEY ||
     ""
   ).trim();
+  const neshanEnabled = mapSettings?.neshanMapEnabled ?? true;
+  const osmEnabled = mapSettings?.osmMapEnabled ?? true;
+  const neshanUsable = neshanEnabled && Boolean(configuredKey);
   const savedProvider = (mapSettings?.provider ?? "neshan") as MapProvider;
   const [providerOverride, setProviderOverride] = useState<MapProvider | null>(
     null,
   );
   const requestedProvider = providerOverride ?? savedProvider;
-  const effectiveProvider: MapProvider =
-    requestedProvider === "neshan" && !configuredKey ? "osm" : requestedProvider;
+  const effectiveProvider = useMemo<MapProvider>(() => {
+    if (requestedProvider === "neshan" && neshanUsable) return "neshan";
+    if (requestedProvider === "osm" && osmEnabled) return "osm";
+    if (neshanUsable) return "neshan";
+    return "osm";
+  }, [requestedProvider, neshanUsable, osmEnabled]);
+  const mapAvailable = neshanUsable || osmEnabled;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
@@ -185,6 +196,16 @@ export default function ListingMapExplorer({
     if (!containerRef.current) return;
     let cancelled = false;
     setLoadError("");
+
+    if (!mapAvailable) {
+      setLoadError("هیچ موتور نقشه قابل استفاده‌ای فعال نیست.");
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+      layerRef.current = null;
+      return;
+    }
 
     void ensureMapSdk(effectiveProvider, configuredKey)
       .then(({ L, provider }) => {
@@ -263,7 +284,7 @@ export default function ListingMapExplorer({
       }
       layerRef.current = null;
     };
-  }, [effectiveProvider, configuredKey]);
+  }, [effectiveProvider, configuredKey, mapAvailable]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -373,25 +394,29 @@ export default function ListingMapExplorer({
             <LocateFixed className="size-4" />
             موقعیت من
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={effectiveProvider === "neshan" ? "default" : "outline"}
-            className="rounded-xl"
-            disabled={!configuredKey}
-            onClick={() => setProviderOverride("neshan")}
-          >
-            نشان
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={effectiveProvider === "osm" ? "default" : "outline"}
-            className="rounded-xl"
-            onClick={() => setProviderOverride("osm")}
-          >
-            OSM
-          </Button>
+          {neshanEnabled && (
+            <Button
+              type="button"
+              size="sm"
+              variant={effectiveProvider === "neshan" ? "default" : "outline"}
+              className="rounded-xl"
+              disabled={!configuredKey}
+              onClick={() => setProviderOverride("neshan")}
+            >
+              نشان
+            </Button>
+          )}
+          {osmEnabled && (
+            <Button
+              type="button"
+              size="sm"
+              variant={effectiveProvider === "osm" ? "default" : "outline"}
+              className="rounded-xl"
+              onClick={() => setProviderOverride("osm")}
+            >
+              OSM
+            </Button>
+          )}
         </div>
       </div>
 
@@ -490,34 +515,38 @@ export default function ListingMapExplorer({
                 <Navigation className="size-4" />
                 {mode === "public" ? "مشاهده آگهی" : "انتخاب و بازکردن پرونده"}
               </Button>
-              <Button asChild type="button" variant="outline" size="icon">
-                <a
-                  href={neshanAppLocationUrl(
-                    activePoint.latitude,
-                    activePoint.longitude,
-                  )}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="باز کردن در نشان"
-                  title="باز کردن در نشان"
-                >
-                  <ExternalLink className="size-4" />
-                </a>
-              </Button>
-              <Button asChild type="button" variant="outline" size="icon">
-                <a
-                  href={osmLocationUrl(
-                    activePoint.latitude,
-                    activePoint.longitude,
-                  )}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="باز کردن در OpenStreetMap"
-                  title="باز کردن در OpenStreetMap"
-                >
-                  <MapIcon className="size-4" />
-                </a>
-              </Button>
+              {neshanEnabled && (
+                <Button asChild type="button" variant="outline" size="icon">
+                  <a
+                    href={neshanAppLocationUrl(
+                      activePoint.latitude,
+                      activePoint.longitude,
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="باز کردن در نشان"
+                    title="باز کردن در نشان"
+                  >
+                    <ExternalLink className="size-4" />
+                  </a>
+                </Button>
+              )}
+              {osmEnabled && (
+                <Button asChild type="button" variant="outline" size="icon">
+                  <a
+                    href={osmLocationUrl(
+                      activePoint.latitude,
+                      activePoint.longitude,
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="باز کردن در OpenStreetMap"
+                    title="باز کردن در OpenStreetMap"
+                  >
+                    <MapIcon className="size-4" />
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
         </div>
