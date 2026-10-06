@@ -4,6 +4,7 @@ import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
+import NavigationAppChooser from "@/components/navigation/NavigationAppChooser";
 import {
   Sheet,
   SheetClose,
@@ -561,19 +562,21 @@ export default function Landing() {
 
                     <div className="my-2 border-t border-border/60" />
 
-                    <SheetClose asChild>
-                      <a
-                        href={MAPS_URL}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center gap-3 rounded-2xl px-3 py-3.5 text-sm font-extrabold transition-colors hover:bg-muted"
-                      >
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          <Navigation className="size-4" />
-                        </span>
-                        مسیریابی با نشان
-                      </a>
-                    </SheetClose>
+                    <NavigationAppChooser
+                      query={`${ADDRESS}، ${MAP_LOCATION}`}
+                      neshanUrl={MAPS_URL}
+                      trigger={
+                        <button
+                          type="button"
+                          className="flex w-full items-center gap-3 rounded-2xl px-3 py-3.5 text-right text-sm font-extrabold transition-colors hover:bg-muted"
+                        >
+                          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <Navigation className="size-4" />
+                          </span>
+                          مسیریابی
+                        </button>
+                      }
+                    />
 
                     <SheetClose asChild>
                       <a
@@ -652,17 +655,21 @@ export default function Landing() {
                 </a>
               </Button>
 
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-12 gap-2 rounded-2xl bg-card/60 px-5 font-extrabold"
-                asChild
-              >
-                <a href={MAPS_URL} target="_blank" rel="noreferrer">
-                  <Navigation className="size-4" />
-                  مسیریابی
-                </a>
-              </Button>
+              <NavigationAppChooser
+                query={`${ADDRESS}، ${MAP_LOCATION}`}
+                neshanUrl={MAPS_URL}
+                trigger={
+                  <Button
+                    type="button"
+                    size="lg"
+                    variant="outline"
+                    className="h-12 gap-2 rounded-2xl bg-card/60 px-5 font-extrabold"
+                  >
+                    <Navigation className="size-4" />
+                    مسیریابی
+                  </Button>
+                }
+              />
             </div>
 
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
@@ -751,16 +758,20 @@ export default function Landing() {
               </p>
             </div>
 
-            <Button
-              size="lg"
-              className="h-12 w-full gap-2 rounded-2xl font-extrabold lg:w-auto"
-              asChild
-            >
-              <a href={MAPS_URL} target="_blank" rel="noreferrer">
-                باز کردن مسیریاب
-                <ArrowLeft className="size-4" />
-              </a>
-            </Button>
+            <NavigationAppChooser
+              query={`${ADDRESS}، ${MAP_LOCATION}`}
+              neshanUrl={MAPS_URL}
+              trigger={
+                <Button
+                  type="button"
+                  size="lg"
+                  className="h-12 w-full gap-2 rounded-2xl font-extrabold lg:w-auto"
+                >
+                  باز کردن مسیریاب
+                  <ArrowLeft className="size-4" />
+                </Button>
+              }
+            />
           </div>
         </motion.div>
       </section>
@@ -830,10 +841,19 @@ export default function Landing() {
                   <MapPin className="mt-1 size-4 shrink-0 text-primary" />
                   {ADDRESS}
                 </p>
-                <a href={MAPS_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-bold text-primary">
-                  <Navigation className="size-4" />
-                  مسیریابی دفتر دیوساز
-                </a>
+                <NavigationAppChooser
+                  query={`${ADDRESS}، ${MAP_LOCATION}`}
+                  neshanUrl={MAPS_URL}
+                  trigger={
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-2 font-bold text-primary"
+                    >
+                      <Navigation className="size-4" />
+                      مسیریابی دفتر دیوساز
+                    </button>
+                  }
+                />
               </div>
             </div>
           </div>
@@ -857,15 +877,19 @@ export default function Landing() {
             <PhoneCall className="size-4" />
             تماس
           </a>
-          <a
-            href={MAPS_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 text-sm font-extrabold"
-          >
-            <Navigation className="size-4 text-primary" />
-            مسیریابی
-          </a>
+          <NavigationAppChooser
+            query={`${ADDRESS}، ${MAP_LOCATION}`}
+            neshanUrl={MAPS_URL}
+            trigger={
+              <button
+                type="button"
+                className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 text-sm font-extrabold"
+              >
+                <Navigation className="size-4 text-primary" />
+                مسیریابی
+              </button>
+            }
+          />
         </div>
       </div>
     </main>
