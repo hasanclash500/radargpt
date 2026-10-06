@@ -108,8 +108,8 @@ export default function DashboardSectionNav() {
   ];
 
   return (
-    <nav className="z-30 border-b border-slate-200/80 bg-white/92 backdrop-blur dark:border-white/10 dark:bg-[#071a2a]/92">
-      <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-3 py-2 [scrollbar-width:none] sm:px-6">
+    <nav className="z-30 w-full max-w-[100dvw] overflow-hidden border-b border-slate-200/80 bg-white/92 backdrop-blur dark:border-white/10 dark:bg-[#071a2a]/92">
+      <div className="mx-auto flex w-full min-w-0 max-w-7xl items-center gap-2 overflow-x-auto overscroll-x-contain px-3 py-2 [scrollbar-width:none] sm:px-6">
         <Link
           to="/dashboard"
           className="me-1 hidden shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 sm:flex dark:border-white/10 dark:bg-white/5"
