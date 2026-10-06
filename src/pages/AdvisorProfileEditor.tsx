@@ -231,7 +231,7 @@ export default function AdvisorProfileEditor() {
   return (
     <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass border-b border-border/60">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="gap-1.5">
               <Link to="/dashboard">
@@ -247,7 +247,7 @@ export default function AdvisorProfileEditor() {
 
       <DashboardSectionNav />
 
-      <section className="mx-auto max-w-5xl space-y-4 px-3 py-5 sm:px-6 sm:py-8">
+      <section className="mx-auto w-full min-w-0 max-w-5xl space-y-4 px-3 py-5 sm:px-6 sm:py-8">
         <div className="rounded-[2rem] border border-primary/20 bg-primary/[0.04] p-5">
           <div className="flex items-center gap-3">
             <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
