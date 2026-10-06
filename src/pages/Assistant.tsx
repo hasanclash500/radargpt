@@ -242,7 +242,7 @@ export default function AssistantPage() {
   return (
     <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full min-w-0 max-w-5xl items-center justify-between gap-2 px-3 sm:px-6">
           <Link to={backHref} className="flex items-center gap-2.5 font-extrabold">
             <ArrowRight className="size-4" />
             <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -261,7 +261,7 @@ export default function AssistantPage() {
 
       {insideDashboard && <DashboardSectionNav />}
 
-      <section className="mx-auto max-w-5xl px-3 py-5 sm:px-6 sm:py-8">
+      <section className="mx-auto w-full min-w-0 max-w-5xl px-3 py-5 sm:px-6 sm:py-8">
         <div className="mb-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-primary/20 bg-primary/[0.045] p-4">
             <div className="flex items-center gap-2">
