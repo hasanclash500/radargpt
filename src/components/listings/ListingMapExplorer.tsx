@@ -1,3 +1,4 @@
+import FavoriteButton from "@/components/listings/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { faDecimalNum, faNum, formatArea, formatPrice } from "@/lib/format";
@@ -640,14 +641,21 @@ export default function ListingMapExplorer({
               <button
                 type="button"
                 onClick={() => {
-                setActiveKey(null);
-                setSelectedPoint(null);
-              }}
+                  setActiveKey(null);
+                  setSelectedPoint(null);
+                }}
                 className="absolute end-3 top-3 z-20 flex size-10 items-center justify-center rounded-full bg-background/95 shadow-md"
                 aria-label="بستن کارت آگهی"
               >
                 <X className="size-5" />
               </button>
+
+              {activePoint.slug && (
+                <FavoriteButton
+                  slug={activePoint.slug}
+                  className="absolute end-14 top-3 z-20 size-10 rounded-full bg-background/95 shadow-md"
+                />
+              )}
 
               <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
                 {activePoint.dealType && (
