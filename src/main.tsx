@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { getModuleRoutes } from "@/modules";
 import { RequireAuth } from "@/components/RequireAuth";
 import FloatingSiteChat from "@/components/chat/FloatingSiteChat";
+import PendingFavoriteSync from "@/components/listings/PendingFavoriteSync";
 import SiteThemeSync from "@/components/SiteThemeSync";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
@@ -34,6 +35,7 @@ const BlogArticle = lazy(() => import("./pages/BlogArticle.tsx"));
 const BlogAdmin = lazy(() => import("./pages/BlogAdmin.tsx"));
 const PublicListings = lazy(() => import("./pages/PublicListings.tsx"));
 const PublicListing = lazy(() => import("./pages/PublicListing.tsx"));
+const SavedListings = lazy(() => import("./pages/SavedListings.tsx"));
 const AssistantPage = lazy(() => import("./pages/Assistant.tsx"));
 const SmartMatches = lazy(() => import("./pages/SmartMatches.tsx"));
 const PropertyRequest = lazy(() => import("./pages/PropertyRequest.tsx"));
@@ -182,6 +184,7 @@ createRoot(document.getElementById("root")!).render(
         <SiteThemeSync />
         <BrowserRouter>
           <RouteSyncer />
+          <PendingFavoriteSync />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
               <Route path="/" element={<Homepage />} />
@@ -190,6 +193,18 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/blog/:slug" element={<BlogArticle />} />
               <Route path="/listings" element={<PublicListings />} />
               <Route path="/listings/:slug" element={<PublicListing />} />
+              <Route
+                path="/saved"
+                element={
+                  <RequireAuth
+                    title="ورود به آگهی‌های ذخیره‌شده"
+                    description="برای ذخیره و مشاهده آگهی‌های موردعلاقه، ابتدا وارد حساب دیوساز شوید."
+                    redirectImmediately
+                  >
+                    <SavedListings />
+                  </RequireAuth>
+                }
+              />
               <Route path="/assistant" element={<AssistantPage />} />
               <Route path="/request" element={<PropertyRequest />} />
               <Route path="/submit-listing" element={<SubmitListing />} />

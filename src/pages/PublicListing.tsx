@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import FavoriteButton from "@/components/listings/FavoriteButton";
 import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
@@ -182,6 +183,13 @@ export default function PublicListing() {
             آگهی‌های دیوساز
           </Link>
           <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="sm" className="hidden rounded-xl sm:inline-flex">
+              <Link to="/saved">ذخیره‌شده‌ها</Link>
+            </Button>
+            <FavoriteButton
+              slug={listing.slug}
+              className="rounded-xl bg-background/90"
+            />
             <ThemeToggle />
             <Button
               variant="outline"

@@ -249,6 +249,19 @@ const schema = defineSchema(
       }),
 
     /**
+     * آگهی‌های ذخیره‌شدهٔ هر کاربر. وابسته به حساب احراز هویت است تا
+     * علاقه‌مندی‌ها روی همه دستگاه‌های همان کاربر قابل دسترسی باشند.
+     */
+    listingFavorites: defineTable({
+      userId: v.string(),
+      listingId: v.id("listings"),
+      createdAt: v.number(),
+    })
+      .index("by_user_created", ["userId", "createdAt"])
+      .index("by_user_listing", ["userId", "listingId"])
+      .index("by_listing", ["listingId"]),
+
+    /**
      * پروفایل عمومی مشاور/مدیر. اطلاعات تماس و شبکه‌های اجتماعی فقط در صورت
      * فعال بودن publicProfile در صفحه عمومی نمایش داده می‌شوند.
      */

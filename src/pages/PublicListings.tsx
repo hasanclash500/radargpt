@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import FavoriteButton from "@/components/listings/FavoriteButton";
 import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
 import ListingMapExplorer, {
   DEFAULT_LISTING_MAP_BOUNDS,
@@ -19,6 +20,7 @@ import {
   Camera,
   ChevronDown,
   Factory,
+  Heart,
   MapPin,
   PhoneCall,
   RotateCcw,
@@ -357,13 +359,19 @@ export default function PublicListings() {
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm" className="gap-1.5">
+            <Button asChild variant="outline" size="sm" className="gap-1.5 rounded-xl">
+              <Link to="/saved">
+                <Heart className="size-4" />
+                <span className="hidden sm:inline">ذخیره‌شده‌ها</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="hidden gap-1.5 rounded-xl md:inline-flex">
               <Link to="/assistant">
                 <Bot className="size-4" />
                 دستیار دیوساز
               </Link>
             </Button>
-            <Button asChild variant="ghost" size="sm"><Link to="/blog">وبلاگ</Link></Button>
+            <Button asChild variant="ghost" size="sm" className="hidden lg:inline-flex"><Link to="/blog">وبلاگ</Link></Button>
             <ThemeToggle />
           </div>
         </div>
@@ -595,18 +603,27 @@ export default function PublicListings() {
                       </div>
                     </div>
 
-                    <Link to={"/listings/" + item.slug} className="relative flex min-h-full items-center justify-center overflow-hidden bg-muted/55 p-2">
-                      {image?.url ? (
-                        <img src={image.url} alt={image.alt || item.title} className="h-full max-h-[280px] w-full object-contain transition-transform duration-300 group-hover:scale-[1.015]" loading="lazy" />
-                      ) : (
-                        <ListingPlaceholder compact className="min-h-[220px]" />
-                      )}
-                      {(item.images?.length ?? 0) > 0 && (
-                        <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-lg bg-background/90 px-2 py-1 text-[10px] font-bold shadow-sm">
-                          <Camera className="size-3.5" />{item.images.length.toLocaleString("fa-IR")}
-                        </span>
-                      )}
-                    </Link>
+                    <div className="relative min-h-full overflow-hidden bg-muted/55">
+                      <FavoriteButton
+                        slug={item.slug}
+                        className="absolute end-2 top-2 z-20 size-10 rounded-full bg-background/95 shadow-md"
+                      />
+                      <Link
+                        to={"/listings/" + item.slug}
+                        className="relative flex min-h-full items-center justify-center p-2"
+                      >
+                        {image?.url ? (
+                          <img src={image.url} alt={image.alt || item.title} className="h-full max-h-[280px] w-full object-contain transition-transform duration-300 group-hover:scale-[1.015]" loading="lazy" />
+                        ) : (
+                          <ListingPlaceholder compact className="min-h-[220px]" />
+                        )}
+                        {(item.images?.length ?? 0) > 0 && (
+                          <span className="absolute start-2 top-2 inline-flex items-center gap-1 rounded-lg bg-background/90 px-2 py-1 text-[10px] font-bold shadow-sm">
+                            <Camera className="size-3.5" />{item.images.length.toLocaleString("fa-IR")}
+                          </span>
+                        )}
+                      </Link>
+                    </div>
                   </div>
                 </article>
               );
