@@ -511,6 +511,10 @@ const schema = defineSchema(
           v.literal("light"),
         ),
       ),
+      /** نسخه صفحه اصلی قابل انتخاب بدون حذف لندینگ قبلی */
+      homepageVariant: v.optional(
+        v.union(v.literal("classic"), v.literal("modern")),
+      ),
       /** شناسه ماژول‌های اختیاری فعال؛ کد هر ماژول مستقل از هسته نگه داشته می‌شود. */
       enabledModules: v.optional(v.array(v.string())),
       /** شهر/دسته/نوع ملک‌های افزوده‌شده توسط مدیر */
