@@ -263,9 +263,10 @@ export default function ListingMapExplorer({
                 traffic: false,
                 center,
                 zoom,
+                zoomControl: mode !== "public",
               })
             : L.map(containerRef.current, {
-                zoomControl: true,
+                zoomControl: mode !== "public",
                 attributionControl: true,
               }).setView(center, zoom);
 
@@ -315,7 +316,7 @@ export default function ListingMapExplorer({
       }
       layerRef.current = null;
     };
-  }, [effectiveProvider, configuredKey, mapAvailable]);
+  }, [effectiveProvider, configuredKey, mapAvailable, mode]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -344,23 +345,24 @@ export default function ListingMapExplorer({
           ? L.marker([point.latitude, point.longitude], {
               icon: L.divIcon({
                 className: "",
-                iconSize: [118, 36],
-                iconAnchor: [59, 18],
+                iconSize: [92, 38],
+                iconAnchor: [46, 19],
                 html:
                   '<div dir="rtl" style="' +
                   "display:flex;align-items:center;justify-content:center;" +
-                  "width:118px;height:36px;padding:0 9px;border-radius:9999px;" +
-                  "font-family:inherit;font-size:11px;font-weight:900;white-space:nowrap;" +
-                  "box-shadow:0 5px 14px rgba(15,23,42,.22);" +
+                  "min-width:44px;max-width:92px;height:38px;padding:0 10px;border-radius:9999px;" +
+                  "font-family:inherit;font-size:10px;font-weight:900;white-space:nowrap;" +
+                  "overflow:hidden;text-overflow:ellipsis;" +
+                  "box-shadow:0 4px 12px rgba(15,23,42,.28);" +
                   (active
-                    ? "background:#0f172a;color:#fff;border:2px solid #f2c94c;"
-                    : "background:#fff;color:#0f172a;border:2px solid #0f4c81;") +
+                    ? "background:#7f1d1d;color:#fff;border:3px solid #fff;transform:scale(1.08);"
+                    : "background:#b91c1c;color:#fff;border:2px solid #fff;") +
                   '">' +
                   markerCaption(point) +
                   "</div>",
               }),
               riseOnHover: true,
-              riseOffset: active ? 1000 : 300,
+              riseOffset: active ? 1200 : 300,
             }).addTo(layer)
           : L.circleMarker([point.latitude, point.longitude], {
               radius: active ? 10 : 8,
@@ -376,6 +378,11 @@ export default function ListingMapExplorer({
           animate: true,
           duration: 0.25,
         });
+        if (mode === "public") {
+          window.setTimeout(() => {
+            map.panBy([0, 150], { animate: true, duration: 0.2 });
+          }, 180);
+        }
       });
     }
 
@@ -527,61 +534,32 @@ export default function ListingMapExplorer({
           ref={containerRef}
           className={
             mode === "public"
-              ? "h-[72dvh] min-h-[540px] w-full bg-muted sm:h-[70vh] lg:h-[72vh]"
+              ? "h-[calc(100dvh-8.75rem)] min-h-[610px] w-full bg-muted sm:h-[72vh] lg:h-[76vh] [&_.leaflet-control-attribution]:!text-[8px] [&_.leaflet-control-attribution]:!leading-3"
               : "h-[56dvh] min-h-[360px] w-full bg-muted sm:h-[62vh] lg:h-[66vh]"
           }
         />
 
         {mode === "public" && (
-          <div className="absolute inset-x-3 top-3 z-[1000] flex items-start justify-between gap-2">
-            <div className="shrink-0 rounded-full border border-border/70 bg-background/95 px-3 py-2 text-[11px] font-black shadow-lg backdrop-blur">
-              {faNum(points.length)} آگهی روی نقشه
-            </div>
-            <div className="flex max-w-[72%] gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-9 shrink-0 gap-1.5 rounded-full bg-background/95 px-3 shadow-lg backdrop-blur"
-                onClick={fitAllPoints}
-              >
-                <Focus className="size-3.5" />
-                نمایش همه
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-9 shrink-0 gap-1.5 rounded-full bg-background/95 px-3 shadow-lg backdrop-blur"
-                onClick={useMyLocation}
-              >
-                <LocateFixed className="size-3.5" />
-                موقعیت من
-              </Button>
-              {neshanEnabled && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={effectiveProvider === "neshan" ? "default" : "outline"}
-                  className="h-9 shrink-0 rounded-full px-3 shadow-lg"
-                  disabled={!configuredKey}
-                  onClick={() => setProviderOverride("neshan")}
-                >
-                  نشان
-                </Button>
-              )}
-              {osmEnabled && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={effectiveProvider === "osm" ? "default" : "outline"}
-                  className="h-9 shrink-0 rounded-full px-3 shadow-lg"
-                  onClick={() => setProviderOverride("osm")}
-                >
-                  OSM
-                </Button>
-              )}
-            </div>
+          <div className="absolute inset-x-3 top-3 z-[1000] flex items-center justify-between gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-11 shrink-0 gap-2 rounded-2xl border-2 border-primary/70 bg-background/95 px-4 text-xs font-black shadow-lg backdrop-blur"
+              onClick={fitAllPoints}
+            >
+              <Focus className="size-4" />
+              نمایش همه
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="h-11 shrink-0 gap-2 rounded-2xl px-4 text-xs font-black shadow-lg"
+              onClick={useMyLocation}
+            >
+              <LocateFixed className="size-4" />
+              مرکز من
+            </Button>
           </div>
         )}
 
@@ -634,54 +612,58 @@ export default function ListingMapExplorer({
         {mode === "public" && activePoint && (
           <article
             aria-live="polite"
-            className="absolute inset-x-3 bottom-3 z-[1100] mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-border/80 bg-background/98 shadow-2xl backdrop-blur"
+            className="absolute inset-x-2 bottom-2 z-[1100] mx-auto max-w-xl overflow-hidden rounded-[1.6rem] border border-border/80 bg-background shadow-[0_18px_48px_rgba(15,23,42,0.32)] sm:inset-x-4 sm:bottom-4"
           >
+            <div className="relative flex h-[225px] items-center justify-center overflow-hidden bg-muted/70 sm:h-[250px]">
+              {selectedPublicImage?.url ? (
+                <img
+                  src={selectedPublicImage.url}
+                  alt={selectedPublicImage.alt || activePoint.title}
+                  className="h-full w-full object-contain"
+                  loading="lazy"
+                />
+              ) : selectedPublicListing === undefined ? (
+                <div className="text-xs font-bold text-muted-foreground">
+                  در حال دریافت تصویر…
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <ImageOff className="size-9 opacity-50" />
+                  <span className="text-xs">تصویری برای این آگهی ثبت نشده</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setActiveKey(null)}
+                className="absolute end-3 top-3 z-20 flex size-10 items-center justify-center rounded-full bg-background/95 shadow-md"
+                aria-label="بستن کارت آگهی"
+              >
+                <X className="size-5" />
+              </button>
+
+              <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
+                {activePoint.dealType && (
+                  <span className="rounded-full bg-background/95 px-3 py-1.5 text-[10px] font-black shadow-sm">
+                    {activePoint.dealType}
+                  </span>
+                )}
+                {activePoint.featuredOnHome && (
+                  <span className="rounded-full bg-amber-400 px-3 py-1.5 text-[10px] font-black text-slate-950 shadow-sm">
+                    ویژه
+                  </span>
+                )}
+              </div>
+            </div>
+
             <button
               type="button"
-              onClick={() => setActiveKey(null)}
-              className="absolute end-3 top-3 z-20 flex size-10 items-center justify-center rounded-full border border-border/70 bg-background/95 shadow-md"
-              aria-label="بستن کارت آگهی"
+              onClick={() => onOpenListing(activePoint)}
+              className="block w-full p-4 text-right sm:p-5"
             >
-              <X className="size-5" />
-            </button>
-
-            <div className="grid sm:grid-cols-[42%_minmax(0,1fr)]">
-              <div className="relative flex min-h-44 items-center justify-center overflow-hidden bg-muted/70 sm:min-h-[230px]">
-                {selectedPublicImage?.url ? (
-                  <img
-                    src={selectedPublicImage.url}
-                    alt={selectedPublicImage.alt || activePoint.title}
-                    className="max-h-[260px] h-full w-full object-contain"
-                    loading="lazy"
-                  />
-                ) : selectedPublicListing === undefined ? (
-                  <div className="text-xs font-bold text-muted-foreground">
-                    در حال دریافت تصویر…
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <ImageOff className="size-8 opacity-50" />
-                    <span className="text-xs">تصویری برای این آگهی ثبت نشده</span>
-                  </div>
-                )}
-
-                <div className="absolute start-3 top-3 flex flex-wrap gap-1.5">
-                  {activePoint.dealType && (
-                    <span className="rounded-full bg-background/95 px-2.5 py-1 text-[10px] font-black shadow-sm">
-                      {activePoint.dealType}
-                    </span>
-                  )}
-                  {activePoint.featuredOnHome && (
-                    <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[10px] font-black text-slate-950 shadow-sm">
-                      ویژه
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="min-w-0 p-4 pe-4 sm:p-5">
-                <div className="pe-10">
-                  <strong className="block text-xl font-black leading-8 sm:text-2xl">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <strong className="block text-2xl font-black leading-8">
                     {activePoint.rentMillion != null && activePoint.rentMillion > 0
                       ? `اجاره ${formatPrice(activePoint.rentMillion)}`
                       : activePoint.priceMillion != null && activePoint.priceMillion > 0
@@ -699,56 +681,48 @@ export default function ListingMapExplorer({
                       </p>
                     )}
                 </div>
-
-                <h3 className="mt-3 line-clamp-2 text-sm font-black leading-6 sm:text-base">
-                  {activePoint.title}
-                </h3>
-
-                <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-foreground">
-                  {activePoint.area != null && (
-                    <span>{formatArea(activePoint.area)}</span>
-                  )}
-                  {selectedPublicListing?.rooms != null && (
-                    <>
-                      <span className="text-muted-foreground/50">•</span>
-                      <span>
-                        {selectedPublicListing.rooms === 0
-                          ? "بدون اتاق"
-                          : `${faNum(selectedPublicListing.rooms)} اتاق`}
-                      </span>
-                    </>
-                  )}
-                  {activePoint.propertyType && (
-                    <>
-                      <span className="text-muted-foreground/50">•</span>
-                      <span>{activePoint.propertyType}</span>
-                    </>
-                  )}
-                </div>
-
-                <p className="mt-3 flex items-start gap-1.5 text-xs leading-6 text-muted-foreground">
-                  <MapPin className="mt-1 size-3.5 shrink-0 text-primary" />
-                  {[activePoint.city, activePoint.neighborhood]
-                    .filter(Boolean)
-                    .join("، ")}
-                </p>
-
-                <Button
-                  type="button"
-                  className="mt-4 h-11 w-full gap-2 rounded-xl font-black"
-                  onClick={() => onOpenListing(activePoint)}
-                >
-                  مشاهده آگهی
-                  <ChevronLeft className="size-4" />
-                </Button>
+                <span className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <ChevronLeft className="size-5" />
+                </span>
               </div>
-            </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-foreground">
+                {selectedPublicListing?.rooms != null && (
+                  <span>
+                    {selectedPublicListing.rooms === 0
+                      ? "بدون اتاق"
+                      : `${faNum(selectedPublicListing.rooms)} اتاق`}
+                  </span>
+                )}
+                {selectedPublicListing?.rooms != null && activePoint.area != null && (
+                  <span className="text-muted-foreground/40">|</span>
+                )}
+                {activePoint.area != null && <span>{formatArea(activePoint.area)}</span>}
+                {activePoint.propertyType && (
+                  <>
+                    <span className="text-muted-foreground/40">|</span>
+                    <span>{activePoint.propertyType}</span>
+                  </>
+                )}
+              </div>
+
+              <h3 className="mt-2 line-clamp-1 text-sm font-black leading-6">
+                {activePoint.title}
+              </h3>
+
+              <p className="mt-1 flex items-start gap-1.5 text-xs leading-6 text-muted-foreground">
+                <MapPin className="mt-1 size-3.5 shrink-0 text-primary" />
+                {[activePoint.city, activePoint.neighborhood]
+                  .filter(Boolean)
+                  .join("، ")}
+              </p>
+            </button>
           </article>
         )}
 
         {mode === "public" && !activePoint && !loading && points.length > 0 && (
           <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[1000] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-border/70 bg-background/95 px-4 py-2 text-center text-[11px] font-bold shadow-lg backdrop-blur">
-            برای دیدن عکس و مشخصات، یکی از قیمت‌های روی نقشه را لمس کنید.
+            {faNum(points.length)} آگهی در این محدوده · یکی از نشانگرها را لمس کنید
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@ import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
 import ListingMapExplorer, {
   DEFAULT_LISTING_MAP_BOUNDS,
   type ListingMapBounds,
+  type ListingMapItem,
 } from "@/components/listings/ListingMapExplorer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,6 +155,24 @@ export default function PublicListings() {
     api.listings.listPublicMapPoints,
     displayMode === "map" ? publicMapArgs : "skip",
   );
+  const visibleMapPoints = useMemo(() => {
+    const points: ListingMapItem[] = publicMapListings?.points ?? [];
+    const q = search.trim().toLowerCase();
+    if (!q) return points;
+    return points.filter((point) =>
+      [
+        point.title,
+        point.city,
+        point.neighborhood,
+        point.propertyType,
+        point.dealType,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }, [publicMapListings?.points, search]);
 
   useSeo({
     title: "آگهی‌های املاک صنعتی و اداری شهریار | دیوساز",
@@ -350,18 +369,41 @@ export default function PublicListings() {
         </div>
       </header>
 
-      <section className="border-b border-border/60 bg-background">
-        <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-xs font-extrabold text-primary">
-            <Factory className="size-4" />جستجوی فایل دیوساز
-          </span>
-          <h1 className="mt-4 text-2xl font-black sm:text-4xl">آگهی‌های صنعتی و اداری</h1>
-        </div>
-      </section>
+      {displayMode === "list" && (
+        <section className="border-b border-border/60 bg-background">
+          <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-10">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-3 py-1.5 text-xs font-extrabold text-primary">
+              <Factory className="size-4" />جستجوی فایل دیوساز
+            </span>
+            <h1 className="mt-4 text-2xl font-black sm:text-4xl">آگهی‌های صنعتی و اداری</h1>
+          </div>
+        </section>
+      )}
 
       <section className="sticky top-16 z-40 border-b border-border/60 bg-background/95 shadow-sm backdrop-blur">
-        <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6">
-          <div className="mb-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+        <div className="relative mx-auto max-w-7xl px-3 py-2.5 sm:px-6">
+          {displayMode === "map" && (
+            <div className="mb-2 flex items-center gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Search className="absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="شهر، محله یا نوع ملک…"
+                  className="h-11 rounded-2xl bg-background pe-9 text-sm font-bold shadow-sm"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setDisplayMode("list")}
+                className="h-11 shrink-0 rounded-2xl border border-border bg-background px-4 text-xs font-black shadow-sm"
+              >
+                فهرست
+              </button>
+            </div>
+          )}
+
+          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
             <FilterSelect label="نوع ملک" value={propertyType} options={propertyTypes} onChange={setPropertyType} />
             <FilterSelect label="معامله" value={dealType} options={dealTypes} onChange={setDealType} />
             <FilterSelect label="شهر" value={city} options={cities} onChange={setCity} />
@@ -388,7 +430,14 @@ export default function PublicListings() {
           </div>
 
           {advancedOpen && (
-            <div className="grid gap-3 rounded-2xl border border-border/70 bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+              className={
+                "grid gap-3 rounded-2xl border border-border/70 bg-card p-4 sm:grid-cols-2 lg:grid-cols-4 " +
+                (displayMode === "map"
+                  ? "absolute inset-x-3 top-full z-50 mt-2 max-h-[68dvh] overflow-y-auto shadow-2xl sm:inset-x-6"
+                  : "mt-3")
+              }
+            >
               <div className="relative sm:col-span-2 lg:col-span-4">
                 <Search className="absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                 <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="جستجو در عنوان، توضیحات، شهر و نوع ملک…" className="pe-9" />
@@ -418,7 +467,14 @@ export default function PublicListings() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-7">
+      <section
+        className={
+          displayMode === "map"
+            ? "mx-auto max-w-7xl px-0 py-0 sm:px-6 sm:py-4"
+            : "mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-7"
+        }
+      >
+        {displayMode === "list" && (
         <div className="relative mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-black">{dealType === "همه" ? "آگهی‌های قابل بررسی" : dealType + " ملک"}</h2>
@@ -433,18 +489,14 @@ export default function PublicListings() {
               <button
                 type="button"
                 onClick={() => setDisplayMode("list")}
-                className={"rounded-lg px-3 py-2 text-xs font-black transition-colors " + (
-                  displayMode === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
-                )}
+                className="rounded-lg bg-background px-3 py-2 text-xs font-black text-foreground shadow-sm"
               >
                 فهرست
               </button>
               <button
                 type="button"
                 onClick={() => setDisplayMode("map")}
-                className={"inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-black transition-colors " + (
-                  displayMode === "map" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
-                )}
+                className="inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-black text-muted-foreground transition-colors"
               >
                 <MapPin className="size-3.5" />نقشه
               </button>
@@ -472,12 +524,13 @@ export default function PublicListings() {
             </div>
           </div>
         </div>
+        )}
 
         {displayMode === "map" ? (
-          <div className="-mx-3 sm:mx-0">
+          <div>
             <ListingMapExplorer
               mode="public"
-              points={publicMapListings?.points ?? []}
+              points={visibleMapPoints}
               loading={publicMapListings === undefined}
               truncated={publicMapListings?.truncated ?? false}
               onBoundsChange={setMapBounds}
