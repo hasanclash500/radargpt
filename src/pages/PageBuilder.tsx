@@ -493,7 +493,7 @@ export default function PageBuilder() {
   return (
     <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass border-b border-border/60">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 w-full min-w-0 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm" className="gap-1.5">
               <Link to="/dashboard"><ArrowRight className="size-4" />داشبورد</Link>
@@ -509,7 +509,7 @@ export default function PageBuilder() {
 
       <DashboardSectionNav />
 
-      <div className="mx-auto grid max-w-7xl gap-4 px-3 py-4 sm:px-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-4 px-3 py-4 sm:px-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="space-y-3">
           <div className="rounded-3xl border border-border/70 bg-card p-3">
             <Button
