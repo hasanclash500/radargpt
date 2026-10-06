@@ -176,7 +176,7 @@ createRoot(document.getElementById("root")!).render(
       </ToolbarErrorBoundary>
       <ThemeProvider
         attribute="class"
-        defaultTheme="dark"
+        defaultTheme="light"
         enableSystem={false}
         disableTransitionOnChange
       >
