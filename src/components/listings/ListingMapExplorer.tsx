@@ -378,6 +378,11 @@ export default function ListingMapExplorer({
           animate: true,
           duration: 0.25,
         });
+        if (mode === "public") {
+          window.setTimeout(() => {
+            map.panBy([0, 150], { animate: true, duration: 0.2 });
+          }, 180);
+        }
       });
     }
 
