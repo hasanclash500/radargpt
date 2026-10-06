@@ -67,7 +67,10 @@ function ensureStyle(href: string, marker: string) {
 }
 
 async function ensureMapSdk(provider: MapProvider, neshanKey: string) {
-  if (provider === "neshan" && neshanKey) {
+  if (provider === "neshan") {
+    if (!neshanKey) {
+      throw new Error("برای نمایش نقشه نشان، کلید Web SDK لازم است.");
+    }
     ensureStyle(
       "https://static.neshan.org/sdk/leaflet/1.4.0/leaflet.css",
       "neshan",
@@ -105,13 +108,21 @@ export default function MapPicker({
     ""
   ).trim();
 
+  const neshanEnabled = mapSettings?.neshanMapEnabled ?? true;
+  const osmEnabled = mapSettings?.osmMapEnabled ?? true;
+  const neshanUsable = neshanEnabled && Boolean(configuredKey);
   const savedProvider = (mapSettings?.provider ?? "neshan") as MapProvider;
   const [providerOverride, setProviderOverride] = useState<MapProvider | null>(
     null,
   );
   const requestedProvider = providerOverride ?? savedProvider;
-  const effectiveProvider: MapProvider =
-    requestedProvider === "neshan" && !configuredKey ? "osm" : requestedProvider;
+  const effectiveProvider = useMemo<MapProvider>(() => {
+    if (requestedProvider === "neshan" && neshanUsable) return "neshan";
+    if (requestedProvider === "osm" && osmEnabled) return "osm";
+    if (neshanUsable) return "neshan";
+    return "osm";
+  }, [requestedProvider, neshanUsable, osmEnabled]);
+  const mapAvailable = neshanUsable || osmEnabled;
 
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MapPoint | null>(value ?? null);
@@ -136,6 +147,12 @@ export default function MapPicker({
   useEffect(() => {
     if (!open || !containerRef.current) return;
     let cancelled = false;
+
+    if (!mapAvailable) {
+      setLoading(false);
+      setLoadError("هیچ موتور نقشه قابل استفاده‌ای فعال نیست.");
+      return;
+    }
 
     setLoading(true);
     setLoadError("");
@@ -216,7 +233,7 @@ export default function MapPicker({
       }
       markerRef.current = null;
     };
-  }, [open, effectiveProvider, configuredKey]);
+  }, [open, effectiveProvider, configuredKey, mapAvailable]);
 
   const useMyLocation = () => {
     if (!navigator.geolocation) return;
@@ -343,36 +360,40 @@ export default function MapPicker({
 
               {selected && (
                 <>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    asChild
-                    className="shrink-0 gap-2"
-                  >
-                    <a
-                      href={neshanAppLocationUrl(selected.lat, selected.lng)}
-                      target="_blank"
-                      rel="noreferrer"
+                  {neshanEnabled && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      asChild
+                      className="shrink-0 gap-2"
                     >
-                      <ExternalLink className="size-4" />
-                      نشان
-                    </a>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    asChild
-                    className="shrink-0 gap-2"
-                  >
-                    <a
-                      href={osmLocationUrl(selected.lat, selected.lng)}
-                      target="_blank"
-                      rel="noreferrer"
+                      <a
+                        href={neshanAppLocationUrl(selected.lat, selected.lng)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="size-4" />
+                        نشان
+                      </a>
+                    </Button>
+                  )}
+                  {osmEnabled && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      asChild
+                      className="shrink-0 gap-2"
                     >
-                      <ExternalLink className="size-4" />
-                      OpenStreetMap
-                    </a>
-                  </Button>
+                      <a
+                        href={osmLocationUrl(selected.lat, selected.lng)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="size-4" />
+                        OpenStreetMap
+                      </a>
+                    </Button>
+                  )}
                 </>
               )}
             </div>
