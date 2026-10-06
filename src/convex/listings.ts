@@ -202,6 +202,163 @@ function toListing(row: Doc<"listings">, contactPhone: string): ListingRow {
   };
 }
 
+
+const MAP_POINT_LIMIT = 450;
+
+const mapBoundsArgs = {
+  south: v.number(),
+  north: v.number(),
+  west: v.number(),
+  east: v.number(),
+};
+
+const commonMapFilterArgs = {
+  city: v.optional(v.string()),
+  dealType: v.optional(v.string()),
+  propertyType: v.optional(v.string()),
+  roomsExact: v.optional(v.number()),
+  roomsMin: v.optional(v.number()),
+  priceMin: v.optional(v.number()),
+  priceMax: v.optional(v.number()),
+  areaMin: v.optional(v.number()),
+  areaMax: v.optional(v.number()),
+};
+
+function normalizedMapBounds(args: {
+  south: number;
+  north: number;
+  west: number;
+  east: number;
+}) {
+  return {
+    south: Math.max(-90, Math.min(args.south, args.north)),
+    north: Math.min(90, Math.max(args.south, args.north)),
+    west: Math.max(-180, Math.min(args.west, args.east)),
+    east: Math.min(180, Math.max(args.west, args.east)),
+  };
+}
+
+function applyMapFilters(ordered: any, args: any) {
+  let query = ordered;
+  if (args.city) {
+    query = query.filter((q: any) => q.eq(q.field("city"), args.city));
+  }
+  if (args.dealType) {
+    query = query.filter((q: any) =>
+      q.eq(q.field("dealType"), args.dealType),
+    );
+  }
+  if (args.propertyType) {
+    query = query.filter((q: any) =>
+      q.eq(q.field("propertyType"), args.propertyType),
+    );
+  }
+  if (args.roomsExact !== undefined) {
+    query = query.filter((q: any) =>
+      q.eq(q.field("rooms"), args.roomsExact),
+    );
+  } else if (args.roomsMin !== undefined) {
+    query = query.filter((q: any) =>
+      q.gte(q.field("rooms"), args.roomsMin),
+    );
+  }
+  if (args.priceMin !== undefined) {
+    query = query.filter((q: any) =>
+      q.gte(q.field("priceMillion"), args.priceMin),
+    );
+  }
+  if (args.priceMax !== undefined) {
+    query = query.filter((q: any) =>
+      q.lte(q.field("priceMillion"), args.priceMax),
+    );
+  }
+  if (args.depositMin !== undefined) {
+    query = query.filter((q: any) =>
+      q.gte(q.field("depositMillion"), args.depositMin),
+    );
+  }
+  if (args.depositMax !== undefined) {
+    query = query.filter((q: any) =>
+      q.lte(q.field("depositMillion"), args.depositMax),
+    );
+  }
+  if (args.rentMin !== undefined) {
+    query = query.filter((q: any) =>
+      q.gte(q.field("rentMillion"), args.rentMin),
+    );
+  }
+  if (args.rentMax !== undefined) {
+    query = query.filter((q: any) =>
+      q.lte(q.field("rentMillion"), args.rentMax),
+    );
+  }
+  if (args.areaMin !== undefined) {
+    query = query.filter((q: any) =>
+      q.gte(q.field("area"), args.areaMin),
+    );
+  }
+  if (args.areaMax !== undefined) {
+    query = query.filter((q: any) =>
+      q.lte(q.field("area"), args.areaMax),
+    );
+  }
+  return query;
+}
+
+function mapPointTitle(row: Doc<"listings">) {
+  return (
+    row.title?.trim() ||
+    [
+      row.dealType || "آگهی",
+      row.propertyType || "ملک",
+      row.area ? String(row.area) + " متری" : "",
+      row.city ? "در " + row.city : "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+}
+
+function toInternalMapPoint(row: Doc<"listings">) {
+  return {
+    key: row.key,
+    radarCode: row.radarCode,
+    title: mapPointTitle(row),
+    city: row.city ?? "نامشخص",
+    neighborhood: row.neighborhood ?? "",
+    area: row.area ?? null,
+    priceMillion: row.priceMillion ?? 0,
+    depositMillion: row.depositMillion ?? null,
+    rentMillion: row.rentMillion ?? null,
+    dealType: row.dealType ?? "سایر",
+    propertyType: row.propertyType ?? "سایر",
+    latitude: row.latitude as number,
+    longitude: row.longitude as number,
+    phone: row.phone ?? "",
+    publicSlug: row.publicSlug,
+    listingKind: row.listingKind,
+  };
+}
+
+function toPublicMapPoint(row: Doc<"listings">) {
+  return {
+    key: row.publicSlug || makePublicSlug(row),
+    slug: row.publicSlug || makePublicSlug(row),
+    title: mapPointTitle(row),
+    city: row.city ?? "شهریار",
+    neighborhood: row.neighborhood ?? "",
+    area: row.area ?? null,
+    priceMillion: row.priceMillion ?? 0,
+    depositMillion: row.depositMillion ?? null,
+    rentMillion: row.rentMillion ?? null,
+    dealType: row.dealType ?? "سایر",
+    propertyType: row.propertyType ?? "سایر",
+    latitude: row.latitude as number,
+    longitude: row.longitude as number,
+    featuredOnHome: row.featuredOnHome ?? false,
+  };
+}
+
 async function publicContext(ctx: Ctx) {
   const settings = await globalSettings(ctx);
   const profiles = await ctx.db.query("userProfiles").collect();
@@ -508,6 +665,88 @@ export const listListings = query({
       page: page.page.map((row: Doc<"listings">) =>
         toListing(row, r.privileged ? (row.phone ?? "") : fallback),
       ),
+    };
+  },
+});
+
+
+export const listMapPoints = query({
+  args: {
+    ...mapBoundsArgs,
+    ...commonMapFilterArgs,
+    view: v.union(v.literal("member"), v.literal("imported")),
+  },
+  handler: async (ctx, args) => {
+    const r = await resolve(ctx);
+    if (!r || !canWorkListings(r.role)) {
+      return { points: [], truncated: false };
+    }
+
+    const bounds = normalizedMapBounds(args);
+    const ownerOnly = args.view === "member" && ownsOnlyListings(r.role);
+    let ordered: any;
+
+    if (ownerOnly) {
+      ordered = ctx.db
+        .query("listings")
+        .withIndex("by_owner_kind_latitude", (q) =>
+          q
+            .eq("createdByUserId", r.userId)
+            .eq("listingKind", "member")
+            .gte("latitude", bounds.south)
+            .lte("latitude", bounds.north),
+        );
+    } else {
+      ordered = ctx.db
+        .query("listings")
+        .withIndex("by_kind_latitude", (q) =>
+          q
+            .eq("listingKind", args.view)
+            .gte("latitude", bounds.south)
+            .lte("latitude", bounds.north),
+        );
+    }
+
+    ordered = ordered
+      .filter((q: any) => q.gte(q.field("longitude"), bounds.west))
+      .filter((q: any) => q.lte(q.field("longitude"), bounds.east));
+    ordered = applyMapFilters(ordered, args);
+
+    const rows = await ordered.take(MAP_POINT_LIMIT + 1);
+    return {
+      points: rows.slice(0, MAP_POINT_LIMIT).map(toInternalMapPoint),
+      truncated: rows.length > MAP_POINT_LIMIT,
+    };
+  },
+});
+
+export const listPublicMapPoints = query({
+  args: {
+    ...mapBoundsArgs,
+    ...commonMapFilterArgs,
+    depositMin: v.optional(v.number()),
+    depositMax: v.optional(v.number()),
+    rentMin: v.optional(v.number()),
+    rentMax: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const bounds = normalizedMapBounds(args);
+    let ordered: any = ctx.db
+      .query("listings")
+      .withIndex("by_public_latitude", (q) =>
+        q
+          .eq("isPublic", true)
+          .gte("latitude", bounds.south)
+          .lte("latitude", bounds.north),
+      )
+      .filter((q: any) => q.gte(q.field("longitude"), bounds.west))
+      .filter((q: any) => q.lte(q.field("longitude"), bounds.east));
+
+    ordered = applyMapFilters(ordered, args);
+    const rows = await ordered.take(MAP_POINT_LIMIT + 1);
+    return {
+      points: rows.slice(0, MAP_POINT_LIMIT).map(toPublicMapPoint),
+      truncated: rows.length > MAP_POINT_LIMIT,
     };
   },
 });

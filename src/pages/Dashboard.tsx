@@ -2,6 +2,10 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import DashboardSectionNav from "@/components/dashboard/DashboardSectionNav";
 import FilterBar from "@/components/listings/FilterBar";
 import ListingCard from "@/components/listings/ListingCard";
+import ListingMapExplorer, {
+  DEFAULT_LISTING_MAP_BOUNDS,
+  type ListingMapBounds,
+} from "@/components/listings/ListingMapExplorer";
 import ShareDialog from "@/components/listings/ShareDialog";
 import UploadZone from "@/components/listings/UploadZone";
 import ManualListingDialog from "@/components/listings/ManualListingDialog";
@@ -65,6 +69,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const headerInputRef = useRef<HTMLInputElement>(null);
   const [listingView, setListingView] = useState<"member" | "imported">("member");
+  const [displayMode, setDisplayMode] = useState<"list" | "map">("list");
+  const [mapBounds, setMapBounds] = useState<ListingMapBounds>(DEFAULT_LISTING_MAP_BOUNDS);
+  const [pendingMapSelectionKey, setPendingMapSelectionKey] = useState<string | null>(null);
   const [focusClaimedKey, setFocusClaimedKey] = useState<string | null>(null);
   const [serverSearch, setServerSearch] = useState("");
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
@@ -118,6 +125,24 @@ export default function Dashboard() {
       sort: filters.sort,
     };
   }, [filters, listingView, serverSearch]);
+
+  const mapListingArgs = useMemo(() => ({
+    view: listingView,
+    ...mapBounds,
+    city: serverListingArgs.city,
+    dealType: serverListingArgs.dealType,
+    propertyType: serverListingArgs.propertyType,
+    roomsExact: serverListingArgs.roomsExact,
+    roomsMin: serverListingArgs.roomsMin,
+    priceMin: serverListingArgs.priceMin,
+    priceMax: serverListingArgs.priceMax,
+    areaMin: serverListingArgs.areaMin,
+    areaMax: serverListingArgs.areaMax,
+  }), [listingView, mapBounds, serverListingArgs]);
+  const mapListings = useQuery(
+    api.listings.listMapPoints,
+    displayMode === "map" ? mapListingArgs : "skip",
+  );
 
   // آگهی‌ها مستقیماً با صفحه‌بندی، فیلتر و مرتب‌سازی سمت سرور خوانده می‌شوند.
   const { results: serverPages, status, loadMore } = usePaginatedQuery(
@@ -247,6 +272,13 @@ export default function Dashboard() {
 
   // منبع نمایش: فایل محلی یا نتیجه صفحه‌بندی‌شده سرور.
   const displayListings = localTouched ? listings : serverItems;
+
+  useEffect(() => {
+    if (!pendingMapSelectionKey) return;
+    if (!displayListings.some((item) => listingKey(item) === pendingMapSelectionKey)) return;
+    setSelected(new Set([pendingMapSelectionKey]));
+    setPendingMapSelectionKey(null);
+  }, [displayListings, pendingMapSelectionKey]);
 
   const settings = useMemo(
     () => ({
@@ -828,6 +860,54 @@ export default function Dashboard() {
             <FilterBar filters={filters} onChange={updateFilters} onReset={resetFilters}
               cities={cities} dealTypes={dealTypes} propertyTypes={propertyTypes} />
 
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/70 bg-card/70 p-2">
+              <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+                <button
+                  type="button"
+                  onClick={() => setDisplayMode("list")}
+                  className={"rounded-lg px-4 py-2 text-xs font-black transition-colors " + (
+                    displayMode === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                  )}
+                >
+                  فهرست آگهی‌ها
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDisplayMode("map")}
+                  className={"inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-xs font-black transition-colors " + (
+                    displayMode === "map" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+                  )}
+                >
+                  <MapPinned className="size-4" />
+                  انتخاب از نقشه
+                </button>
+              </div>
+              {displayMode === "map" && (
+                <p className="px-2 text-[10px] leading-5 text-muted-foreground">
+                  نقشه فقط فایل‌های مجاز همین بخش و همین نقش کاربری را نمایش می‌دهد.
+                </p>
+              )}
+            </div>
+
+            {displayMode === "map" ? (
+              <ListingMapExplorer
+                points={mapListings?.points ?? []}
+                loading={mapListings === undefined}
+                truncated={mapListings?.truncated ?? false}
+                onBoundsChange={setMapBounds}
+                onOpenListing={(point) => {
+                  const lookup =
+                    point.radarCode?.trim() ||
+                    point.phone?.trim() ||
+                    point.title.trim() ||
+                    point.key;
+                  setPendingMapSelectionKey(point.key);
+                  setDisplayMode("list");
+                  setFilters({ ...DEFAULT_FILTERS, query: lookup });
+                }}
+              />
+            ) : (
+              <>
             {/* نوار انتخاب و ارسال */}
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/70 bg-card/70 px-4 py-2.5">
               <p className="text-sm text-muted-foreground">
@@ -958,6 +1038,8 @@ export default function Dashboard() {
                     </Button>
                   </div>
                 )}
+              </>
+            )}
               </>
             )}
           </>

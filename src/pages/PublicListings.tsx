@@ -1,11 +1,15 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
+import ListingMapExplorer, {
+  DEFAULT_LISTING_MAP_BOUNDS,
+  type ListingMapBounds,
+} from "@/components/listings/ListingMapExplorer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
 import { formatArea, formatPrice, formatRooms } from "@/lib/format";
-import { usePaginatedQuery } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex/react";
 import {
   ArrowDownWideNarrow,
   ArrowLeft,
@@ -21,7 +25,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
 type SortKey =
   | "newest"
@@ -100,6 +104,7 @@ function rangeLabel(min: string, max: string, unit: string) {
 
 export default function PublicListings() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { results: listings, status, loadMore } = usePaginatedQuery(
     api.listings.listPublicPaged,
     {},
@@ -122,6 +127,33 @@ export default function PublicListings() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [displayMode, setDisplayMode] = useState<"list" | "map">("list");
+  const [mapBounds, setMapBounds] = useState<ListingMapBounds>(DEFAULT_LISTING_MAP_BOUNDS);
+
+  const publicMapArgs = useMemo(() => ({
+    ...mapBounds,
+    city: city === "همه" ? undefined : city,
+    dealType: dealType === "همه" ? undefined : dealType,
+    propertyType: propertyType === "همه" ? undefined : propertyType,
+    roomsExact:
+      rooms !== "همه" && rooms !== "4+" ? Number(rooms) : undefined,
+    roomsMin: rooms === "4+" ? 4 : undefined,
+    areaMin: numberValue(areaMin) ?? undefined,
+    areaMax: numberValue(areaMax) ?? undefined,
+    depositMin: moneyMillionValue(depositMin) ?? undefined,
+    depositMax: moneyMillionValue(depositMax) ?? undefined,
+    rentMin: moneyMillionValue(rentMin) ?? undefined,
+    rentMax: moneyMillionValue(rentMax) ?? undefined,
+    priceMin: moneyMillionValue(priceMin) ?? undefined,
+    priceMax: moneyMillionValue(priceMax) ?? undefined,
+  }), [
+    mapBounds, city, dealType, propertyType, rooms, areaMin, areaMax,
+    depositMin, depositMax, rentMin, rentMax, priceMin, priceMax,
+  ]);
+  const publicMapListings = useQuery(
+    api.listings.listPublicMapPoints,
+    displayMode === "map" ? publicMapArgs : "skip",
+  );
 
   useSeo({
     title: "آگهی‌های املاک صنعتی و اداری شهریار | دیوساز",
@@ -396,7 +428,28 @@ export default function PublicListings() {
             </p>
           </div>
 
-          <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => setDisplayMode("list")}
+                className={"rounded-lg px-3 py-2 text-xs font-black transition-colors " + (
+                  displayMode === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                )}
+              >
+                فهرست
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisplayMode("map")}
+                className={"inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-black transition-colors " + (
+                  displayMode === "map" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+                )}
+              >
+                <MapPin className="size-3.5" />نقشه
+              </button>
+            </div>
+            <div className="relative">
             <Button type="button" variant="outline" className="gap-2 rounded-xl" onClick={() => setSortOpen((value) => !value)}>
               <ArrowDownWideNarrow className="size-4" />مرتب‌سازی<ChevronDown className="size-4" />
             </Button>
@@ -416,10 +469,22 @@ export default function PublicListings() {
                 ))}
               </div>
             )}
+            </div>
           </div>
         </div>
 
-        {status === "LoadingFirstPage" ? (
+        {displayMode === "map" ? (
+          <ListingMapExplorer
+            mode="public"
+            points={publicMapListings?.points ?? []}
+            loading={publicMapListings === undefined}
+            truncated={publicMapListings?.truncated ?? false}
+            onBoundsChange={setMapBounds}
+            onOpenListing={(point) => {
+              if (point.slug) navigate("/listings/" + point.slug);
+            }}
+          />
+        ) : status === "LoadingFirstPage" ? (
           <div className="py-24 text-center text-sm text-muted-foreground">در حال دریافت آگهی‌ها…</div>
         ) : filtered.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border bg-background p-12 text-center">
