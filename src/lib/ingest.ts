@@ -5,7 +5,7 @@
  * (برای افزودن روزانهٔ آگهی) قابل استفاده باشد. منطق از importers.ts استخراج شده.
  */
 
-import { neshanSearchUrl } from "./neshan";
+import { neshanAppLocationUrl, neshanSearchUrl, parseMapCoordinates } from "./neshan";
 import { parsePriceMillion, toEnglishDigits, type Listing } from "./parser";
 import type { DealType, PropertyType } from "./parser";
 import { CSV_HEADERS } from "./exporters";
@@ -79,6 +79,8 @@ export const FIELD_ALIASES: Record<string, string[]> = {
   phone: ["شماره تلفن", "تلفن", "phone", "موبایل"],
   divarUrl: ["لینک دیوار", "divar_url", "لینک", "divar"],
   mapsUrl: ["لینک گوگل مپ", "maps_url", "نقشه", "map"],
+  latitude: ["latitude", "lat", "عرض جغرافیایی", "عرض جغرافيايی"],
+  longitude: ["longitude", "lng", "lon", "long", "طول جغرافیایی", "طول جغرافيايی"],
   date: ["تاریخ ثبت", "date", "تاریخ"],
   dateRaw: ["date_raw", "تاریخ خام"],
   poster: ["آگهی‌دهنده", "poster", "آگهی دهنده", "منبع"],
@@ -213,6 +215,26 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
   // تاریخ ممکن است YYYY-MM-DD (خروجی JSON) یا YYYY/M/D (خروجی CSV) باشد
   const { date, dateRaw } = normalizeDate(mapped.date ?? mapped.dateRaw);
   const divarUrl = str(mapped.divarUrl);
+  const sourceMapsUrl = str(mapped.mapsUrl);
+  const explicitLatitude = toNumber(mapped.latitude);
+  const explicitLongitude = toNumber(mapped.longitude);
+  const explicitPoint =
+    explicitLatitude != null &&
+    explicitLongitude != null &&
+    explicitLatitude >= -90 &&
+    explicitLatitude <= 90 &&
+    explicitLongitude >= -180 &&
+    explicitLongitude <= 180
+      ? { lat: explicitLatitude, lng: explicitLongitude }
+      : null;
+  const mapPoint = explicitPoint ?? parseMapCoordinates(sourceMapsUrl);
+  const mapsUrl =
+    sourceMapsUrl ||
+    (mapPoint
+      ? neshanAppLocationUrl(mapPoint.lat, mapPoint.lng)
+      : city
+        ? neshanSearchUrl(city)
+        : "");
 
   return {
     id: radarCode || `${phone}-${divarUrl || city}`,
@@ -235,9 +257,9 @@ export function rowToListing(row: Record<string, unknown>): Listing | null {
     description: str(mapped.description),
     phone,
     divarUrl,
-    mapsUrl:
-      str(mapped.mapsUrl) ||
-      (city ? neshanSearchUrl(city) : ""),
+    mapsUrl,
+    latitude: mapPoint?.lat,
+    longitude: mapPoint?.lng,
     date,
     dateRaw,
     poster: str(mapped.poster),
