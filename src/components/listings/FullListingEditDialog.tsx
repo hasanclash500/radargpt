@@ -150,7 +150,7 @@ export default function FullListingEditDialog({
           ویرایش
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[calc(100vw-1rem)] max-h-[94dvh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="max-h-[94dvh] w-[calc(100dvw-0.75rem)] max-w-[calc(100dvw-0.75rem)] overflow-x-hidden overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>ویرایش کامل آگهی</DialogTitle>
           <DialogDescription>
