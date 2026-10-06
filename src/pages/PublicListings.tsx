@@ -3,6 +3,7 @@ import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
 import ListingMapExplorer, {
   DEFAULT_LISTING_MAP_BOUNDS,
   type ListingMapBounds,
+  type ListingMapItem,
 } from "@/components/listings/ListingMapExplorer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,7 +156,7 @@ export default function PublicListings() {
     displayMode === "map" ? publicMapArgs : "skip",
   );
   const visibleMapPoints = useMemo(() => {
-    const points = publicMapListings?.points ?? [];
+    const points: ListingMapItem[] = publicMapListings?.points ?? [];
     const q = search.trim().toLowerCase();
     if (!q) return points;
     return points.filter((point) =>
@@ -488,18 +489,14 @@ export default function PublicListings() {
               <button
                 type="button"
                 onClick={() => setDisplayMode("list")}
-                className={"rounded-lg px-3 py-2 text-xs font-black transition-colors " + (
-                  displayMode === "list" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
-                )}
+                className="rounded-lg bg-background px-3 py-2 text-xs font-black text-foreground shadow-sm"
               >
                 فهرست
               </button>
               <button
                 type="button"
                 onClick={() => setDisplayMode("map")}
-                className={"inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-black transition-colors " + (
-                  displayMode === "map" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
-                )}
+                className="inline-flex items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs font-black text-muted-foreground transition-colors"
               >
                 <MapPin className="size-3.5" />نقشه
               </button>
