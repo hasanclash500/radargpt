@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 export function ThemeToggle({ className }: { className?: string }) {
   const settings = useQuery(api.folders.getSettings, {});
   const [currentId, setCurrentId] = useState<DivosazTheme>(
-    () => readLocalTheme() ?? "navy",
+    () => readLocalTheme() ?? "light",
   );
 
   useEffect(() => {
