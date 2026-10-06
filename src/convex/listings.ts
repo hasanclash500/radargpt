@@ -6,7 +6,7 @@ import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { toEnglishDigits, type Listing as ListingRow } from "../lib/parser";
 import { listingSearchText } from "../lib/listing-search";
-import { neshanAppLocationUrl } from "../lib/neshan";
+import { neshanAppLocationUrl, parseMapCoordinates } from "../lib/neshan";
 import { OFFICE_ROLES, type OfficeRole } from "./schema";
 import {
   canEditListing,
@@ -990,6 +990,8 @@ const listingFields = {
   description: v.optional(v.string()),
   address: v.optional(v.string()),
   mapsUrl: v.optional(v.string()),
+  latitude: v.optional(v.number()),
+  longitude: v.optional(v.number()),
   divarUrl: v.optional(v.string()),
   date: v.optional(v.string()),
   dateRaw: v.optional(v.string()),
@@ -1168,6 +1170,34 @@ export const continueListingMaintenance = internalMutation({
       } else {
         needsMore = true;
       }
+    } else if (!settings?.listingCoordinatesBackfillDone) {
+      const row = await ensureSettings();
+      const cursor = settings?.listingCoordinatesBackfillCursor ?? null;
+      const page = await ctx.db
+        .query("listings")
+        .paginate({ numItems: batch, cursor });
+
+      for (const listing of page.page) {
+        if (listing.latitude != null && listing.longitude != null) continue;
+        const point = parseMapCoordinates(listing.mapsUrl);
+        if (!point) continue;
+        await ctx.db.patch(listing._id, {
+          latitude: point.lat,
+          longitude: point.lng,
+        });
+      }
+
+      if (page.isDone) {
+        await ctx.db.patch(row._id, {
+          listingCoordinatesBackfillDone: true,
+          listingCoordinatesBackfillCursor: undefined,
+        });
+      } else {
+        await ctx.db.patch(row._id, {
+          listingCoordinatesBackfillCursor: page.continueCursor,
+        });
+        needsMore = true;
+      }
     } else if (!settings?.listingCountsReady) {
       const row = await ensureSettings();
       const view =
@@ -1227,6 +1257,7 @@ export const continueListingMaintenance = internalMutation({
       latest?.listingKindMigrationDone &&
         latest?.listingSearchBackfillDone &&
         latest?.landingVisibilityMigrationDone &&
+        latest?.listingCoordinatesBackfillDone &&
         latest?.listingCountsReady,
     );
 
