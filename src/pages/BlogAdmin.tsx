@@ -409,7 +409,7 @@ export default function BlogAdmin() {
   return (
     <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
-        <div className="mx-auto flex min-h-16 max-w-[1500px] items-center justify-between gap-3 px-4 py-2 sm:px-6">
+        <div className="mx-auto flex min-h-16 w-full min-w-0 max-w-[1500px] items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <Button variant="ghost" size="icon" asChild className="shrink-0 rounded-xl">
               <Link to="/dashboard" aria-label="بازگشت به داشبورد">
@@ -438,7 +438,7 @@ export default function BlogAdmin() {
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1500px] gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[310px_minmax(0,1fr)]">
+      <div className="mx-auto grid w-full min-w-0 max-w-[1500px] gap-5 px-3 py-5 sm:px-6 lg:grid-cols-[310px_minmax(0,1fr)]">
         <aside className="space-y-4 lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:overflow-auto">
           <div className="rounded-2xl border border-border/70 bg-card/70 p-3">
             <div className="relative">
