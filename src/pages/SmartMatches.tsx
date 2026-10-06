@@ -26,7 +26,7 @@ function ListingMatchCard({ match }: { match: any }) {
   const item = match.listing;
   return (
     <article className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm">
-      <div className="grid grid-cols-[minmax(0,1fr)_105px] sm:grid-cols-[minmax(0,1fr)_135px]">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_135px]">
         <div className="min-w-0 p-3.5">
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge variant={match.score >= 68 ? "default" : "secondary"}>
@@ -144,7 +144,7 @@ export default function SmartMatches() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/30">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
         <div className="mx-auto flex h-16 w-full min-w-0 max-w-6xl items-center justify-between gap-2 px-3 sm:px-6">
           <div className="flex items-center gap-2">
