@@ -310,8 +310,8 @@ export default function Admin() {
 
   return (
     <main className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/20 px-3 py-5 text-foreground sm:px-4 sm:py-8" dir="rtl">
-      <div className="mx-auto max-w-6xl space-y-5">
-        <header className="flex flex-wrap items-center justify-between gap-3">
+      <div className="mx-auto w-full min-w-0 max-w-6xl space-y-5">
+        <header className="flex w-full min-w-0 flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-black">
               {isManager ? "مدیریت و تنظیمات دیوساز" : "تنظیمات آگهی‌ها"}
