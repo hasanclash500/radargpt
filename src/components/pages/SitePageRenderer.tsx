@@ -399,7 +399,7 @@ export default function SitePageRenderer({
   );
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background text-foreground">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background text-foreground">
       {!hideHeader && <PublicHeader />}
       {!hideHeader && <PublicStoryStrip />}
       {page.isHomepage && heroIndex < 0 && <BrandStorySection />}
