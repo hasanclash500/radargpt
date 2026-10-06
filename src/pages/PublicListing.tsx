@@ -174,7 +174,7 @@ export default function PublicListing() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen bg-background">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background">
       <header className="glass sticky top-0 z-40 border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
           <Link to="/listings" className="flex items-center gap-2 text-sm font-extrabold">
