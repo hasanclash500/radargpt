@@ -42,6 +42,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     searchParams.get("returnTo"),
     redirectAfterAuth,
   );
+  const reason = searchParams.get("reason");
 
   const requestedMode = searchParams.get("mode") === "signIn" ? "signIn" : "signUp";
   const [mode, setMode] = useState<"signIn" | "signUp">(requestedMode);
@@ -97,9 +98,11 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           </div>
           <CardTitle className="text-2xl font-black">حساب دیوساز</CardTitle>
           <CardDescription className="leading-6">
-            {mode === "signUp"
-              ? "برای ایجاد حساب، ایمیل و رمز عبور خود را وارد کنید."
-              : "برای ورود، ایمیل و رمز عبور حساب خود را وارد کنید."}
+            {reason === "favorite"
+              ? "برای ذخیره آگهی و دسترسی به علاقه‌مندی‌ها در همه دستگاه‌ها، وارد شوید یا حساب بسازید."
+              : mode === "signUp"
+                ? "برای ایجاد حساب، ایمیل و رمز عبور خود را وارد کنید."
+                : "برای ورود، ایمیل و رمز عبور حساب خود را وارد کنید."}
           </CardDescription>
         </CardHeader>
 
