@@ -320,7 +320,7 @@ export function PersianDatePicker({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           dir="rtl"
-          className="max-h-[96dvh] w-[calc(100vw-16px)] max-w-md overflow-y-auto rounded-3xl p-4 sm:p-5"
+          className="max-h-[96dvh] w-[calc(100dvw-16px)] max-w-[calc(100dvw-16px)] overflow-x-hidden overflow-y-auto rounded-3xl p-4 sm:max-w-md sm:p-5"
         >
           <DialogHeader className="text-right">
             <DialogTitle className="flex items-center gap-2">
