@@ -179,6 +179,7 @@ export default function Dashboard() {
     (!settingsRow?.listingKindMigrationDone ||
       !settingsRow?.listingSearchBackfillDone ||
       !settingsRow?.landingVisibilityMigrationDone ||
+      !settingsRow?.listingCoordinatesBackfillDone ||
       !settingsRow?.listingCountsReady);
 
   const maintenanceStartedRef = useRef(false);
@@ -329,6 +330,7 @@ export default function Dashboard() {
           dealType: l.dealType, propertyType: l.propertyType,
           title: l.title || undefined, description: l.description || undefined,
           address: l.address || undefined, mapsUrl: l.mapsUrl || undefined,
+          latitude: l.latitude, longitude: l.longitude,
           divarUrl: l.divarUrl || undefined, date: l.date || undefined,
           dateRaw: l.dateRaw || undefined, poster: l.poster || undefined,
           phone: l.phone,
