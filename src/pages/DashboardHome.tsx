@@ -658,8 +658,8 @@ export default function DashboardHome() {
   }
 
   return (
-    <main dir="rtl" className="min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background pb-24 text-foreground lg:pb-0">
-      <header className="sticky top-0 z-50 w-full max-w-[100dvw] border-b border-border/70 bg-background/90 backdrop-blur-xl lg:hidden">
+    <main dir="rtl" className="responsive-page dashboard-home-shell min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background pb-24 text-foreground lg:pb-0">
+      <header className="dashboard-mobile-header sticky top-0 z-50 w-full max-w-[100dvw] border-b border-border/70 bg-background/90 backdrop-blur-xl lg:hidden">
         <div className="flex h-16 w-full min-w-0 items-center justify-between gap-2 px-3 sm:px-5">
           <MekaBrand compact link />
           <div className="flex items-center gap-1">
@@ -686,8 +686,8 @@ export default function DashboardHome() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full min-w-0 max-w-full gap-0 lg:min-h-screen lg:max-w-[1600px]">
-        <aside className="hidden w-[255px] shrink-0 border-l border-border/70 bg-card/70 lg:block">
+      <div className="dashboard-main-row mx-auto flex w-full min-w-0 max-w-full gap-0 lg:min-h-screen lg:max-w-[1600px]">
+        <aside className="dashboard-desktop-sidebar hidden w-[255px] shrink-0 border-l border-border/70 bg-card/70 lg:block">
           <div className="sticky top-0 flex h-screen flex-col p-4">
             <div className="px-2 py-2">
               <MekaBrand link />
@@ -772,7 +772,7 @@ export default function DashboardHome() {
           </div>
         </aside>
 
-        <section className="min-w-0 w-full max-w-full flex-1 overflow-x-clip px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
+        <section className="dashboard-main-content min-w-0 w-full max-w-full flex-1 overflow-x-clip px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
           <div className="mb-4 hidden items-center justify-end gap-2 lg:flex">
             <ThemeToggle />
           </div>
@@ -780,7 +780,7 @@ export default function DashboardHome() {
           <section className="relative w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:rounded-[2rem] sm:p-7">
             <div className="pointer-events-none absolute -start-20 -top-24 size-72 rounded-full bg-primary/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -end-20 size-72 rounded-full bg-[color:var(--gold)]/10 blur-3xl" />
-            <div className="relative grid min-w-0 gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center">
+            <div className="dashboard-hero-grid relative grid min-w-0 gap-5 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-center">
               <div className="min-w-0">
                 <div className="flex min-w-0 items-center gap-3">
                   <img
@@ -951,7 +951,7 @@ export default function DashboardHome() {
 
           {isStaff && (
             <>
-              <section className="mt-5 grid w-full min-w-0 max-w-full gap-4 xl:grid-cols-[1.25fr_0.75fr]">
+              <section className="dashboard-staff-grid mt-5 grid w-full min-w-0 max-w-full gap-4 xl:grid-cols-[1.25fr_0.75fr]">
                 <div className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                   <div className="flex min-w-0 items-center justify-between gap-3">
                     <div>
@@ -1090,7 +1090,7 @@ export default function DashboardHome() {
                 </div>
               </section>
 
-              <section className="mt-4 grid w-full min-w-0 max-w-full gap-4 lg:grid-cols-2 xl:grid-cols-3">
+              <section className="dashboard-bottom-grid mt-4 grid w-full min-w-0 max-w-full gap-4 lg:grid-cols-2 xl:grid-cols-3">
                 <div className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-border/70 bg-card p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <h2 className="font-black">آخرین متقاضی‌ها</h2>
@@ -1210,7 +1210,7 @@ export default function DashboardHome() {
         </section>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 w-[100dvw] max-w-[100dvw] border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:hidden">
+      <nav className="dashboard-mobile-nav fixed bottom-0 left-0 right-0 z-50 w-[100dvw] max-w-[100dvw] border-t border-border/70 bg-background/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
           <Link
             to="/dashboard"
