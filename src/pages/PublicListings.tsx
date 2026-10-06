@@ -293,7 +293,7 @@ export default function PublicListings() {
   };
 
   return (
-    <main dir="rtl" className="min-h-screen bg-muted/35">
+    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-muted/35">
       <header className="glass sticky top-0 z-50 border-b border-border/60">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5">
@@ -435,7 +435,7 @@ export default function PublicListings() {
               const image = item.images?.find((entry: any) => entry.featured) ?? item.images?.[0];
               return (
                 <article key={item.slug} className="group overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:border-primary/35 hover:shadow-md">
-                  <div className="grid min-h-[210px] grid-cols-[minmax(0,1fr)_42%] sm:min-h-[240px]">
+                  <div className="grid min-h-[210px] grid-cols-1 sm:min-h-[240px] sm:grid-cols-[minmax(0,1fr)_42%]">
                     <div className="flex min-w-0 flex-col p-4 sm:p-5">
                       <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
                         <span className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">{item.dealType}</span>
