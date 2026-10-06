@@ -425,7 +425,7 @@ export default function ManualListingDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="w-[calc(100vw-1rem)] max-h-[96dvh] overflow-y-auto p-4 sm:max-w-3xl sm:p-6">
+      <DialogContent className="max-h-[96dvh] w-[calc(100dvw-0.75rem)] max-w-[calc(100dvw-0.75rem)] overflow-x-hidden overflow-y-auto p-4 sm:max-w-3xl sm:p-6">
         <DialogHeader>
           <DialogTitle>ثبت مرحله‌ای آگهی</DialogTitle>
           <DialogDescription>
