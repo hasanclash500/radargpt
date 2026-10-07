@@ -417,36 +417,56 @@ async function toPublicListing(
     role: string;
     profileSlug?: string;
     profileImageUrl?: string | null;
+    isCreator?: boolean;
   }[] = [];
-  if (context.managerPhone) {
-    contacts.push({
-      name: context.officeName || "دیوساز",
-      phone: context.managerPhone,
-      role: "مدیر",
-    });
-  }
 
   if (row.createdByUserId) {
     const creator = context.profiles.find(
       (profile) => profile.userId === row.createdByUserId,
     );
-    const phone = creator?.publicPhone ?? "";
     const advisorProfile = context.advisorProfiles.find(
       (profile) =>
         profile.userId === row.createdByUserId && profile.publicProfile,
     );
-    if (phone && !contacts.some((item) => item.phone === phone)) {
-      const profileImageUrl = advisorProfile?.profileImageStorageId
-        ? await ctx.storage.getUrl(advisorProfile.profileImageStorageId)
-        : null;
+    const creatorRole =
+      creator?.officeRole === OFFICE_ROLES.MANAGER
+        ? "مدیر ثبت‌کننده"
+        : creator?.officeRole === OFFICE_ROLES.ADMIN
+          ? "ادمین ثبت‌کننده"
+          : creator?.officeRole === OFFICE_ROLES.CONSULTANT
+            ? "مشاور ثبت‌کننده"
+            : "ثبت‌کننده آگهی";
+    const creatorPhone =
+      creator?.publicPhone ||
+      (creator?.officeRole === OFFICE_ROLES.MANAGER
+        ? context.managerPhone
+        : "") ||
+      "";
+    const profileImageUrl = advisorProfile?.profileImageStorageId
+      ? await ctx.storage.getUrl(advisorProfile.profileImageStorageId)
+      : null;
+
+    if (advisorProfile || creatorPhone || creator?.displayName) {
       contacts.push({
-        name: creator?.displayName || "مشاور دیوساز",
-        phone,
-        role: "مشاور ثبت‌کننده",
+        name: creator?.displayName || context.officeName || "دیوساز",
+        phone: creatorPhone,
+        role: creatorRole,
         profileSlug: advisorProfile?.slug,
         profileImageUrl,
+        isCreator: true,
       });
     }
+  }
+
+  if (
+    context.managerPhone &&
+    !contacts.some((item) => item.phone === context.managerPhone)
+  ) {
+    contacts.push({
+      name: context.officeName || "دیوساز",
+      phone: context.managerPhone,
+      role: "مدیر",
+    });
   }
 
   const images = await resolveListingImages(ctx, row);

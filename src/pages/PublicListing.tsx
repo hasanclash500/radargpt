@@ -183,9 +183,13 @@ export default function PublicListing() {
   }
 
   const consultant =
-    listing.contacts?.find((contact: any) =>
-      String(contact.role || "").includes("مشاور"),
-    ) ?? listing.contacts?.[0];
+    listing.contacts?.find((contact: any) => contact.isCreator) ??
+    listing.contacts?.find((contact: any) => Boolean(contact.profileSlug)) ??
+    listing.contacts?.[0];
+  const contactPhone =
+    consultant?.phone ||
+    listing.contacts?.find((contact: any) => Boolean(contact.phone))?.phone ||
+    "";
 
   const publicFields = (listing.customFields || []).filter(
     (field: any) => String(field.value ?? "").trim().length > 0,
@@ -237,7 +241,7 @@ export default function PublicListing() {
                     {consultant.name || "مشاور دیوساز"}
                   </strong>
                   <span className="mt-0.5 block text-[10px] text-muted-foreground">
-                    {consultant.role || "مشاور دیوساز"}
+                    {consultant.role || "ثبت‌کننده آگهی"} · مشاهده پروفایل
                   </span>
                 </div>
                 <ChevronLeft className="me-auto size-5 text-muted-foreground" />
@@ -446,9 +450,8 @@ export default function PublicListing() {
             <section className="mt-5 rounded-[1.7rem] border border-primary/15 bg-primary/5 p-5">
               <h2 className="font-black">حریم خصوصی فایل</h2>
               <p className="mt-2 text-xs leading-6 text-muted-foreground">
-                آدرس دقیق، شماره مالک، یادداشت‌های داخلی و لینک منبع عمومی
-                نمی‌شوند. برای دریافت جزئیات کامل و هماهنگی بازدید با مشاور
-                دیوساز تماس بگیرید.
+                برای دریافت جزئیات کامل و هماهنگی بازدید با مشاور دیوساز تماس
+                بگیرید.
               </p>
             </section>
           </article>
@@ -460,9 +463,9 @@ export default function PublicListing() {
                 برای جزئیات، بازدید و بررسی شرایط ملک با تیم دیوساز در ارتباط
                 باشید.
               </p>
-              {consultant?.phone && (
+              {contactPhone && (
                 <Button asChild className="mt-4 w-full gap-2 rounded-xl">
-                  <a href={"tel:" + consultant.phone}>
+                  <a href={"tel:" + contactPhone}>
                     <PhoneCall className="size-4" />
                     تماس با مشاور
                   </a>
@@ -493,13 +496,13 @@ export default function PublicListing() {
 
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/95 p-3 shadow-[0_-12px_35px_rgba(15,23,42,.12)] backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-xl grid-cols-[0.9fr_1.3fr] gap-2">
-          {consultant?.phone ? (
+          {contactPhone ? (
             <Button
               asChild
               variant="outline"
               className="h-13 gap-2 rounded-2xl border-primary text-primary"
             >
-              <a href={"tel:" + consultant.phone}>
+              <a href={"tel:" + contactPhone}>
                 <PhoneCall className="size-4" />
                 تماس با مشاور
               </a>
