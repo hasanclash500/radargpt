@@ -4,9 +4,18 @@ import MekaBrand from "@/components/MekaBrand";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
-import { faNum, formatArea, formatPrice, formatRooms } from "@/lib/format";
+import { formatArea, formatPrice, formatRooms } from "@/lib/format";
 import { useQuery } from "convex/react";
 import {
   ArrowLeft,
@@ -14,24 +23,58 @@ import {
   BriefcaseBusiness,
   Building2,
   Factory,
+  FilePlus2,
   Heart,
   Home,
+  Info,
+  KeyRound,
+  LogIn,
   MapPin,
   Menu,
   Plus,
   Search,
   SlidersHorizontal,
   Sparkles,
+  Tag,
   Warehouse,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
-const QUICK_FILTERS = [
-  { label: "فروش", query: "?deal=فروش" },
-  { label: "رهن و اجاره", query: "?deal=رهن و اجاره" },
-  { label: "سوله", query: "?property=سوله" },
-  { label: "دفتر اداری", query: "?property=دفتر اداری" },
+const INTENTS = [
+  {
+    label: "می‌خرم",
+    to: "/listings?deal=فروش",
+    icon: Home,
+    active: true,
+  },
+  {
+    label: "اجاره می‌کنم",
+    to: "/listings?deal=رهن و اجاره",
+    icon: KeyRound,
+  },
+  {
+    label: "می‌فروشم",
+    to: "/submit-listing?deal=فروش",
+    icon: Tag,
+  },
+  {
+    label: "اجاره می‌دهم",
+    to: "/submit-listing?deal=رهن و اجاره",
+    icon: FilePlus2,
+  },
+];
+
+const MENU_ITEMS = [
+  { label: "خانه", to: "/", icon: Home },
+  { label: "آگهی‌ها", to: "/listings", icon: Search },
+  { label: "جستجو روی نقشه", to: "/listings?mode=map", icon: MapPin },
+  { label: "علاقه‌مندی‌های من", to: "/saved", icon: Heart },
+  { label: "دستیار هوشمند", to: "/assistant", icon: Bot },
+  { label: "ثبت آگهی", to: "/submit-listing", icon: Plus },
+  { label: "ثبت تقاضای ملک", to: "/request", icon: FilePlus2 },
+  { label: "درباره دیوساز", to: "/about", icon: Info },
+  { label: "ورود / عضویت", to: "/auth", icon: LogIn },
 ];
 
 function FeaturedCard({ item }: { item: any }) {
@@ -139,7 +182,7 @@ export default function LandingV2() {
       dir="rtl"
       className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background pb-20 text-foreground md:pb-0"
     >
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/92 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link to="/" aria-label="دیوساز">
             <MekaBrand compact />
@@ -158,67 +201,128 @@ export default function LandingV2() {
               </Link>
             </Button>
             <ThemeToggle />
-            <Button asChild variant="outline" size="icon" className="rounded-xl">
-              <Link to="/listings" aria-label="مشاهده آگهی‌ها">
-                <Menu className="size-4" />
-              </Link>
-            </Button>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="rounded-xl"
+                  aria-label="باز کردن منوی سایت"
+                >
+                  <Menu className="size-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" dir="rtl" className="w-[86vw] max-w-[360px]">
+                <SheetHeader className="border-b border-border/60 pb-4 pe-12 text-right">
+                  <SheetTitle>منوی دیوساز</SheetTitle>
+                  <SheetDescription>
+                    دسترسی سریع به بخش‌های اصلی سایت
+                  </SheetDescription>
+                </SheetHeader>
+                <nav className="grid gap-1 px-3">
+                  {MENU_ITEMS.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <SheetClose asChild key={item.to}>
+                        <Link
+                          to={item.to}
+                          className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-black transition-colors hover:bg-muted"
+                        >
+                          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <Icon className="size-4" />
+                          </span>
+                          {item.label}
+                        </Link>
+                      </SheetClose>
+                    );
+                  })}
+                </nav>
+                <div className="mt-auto border-t border-border/60 p-4 text-[11px] leading-6 text-muted-foreground">
+                  {settings?.officeName || "دیوساز"} · املاک صنعتی و اداری شهریار
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
-      <section className="relative overflow-hidden border-b border-border/60">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(37,99,235,.12),transparent_35%),radial-gradient(circle_at_85%_25%,rgba(14,165,233,.10),transparent_32%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-8 pt-8 sm:px-6 sm:pb-12 sm:pt-12">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-black text-primary">
+      <section className="relative overflow-hidden border-b border-border/60 bg-white text-slate-950 dark:bg-background dark:text-foreground">
+        <div
+          className="pointer-events-none absolute inset-y-0 start-0 w-[48%] bg-cover bg-left bg-no-repeat opacity-95 sm:w-[42%]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,.82) 28%, rgba(255,255,255,.1) 72%), url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1100&q=86')",
+          }}
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(37,99,235,.08),transparent_32%)]" />
+
+        <div className="relative mx-auto max-w-6xl px-4 pb-8 pt-7 sm:px-6 sm:pb-12 sm:pt-12">
+          <div className="me-auto max-w-3xl sm:max-w-[68%]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/85 px-3 py-1.5 text-xs font-black text-blue-700 shadow-sm backdrop-blur dark:border-primary/20 dark:bg-background/80 dark:text-primary">
               <Sparkles className="size-4" />
               رادار تخصصی املاک صنعتی و اداری
             </span>
-            <h1 className="mt-5 text-3xl font-black leading-[1.5] tracking-tight sm:text-5xl">
-              ملک مناسب کسب‌وکارت را
-              <span className="text-primary"> دقیق‌تر پیدا کن</span>
+
+            <h1 className="mt-4 text-3xl font-black leading-[1.5] tracking-tight sm:text-5xl">
+              به دیوساز خوش آمدید
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-8 text-muted-foreground sm:text-base">
-              سوله، کارخانه، کارگاه، انبار، زمین صنعتی و دفتر اداری در شهریار
-              و غرب تهران؛ با فایل‌های واقعی و امکان جستجو روی نقشه.
+            <p className="mt-2 max-w-xl text-sm leading-8 text-slate-500 dark:text-muted-foreground sm:text-base">
+              برای خرید، فروش، رهن و اجاره سوله، کارخانه، کارگاه، انبار، زمین
+              صنعتی و دفتر اداری در شهریار و غرب تهران.
             </p>
           </div>
 
           <form
             onSubmit={submitSearch}
-            className="mt-7 flex items-center gap-2 rounded-[1.5rem] border border-border/70 bg-card p-2 shadow-[0_16px_45px_rgba(15,23,42,.08)]"
+            className="mt-7 flex items-center gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-[0_16px_45px_rgba(15,23,42,.09)] backdrop-blur dark:border-border dark:bg-card"
           >
-            <Search className="ms-2 size-5 shrink-0 text-muted-foreground" />
+            <Search className="ms-2 size-5 shrink-0 text-slate-400" />
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="شهر، محله، سوله، کارخانه یا دفتر اداری…"
-              className="h-12 flex-1 border-0 bg-transparent px-1 shadow-none focus-visible:ring-0"
+              placeholder="شهر، محله یا نوع ملک را جستجو کنید"
+              className="h-12 flex-1 border-0 bg-transparent px-1 text-slate-900 shadow-none placeholder:text-slate-400 focus-visible:ring-0 dark:text-foreground"
             />
             <Button type="submit" className="h-11 rounded-xl px-5 font-black">
               جستجو
             </Button>
           </form>
 
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
-            {QUICK_FILTERS.map((filter) => (
-              <Link
-                key={filter.label}
-                to={"/listings" + filter.query}
-                className="shrink-0 rounded-full border border-border bg-card px-4 py-2 text-xs font-black shadow-sm transition-colors hover:border-primary/40 hover:text-primary"
-              >
-                {filter.label}
-              </Link>
-            ))}
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {INTENTS.map((intent) => {
+              const Icon = intent.icon;
+              return (
+                <Link
+                  key={intent.label}
+                  to={intent.to}
+                  className={
+                    "flex min-h-16 items-center justify-center gap-2 rounded-2xl border px-3 text-sm font-black shadow-sm transition-all hover:-translate-y-0.5 " +
+                    (intent.active
+                      ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-primary/30 dark:bg-primary/10 dark:text-primary"
+                      : "border-slate-200 bg-white/95 text-slate-900 dark:border-border dark:bg-card dark:text-foreground")
+                  }
+                >
+                  <Icon className="size-5 shrink-0" />
+                  {intent.label}
+                </Link>
+              );
+            })}
           </div>
 
           <Link
             to="/listings?advanced=1"
             className="relative mt-5 block overflow-hidden rounded-[1.7rem] bg-gradient-to-l from-blue-700 via-blue-600 to-sky-500 p-5 text-white shadow-[0_18px_45px_rgba(37,99,235,.28)] transition-transform hover:-translate-y-0.5 sm:p-6"
           >
-            <div className="absolute -start-8 -top-12 size-44 rounded-full border border-white/15" />
-            <div className="absolute start-20 -bottom-16 size-40 rounded-full bg-white/10 blur-2xl" />
+            <div
+              className="absolute inset-y-0 start-0 w-[42%] bg-cover bg-center opacity-25"
+              style={{
+                backgroundImage:
+                  "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=700&q=70')",
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-blue-700/15 to-blue-700/65" />
             <div className="relative flex items-center gap-4">
               <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 shadow-inner">
                 <SlidersHorizontal className="size-7" />
@@ -253,10 +357,7 @@ export default function LandingV2() {
         {!listings ? (
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[0, 1, 2].map((item) => (
-              <div
-                key={item}
-                className="h-72 animate-pulse rounded-[1.7rem] bg-muted"
-              />
+              <div key={item} className="h-72 animate-pulse rounded-[1.7rem] bg-muted" />
             ))}
           </div>
         ) : listings.length > 0 ? (
@@ -303,7 +404,7 @@ export default function LandingV2() {
               <div>
                 <h3 className="font-black">علاقه‌مندی‌های من</h3>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  فایل‌هایی که برای حساب خودت ذخیره کرده‌ای
+                  ملک‌های ذخیره‌شده برای حساب شما
                 </p>
               </div>
               <ArrowLeft className="me-auto size-5 transition-transform group-hover:-translate-x-1" />
@@ -327,10 +428,7 @@ export default function LandingV2() {
             ].map((item) => {
               const Icon = item.icon;
               return (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-border/70 bg-card p-4"
-                >
+                <div key={item.title} className="rounded-2xl border border-border/70 bg-card p-4">
                   <Icon className="size-6 text-primary" />
                   <strong className="mt-3 block text-sm">{item.title}</strong>
                   <span className="mt-1 block text-[10px] leading-5 text-muted-foreground">
@@ -345,30 +443,21 @@ export default function LandingV2() {
 
       <section className="mx-auto max-w-6xl px-4 py-9 sm:px-6">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Link
-            to="/assistant"
-            className="rounded-2xl border border-border/70 bg-card p-5 transition-transform hover:-translate-y-0.5"
-          >
+          <Link to="/assistant" className="rounded-2xl border border-border/70 bg-card p-5 transition-transform hover:-translate-y-0.5">
             <Bot className="size-6 text-primary" />
             <strong className="mt-3 block">دستیار هوشمند دیوساز</strong>
             <span className="mt-1 block text-xs text-muted-foreground">
               برای پیدا کردن فایل مناسب راهنمایی بگیر
             </span>
           </Link>
-          <Link
-            to="/request"
-            className="rounded-2xl border border-border/70 bg-card p-5 transition-transform hover:-translate-y-0.5"
-          >
+          <Link to="/request" className="rounded-2xl border border-border/70 bg-card p-5 transition-transform hover:-translate-y-0.5">
             <Search className="size-6 text-primary" />
             <strong className="mt-3 block">ثبت تقاضای ملک</strong>
             <span className="mt-1 block text-xs text-muted-foreground">
               مشخصات ملک موردنظر را ثبت کن
             </span>
           </Link>
-          <Link
-            to="/submit-listing"
-            className="rounded-2xl border border-border/70 bg-card p-5 transition-transform hover:-translate-y-0.5"
-          >
+          <Link to="/submit-listing" className="rounded-2xl border border-border/70 bg-card p-5 transition-transform hover:-translate-y-0.5">
             <Plus className="size-6 text-primary" />
             <strong className="mt-3 block">ثبت آگهی ملک</strong>
             <span className="mt-1 block text-xs text-muted-foreground">
@@ -381,11 +470,7 @@ export default function LandingV2() {
       <footer className="border-t border-border/60 bg-card">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-muted-foreground sm:px-6">
           <span>{settings?.officeName || "دیوساز"} · املاک صنعتی و اداری شهریار</span>
-          <a
-            href={"tel:" + (settings?.managerPhone || "09120858095")}
-            className="font-bold text-primary"
-            dir="ltr"
-          >
+          <a href={"tel:" + (settings?.managerPhone || "09120858095")} className="font-bold text-primary" dir="ltr">
             {settings?.managerPhone || "09120858095"}
           </a>
         </div>

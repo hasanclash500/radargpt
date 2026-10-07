@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router";
 import { toast } from "sonner";
 
 const TOKEN_KEY = "divsaz-chat-guest-token";
@@ -56,6 +57,7 @@ function PersonAvatar({ person }: { person: any }) {
 }
 
 export default function FloatingSiteChat() {
+  const location = useLocation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const authenticated = isAuthenticated;
   const contacts = useQuery(api.advisorChat.listContacts, {}) ?? [];
@@ -215,6 +217,13 @@ export default function FloatingSiteChat() {
     setSelectedPerson(null);
     setPendingPerson(null);
   };
+
+  if (
+    location.pathname === "/assistant" ||
+    location.pathname.startsWith("/dashboard/assistant")
+  ) {
+    return null;
+  }
 
   return (
     <div

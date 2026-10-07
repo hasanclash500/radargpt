@@ -411,7 +411,13 @@ async function toPublicListing(
   row: Doc<"listings">,
   context: Awaited<ReturnType<typeof publicContext>>,
 ) {
-  const contacts: { name: string; phone: string; role: string; profileSlug?: string }[] = [];
+  const contacts: {
+    name: string;
+    phone: string;
+    role: string;
+    profileSlug?: string;
+    profileImageUrl?: string | null;
+  }[] = [];
   if (context.managerPhone) {
     contacts.push({
       name: context.officeName || "دیوساز",
@@ -430,11 +436,15 @@ async function toPublicListing(
         profile.userId === row.createdByUserId && profile.publicProfile,
     );
     if (phone && !contacts.some((item) => item.phone === phone)) {
+      const profileImageUrl = advisorProfile?.profileImageStorageId
+        ? await ctx.storage.getUrl(advisorProfile.profileImageStorageId)
+        : null;
       contacts.push({
         name: creator?.displayName || "مشاور دیوساز",
         phone,
         role: "مشاور ثبت‌کننده",
         profileSlug: advisorProfile?.slug,
+        profileImageUrl,
       });
     }
   }
