@@ -31,6 +31,7 @@ import {
   LogIn,
   MapPin,
   Menu,
+  PhoneCall,
   Plus,
   Search,
   SlidersHorizontal,
@@ -46,22 +47,29 @@ const INTENTS = [
     label: "می‌خرم",
     to: "/listings?deal=فروش",
     icon: Home,
-    active: true,
+    tone:
+      "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-300",
   },
   {
     label: "اجاره می‌کنم",
     to: "/listings?deal=رهن و اجاره",
     icon: KeyRound,
+    tone:
+      "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900/60 dark:bg-violet-950/30 dark:text-violet-300",
   },
   {
     label: "می‌فروشم",
     to: "/submit-listing?deal=فروش",
     icon: Tag,
+    tone:
+      "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300",
   },
   {
     label: "اجاره می‌دهم",
     to: "/submit-listing?deal=رهن و اجاره",
     icon: FilePlus2,
+    tone:
+      "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300",
   },
 ];
 
@@ -214,32 +222,42 @@ export default function LandingV2() {
                   <Menu className="size-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" dir="rtl" className="w-[86vw] max-w-[360px]">
-                <SheetHeader className="border-b border-border/60 pb-4 pe-12 text-right">
+              <SheetContent
+                side="right"
+                dir="rtl"
+                className="h-[100dvh] w-[86vw] max-w-[360px] gap-0 overflow-hidden p-0"
+              >
+                <SheetHeader className="shrink-0 border-b border-border/60 px-4 pb-4 pt-5 pe-12 text-right">
                   <SheetTitle>منوی دیوساز</SheetTitle>
                   <SheetDescription>
                     دسترسی سریع به بخش‌های اصلی سایت
                   </SheetDescription>
                 </SheetHeader>
-                <nav className="grid gap-1 px-3">
-                  {MENU_ITEMS.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <SheetClose asChild key={item.to}>
-                        <Link
-                          to={item.to}
-                          className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-black transition-colors hover:bg-muted"
-                        >
-                          <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                            <Icon className="size-4" />
-                          </span>
-                          {item.label}
-                        </Link>
-                      </SheetClose>
-                    );
-                  })}
-                </nav>
-                <div className="mt-auto border-t border-border/60 p-4 text-[11px] leading-6 text-muted-foreground">
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin]">
+                  <nav className="grid gap-1">
+                    {MENU_ITEMS.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <SheetClose asChild key={item.to}>
+                          <Link
+                            to={item.to}
+                            className="flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-black transition-colors hover:bg-muted"
+                          >
+                            <span className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              <Icon className="size-4" />
+                            </span>
+                            {item.label}
+                          </Link>
+                        </SheetClose>
+                      );
+                    })}
+                  </nav>
+                  <div className="mt-3 rounded-2xl bg-muted/50 p-3 text-[11px] leading-6 text-muted-foreground">
+                    خرید، فروش، رهن و اجاره املاک صنعتی و اداری در شهریار و
+                    غرب تهران.
+                  </div>
+                </div>
+                <div className="shrink-0 border-t border-border/60 bg-background p-4 text-[11px] leading-6 text-muted-foreground">
                   {settings?.officeName || "دیوساز"} · املاک صنعتی و اداری شهریار
                 </div>
               </SheetContent>
@@ -248,35 +266,48 @@ export default function LandingV2() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden border-b border-border/60 bg-white text-slate-950 dark:bg-background dark:text-foreground">
-        <div
-          className="pointer-events-none absolute inset-y-0 start-0 w-[48%] bg-cover bg-left bg-no-repeat opacity-95 sm:w-[42%]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to left, rgba(255,255,255,1) 0%, rgba(255,255,255,.82) 28%, rgba(255,255,255,.1) 72%), url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1100&q=86')",
-          }}
-        />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(37,99,235,.08),transparent_32%)]" />
+      <section className="border-b border-border/60 bg-white text-slate-950 dark:bg-background dark:text-foreground">
+        <div className="mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-6 sm:pb-12 sm:pt-10">
+          <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(340px,.95fr)] lg:gap-10">
+            <div className="order-2 lg:order-1">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50/80 px-3 py-1.5 text-xs font-black text-blue-700 shadow-sm dark:border-primary/20 dark:bg-primary/10 dark:text-primary">
+                <Sparkles className="size-4" />
+                رادار تخصصی املاک صنعتی و اداری
+              </span>
 
-        <div className="relative mx-auto max-w-6xl px-4 pb-8 pt-7 sm:px-6 sm:pb-12 sm:pt-12">
-          <div className="me-auto max-w-3xl sm:max-w-[68%]">
-            <span className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/85 px-3 py-1.5 text-xs font-black text-blue-700 shadow-sm backdrop-blur dark:border-primary/20 dark:bg-background/80 dark:text-primary">
-              <Sparkles className="size-4" />
-              رادار تخصصی املاک صنعتی و اداری
-            </span>
+              <h1 className="mt-5 text-3xl font-black leading-[1.65] tracking-tight sm:text-5xl">
+                به نام خداوند جان و خرد
+                <span className="mt-1 block text-primary">
+                  کزین برتر اندیشه برنگذرد
+                </span>
+              </h1>
+              <p className="mt-2 text-xs font-bold text-slate-400 dark:text-muted-foreground">
+                فردوسی · شاهنامه
+              </p>
+              <p className="mt-4 max-w-2xl text-sm leading-8 text-slate-500 dark:text-muted-foreground sm:text-base">
+                دیوساز؛ جستجوی خرید، فروش، رهن و اجاره سوله، کارخانه، کارگاه،
+                انبار، زمین صنعتی و دفتر اداری در شهریار و غرب تهران.
+              </p>
+            </div>
 
-            <h1 className="mt-4 text-3xl font-black leading-[1.5] tracking-tight sm:text-5xl">
-              به دیوساز خوش آمدید
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-8 text-slate-500 dark:text-muted-foreground sm:text-base">
-              برای خرید، فروش، رهن و اجاره سوله، کارخانه، کارگاه، انبار، زمین
-              صنعتی و دفتر اداری در شهریار و غرب تهران.
-            </p>
+            <div className="order-1 overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-100 shadow-[0_18px_55px_rgba(15,23,42,.10)] dark:border-border dark:bg-muted lg:order-2">
+              <div className="relative aspect-[16/9] sm:aspect-[16/8] lg:aspect-[4/3]">
+                <img
+                  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=88"
+                  alt="نمای یک خانه مدرن؛ جستجوی ملک در دیوساز"
+                  className="absolute inset-0 h-full w-full object-cover object-center"
+                  fetchPriority="high"
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/55 to-transparent px-4 pb-4 pt-12 text-white">
+                  <strong className="text-sm">خانه و کسب‌وکار، فراتر از یک آدرس</strong>
+                </div>
+              </div>
+            </div>
           </div>
 
           <form
             onSubmit={submitSearch}
-            className="mt-7 flex items-center gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-[0_16px_45px_rgba(15,23,42,.09)] backdrop-blur dark:border-border dark:bg-card"
+            className="mt-7 flex items-center gap-2 rounded-[1.6rem] border border-slate-200 bg-white p-2 shadow-[0_16px_45px_rgba(15,23,42,.08)] dark:border-border dark:bg-card"
           >
             <Search className="ms-2 size-5 shrink-0 text-slate-400" />
             <Input
@@ -298,10 +329,8 @@ export default function LandingV2() {
                   key={intent.label}
                   to={intent.to}
                   className={
-                    "flex min-h-16 items-center justify-center gap-2 rounded-2xl border px-3 text-sm font-black shadow-sm transition-all hover:-translate-y-0.5 " +
-                    (intent.active
-                      ? "border-blue-200 bg-blue-50 text-blue-700 dark:border-primary/30 dark:bg-primary/10 dark:text-primary"
-                      : "border-slate-200 bg-white/95 text-slate-900 dark:border-border dark:bg-card dark:text-foreground")
+                    "flex min-h-16 items-center justify-center gap-2 rounded-2xl border px-3 text-sm font-black shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md " +
+                    intent.tone
                   }
                 >
                   <Icon className="size-5 shrink-0" />
@@ -313,16 +342,10 @@ export default function LandingV2() {
 
           <Link
             to="/listings?advanced=1"
-            className="relative mt-5 block overflow-hidden rounded-[1.7rem] bg-gradient-to-l from-blue-700 via-blue-600 to-sky-500 p-5 text-white shadow-[0_18px_45px_rgba(37,99,235,.28)] transition-transform hover:-translate-y-0.5 sm:p-6"
+            className="relative mt-5 block overflow-hidden rounded-[1.7rem] bg-gradient-to-l from-blue-700 via-blue-600 to-sky-500 p-5 text-white shadow-[0_18px_45px_rgba(37,99,235,.25)] transition-transform hover:-translate-y-0.5 sm:p-6"
           >
-            <div
-              className="absolute inset-y-0 start-0 w-[42%] bg-cover bg-center opacity-25"
-              style={{
-                backgroundImage:
-                  "url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=700&q=70')",
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-l from-blue-700/15 to-blue-700/65" />
+            <div className="absolute -start-12 -top-16 size-48 rounded-full border border-white/15" />
+            <div className="absolute start-24 -bottom-20 size-48 rounded-full bg-white/10 blur-2xl" />
             <div className="relative flex items-center gap-4">
               <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/15 shadow-inner">
                 <SlidersHorizontal className="size-7" />
@@ -467,12 +490,77 @@ export default function LandingV2() {
         </div>
       </section>
 
-      <footer className="border-t border-border/60 bg-card">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-6 text-xs text-muted-foreground sm:px-6">
-          <span>{settings?.officeName || "دیوساز"} · املاک صنعتی و اداری شهریار</span>
-          <a href={"tel:" + (settings?.managerPhone || "09120858095")} className="font-bold text-primary" dir="ltr">
-            {settings?.managerPhone || "09120858095"}
-          </a>
+      <footer className="border-t border-border/60 bg-slate-950 text-slate-100">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="sm:col-span-2 lg:col-span-1">
+              <div className="text-xl font-black text-white">
+                {settings?.officeName || "دیوساز"}
+              </div>
+              <p className="mt-3 max-w-sm text-xs leading-7 text-slate-400">
+                دیوساز، مرجع جستجوی آگهی‌های املاک صنعتی و اداری در شهریار و
+                غرب تهران؛ برای خرید، فروش، رهن و اجاره سوله، کارخانه، کارگاه،
+                انبار، زمین صنعتی و دفتر اداری.
+              </p>
+              <a
+                href={"tel:" + (settings?.managerPhone || "09120858095")}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/10"
+                dir="ltr"
+              >
+                <PhoneCall className="size-4" />
+                {settings?.managerPhone || "09120858095"}
+              </a>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-black text-white">دسترسی سریع</h2>
+              <nav className="mt-3 grid gap-2 text-xs text-slate-400">
+                <Link to="/listings" className="hover:text-white">آگهی‌های املاک</Link>
+                <Link to="/listings?mode=map" className="hover:text-white">جستجوی ملک روی نقشه</Link>
+                <Link to="/saved" className="hover:text-white">آگهی‌های ذخیره‌شده</Link>
+                <Link to="/assistant" className="hover:text-white">دستیار هوشمند ملک</Link>
+                <Link to="/about" className="hover:text-white">درباره دیوساز</Link>
+              </nav>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-black text-white">خدمات ملکی</h2>
+              <nav className="mt-3 grid gap-2 text-xs text-slate-400">
+                <Link to="/listings?deal=فروش" className="hover:text-white">خرید ملک صنعتی و اداری</Link>
+                <Link to="/listings?deal=رهن و اجاره" className="hover:text-white">اجاره سوله و دفتر اداری</Link>
+                <Link to="/submit-listing?deal=فروش" className="hover:text-white">ثبت ملک برای فروش</Link>
+                <Link to="/submit-listing?deal=رهن و اجاره" className="hover:text-white">ثبت ملک برای اجاره</Link>
+                <Link to="/request" className="hover:text-white">ثبت تقاضای خرید یا اجاره</Link>
+              </nav>
+            </div>
+
+            <div>
+              <h2 className="text-sm font-black text-white">حوزه فعالیت دیوساز</h2>
+              <p className="mt-3 text-xs leading-7 text-slate-400">
+                شهریار، غرب تهران و محدوده‌های صنعتی اطراف؛ با تمرکز بر سوله،
+                کارخانه، کارگاه، انبار، زمین صنعتی و املاک اداری.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-slate-300">
+                {["سوله شهریار", "کارخانه شهریار", "دفتر اداری", "زمین صنعتی"].map((label) => (
+                  <span key={label} className="rounded-full border border-white/10 px-2.5 py-1">
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-9 flex flex-col gap-3 border-t border-white/10 pt-5 text-[10px] leading-6 text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              © {new Date().getFullYear()} {settings?.officeName || "دیوساز"} ·
+              املاک صنعتی و اداری شهریار و غرب تهران
+            </span>
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <Link to="/about" className="hover:text-slate-300">درباره ما</Link>
+              <Link to="/submit-listing" className="hover:text-slate-300">ثبت آگهی ملک</Link>
+              <Link to="/request" className="hover:text-slate-300">ثبت تقاضا</Link>
+            </div>
+          </div>
         </div>
       </footer>
 
