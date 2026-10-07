@@ -125,8 +125,7 @@ export default function PublicListingGallery({
               <DropdownMenuContent
                 align="end"
                 sideOffset={10}
-                className="w-52 rounded-2xl p-2 text-right"
-                dir="rtl"
+                className="w-52 rounded-2xl p-2 text-right [direction:rtl]"
               >
                 <DropdownMenuItem
                   className="rounded-xl py-2.5"
