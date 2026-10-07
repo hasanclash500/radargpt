@@ -210,6 +210,7 @@ export default function PublicListing() {
         title={listing.title}
         images={listing.images || []}
         onShare={() => void share()}
+        requestHref={"/request?" + requestParams.toString()}
       />
 
       <section className="border-b border-border/60 bg-card">
@@ -220,9 +221,17 @@ export default function PublicListing() {
                 to={"/consultants/" + consultant.profileSlug}
                 className="flex items-center gap-3 rounded-2xl transition-colors hover:bg-muted/55"
               >
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Building2 className="size-5" />
-                </span>
+                {consultant.profileImageUrl ? (
+                  <img
+                    src={consultant.profileImageUrl}
+                    alt={consultant.name || "مشاور دیوساز"}
+                    className="size-12 shrink-0 rounded-full border border-border/70 object-cover shadow-sm"
+                  />
+                ) : (
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Building2 className="size-5" />
+                  </span>
+                )}
                 <div className="min-w-0">
                   <strong className="block truncate text-sm">
                     {consultant.name || "مشاور دیوساز"}
@@ -235,9 +244,17 @@ export default function PublicListing() {
               </Link>
             ) : (
               <div className="flex items-center gap-3">
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Building2 className="size-5" />
-                </span>
+                {consultant.profileImageUrl ? (
+                  <img
+                    src={consultant.profileImageUrl}
+                    alt={consultant.name || "دیوساز"}
+                    className="size-12 shrink-0 rounded-full border border-border/70 object-cover shadow-sm"
+                  />
+                ) : (
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Building2 className="size-5" />
+                  </span>
+                )}
                 <div>
                   <strong className="block text-sm">
                     {consultant.name || "دیوساز"}
