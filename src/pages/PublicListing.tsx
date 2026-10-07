@@ -187,7 +187,7 @@ export default function PublicListing() {
     listing.contacts?.find((contact: any) => Boolean(contact.profileSlug)) ??
     listing.contacts?.[0];
   const contactPhone =
-    contactPhone ||
+    consultant?.phone ||
     listing.contacts?.find((contact: any) => Boolean(contact.phone))?.phone ||
     "";
 
