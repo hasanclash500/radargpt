@@ -2,25 +2,39 @@ import FavoriteButton from "@/components/listings/FavoriteButton";
 import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ArrowLeft,
   ArrowRight,
+  CalendarCheck2,
+  Copy,
+  Heart,
   Images,
+  List,
   MoreHorizontal,
   Share2,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router";
+import { toast } from "sonner";
 
 export default function PublicListingGallery({
   slug,
   title,
   images,
   onShare,
+  requestHref,
 }: {
   slug: string;
   title: string;
   images: Array<{ url: string; alt?: string; featured?: boolean; order?: number }>;
   onShare: () => void;
+  requestHref: string;
 }) {
   const featured = images.findIndex((image) => image.featured);
   const [active, setActive] = useState(featured >= 0 ? featured : 0);
@@ -98,12 +112,55 @@ export default function PublicListingGallery({
             >
               <Share2 className="size-5" />
             </button>
-            <span
-              className="flex size-10 items-center justify-center rounded-full text-slate-400"
-              aria-hidden="true"
-            >
-              <MoreHorizontal className="size-5" />
-            </span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-slate-100"
+                  aria-label="گزینه‌های بیشتر آگهی"
+                >
+                  <MoreHorizontal className="size-5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={10}
+                className="w-52 rounded-2xl p-2 text-right"
+                dir="rtl"
+              >
+                <DropdownMenuItem
+                  className="rounded-xl py-2.5"
+                  onSelect={() => {
+                    void navigator.clipboard
+                      .writeText(window.location.href)
+                      .then(() => toast.success("لینک آگهی کپی شد"))
+                      .catch(() => toast.error("کپی لینک انجام نشد"));
+                  }}
+                >
+                  <Copy className="size-4" />
+                  کپی لینک آگهی
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                  <Link to="/saved">
+                    <Heart className="size-4" />
+                    ذخیره‌شده‌های من
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                  <Link to={requestHref}>
+                    <CalendarCheck2 className="size-4" />
+                    درخواست بازدید
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="rounded-xl py-2.5">
+                  <Link to="/listings">
+                    <List className="size-4" />
+                    همه آگهی‌ها
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
