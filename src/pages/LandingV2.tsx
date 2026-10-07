@@ -276,10 +276,8 @@ export default function LandingV2() {
               </span>
 
               <h1 className="mt-5 text-3xl font-black leading-[1.65] tracking-tight sm:text-5xl">
-                به نام خداوند جان و خرد
-                <span className="mt-1 block text-primary">
-                  کزین برتر اندیشه برنگذرد
-                </span>
+                به سنگ و به گچ،
+                <span className="mt-1 block text-primary">دیو دیوار کرد</span>
               </h1>
               <p className="mt-2 text-xs font-bold text-slate-400 dark:text-muted-foreground">
                 فردوسی · شاهنامه
@@ -299,7 +297,9 @@ export default function LandingV2() {
                   fetchPriority="high"
                 />
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/55 to-transparent px-4 pb-4 pt-12 text-white">
-                  <strong className="text-sm">خانه و کسب‌وکار، فراتر از یک آدرس</strong>
+                  <strong className="text-sm leading-6">
+                    دیوساز روایتی از قدرت، مهارت، ساختن و آفرینش است
+                  </strong>
                 </div>
               </div>
             </div>
