@@ -367,30 +367,43 @@ export const ask = action({
     ].join("\n");
 
     try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": process.env.SITE_URL ?? "https://divsaz.ir",
-          "X-Title": "Divosaz Real Estate Assistant",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: system },
-            {
-              role: "user",
-              content:
-                `QUESTION:\n${question}\n\nCANDIDATES_FROM_DIVOSAZ_ONLY:\n${JSON.stringify(
-                  listingContext,
-                )}`,
-            },
-          ],
-          temperature: 0.25,
-          max_tokens: 900,
-        }),
-      });
+      const requestBody = {
+        model: model || "openrouter/free",
+        messages: [
+          { role: "system", content: system },
+          {
+            role: "user",
+            content:
+              `QUESTION:\n${question}\n\nCANDIDATES_FROM_DIVOSAZ_ONLY:\n${JSON.stringify(
+                listingContext,
+              )}`,
+          },
+        ],
+        temperature: 0.25,
+        max_tokens: 900,
+      };
+
+      const run = async () =>
+        await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer":
+              process.env.MEKA_SITE_URL ||
+              process.env.SITE_URL ||
+              "https://divsaz.ir",
+            "X-Title": "Divosaz Real Estate Assistant",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+      let response = await run();
+      // Free providers can be temporarily saturated. Retry once on transient errors.
+      if (response.status === 429 || response.status >= 500) {
+        await new Promise((resolve) => setTimeout(resolve, 450));
+        response = await run();
+      }
 
       if (!response.ok) {
         return {
@@ -408,7 +421,7 @@ export const ask = action({
       return {
         answer,
         listings: matches,
-        ai: true,
+        ai: Boolean(payload?.choices?.[0]?.message?.content?.trim()),
       };
     } catch {
       return {
