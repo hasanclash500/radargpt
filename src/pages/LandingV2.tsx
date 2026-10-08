@@ -100,20 +100,20 @@ function FeaturedCard({ item }: { item: any }) {
 
   return (
     <article className="group min-w-[78vw] max-w-[350px] snap-start overflow-hidden rounded-[1.7rem] border border-border/70 bg-card shadow-sm sm:min-w-0">
-      <div className="relative aspect-[16/10] overflow-hidden bg-muted/55">
+      <div className="relative aspect-[4/3] overflow-hidden bg-white sm:aspect-[16/11] dark:bg-slate-950/20">
         <FavoriteButton
           slug={item.slug}
           className="absolute end-3 top-3 z-20 size-10 rounded-full border-0 bg-background/95 shadow-md"
         />
         <Link
           to={"/listings/" + item.slug}
-          className="flex h-full w-full items-center justify-center p-2"
+          className="flex h-full w-full items-center justify-center p-3 sm:p-4"
         >
           {image?.url ? (
             <img
               src={image.url}
               alt={image.alt || item.title}
-              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+              className="block h-auto max-h-full w-auto max-w-full object-contain"
               loading="lazy"
             />
           ) : (
