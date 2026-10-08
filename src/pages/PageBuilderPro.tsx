@@ -236,6 +236,7 @@ function defaultDesign() {
     zIndex: 0,
     animation: "none",
     animationDuration: 550,
+    customCss: "",
     desktop: defaultResponsive(),
     tablet: defaultResponsive(),
     mobile: defaultResponsive(),
@@ -1503,6 +1504,23 @@ function AdvancedEditor({
         />
         <span className="text-[10px] text-muted-foreground">{Math.round(Number(design.opacity ?? 1) * 100)}%</span>
       </label>
+
+      <div className="grid gap-2 rounded-2xl border border-border/70 p-3">
+        <div className="flex items-center gap-2">
+          <Code2 className="size-4 text-primary" />
+          <strong className="text-xs">CSS اختصاصی همین ویجت / سکشن</strong>
+        </div>
+        <p className="text-[9px] leading-5 text-muted-foreground">
+          CSS فقط روی همین بلوک Scope می‌شود. برای خود بلوک از :root و برای
+          اجزای داخلی از selector معمولی مثل .card یا h2 استفاده کن.
+        </p>
+        <Area
+          label="Custom CSS"
+          value={design.customCss || ""}
+          onChange={(value) => set("customCss", value)}
+          rows={10}
+        />
+      </div>
     </div>
   );
 }
