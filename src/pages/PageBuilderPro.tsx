@@ -802,6 +802,106 @@ function BlockContentEditor({
     );
   }
 
+  if (block.type === "heading") {
+    return (
+      <div className="grid gap-3">
+        <Field label="بالانویس" value={p.eyebrow || ""} onChange={(v) => set("eyebrow", v)} />
+        <Field label="عنوان" value={p.title || ""} onChange={(v) => set("title", v)} />
+        <Area label="متن زیر عنوان" value={p.text || ""} onChange={(v) => set("text", v)} rows={4} />
+        <div className="grid grid-cols-2 gap-2">
+          <SelectField label="تگ HTML" value={p.tag || "h2"} onChange={(v) => set("tag", v)}>
+            <option value="h1">H1</option>
+            <option value="h2">H2</option>
+            <option value="h3">H3</option>
+          </SelectField>
+          <SelectField label="چینش" value={p.align || "start"} onChange={(v) => set("align", v)}>
+            <option value="start">راست</option>
+            <option value="center">وسط</option>
+            <option value="end">چپ</option>
+          </SelectField>
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "image") {
+    return (
+      <div className="grid gap-3">
+        {p.imageUrl ? (
+          <img
+            src={p.imageUrl}
+            alt={p.imageAlt || ""}
+            className="h-44 w-full rounded-2xl bg-muted object-contain"
+          />
+        ) : (
+          <div className="flex h-32 items-center justify-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
+            هنوز تصویری انتخاب نشده
+          </div>
+        )}
+        <Button type="button" variant="outline" className="gap-2" onClick={() => chooseImage("imageUrl")}>
+          <ImagePlus className="size-4" />
+          انتخاب تصویر
+        </Button>
+        <Field label="Alt تصویر" value={p.imageAlt || ""} onChange={(v) => set("imageAlt", v)} />
+        <Field label="Caption" value={p.caption || ""} onChange={(v) => set("caption", v)} />
+        <SelectField label="نحوه نمایش" value={p.objectFit || "contain"} onChange={(v) => set("objectFit", v)}>
+          <option value="contain">بدون برش</option>
+          <option value="cover">پر کردن کادر</option>
+          <option value="fill">کشیده در کادر</option>
+        </SelectField>
+      </div>
+    );
+  }
+
+  if (block.type === "button") {
+    return (
+      <div className="grid gap-3">
+        <Field label="متن دکمه" value={p.label || ""} onChange={(v) => set("label", v)} />
+        <Field label="لینک" value={p.href || ""} onChange={(v) => set("href", v)} />
+        <div className="grid grid-cols-2 gap-2">
+          <SelectField label="استایل" value={p.variant || "default"} onChange={(v) => set("variant", v)}>
+            <option value="default">اصلی</option>
+            <option value="outline">دورخط</option>
+            <option value="secondary">ثانویه</option>
+          </SelectField>
+          <SelectField label="اندازه" value={p.size || "default"} onChange={(v) => set("size", v)}>
+            <option value="sm">کوچک</option>
+            <option value="default">معمولی</option>
+            <option value="lg">بزرگ</option>
+          </SelectField>
+        </div>
+        <SelectField label="چینش" value={p.align || "start"} onChange={(v) => set("align", v)}>
+          <option value="start">راست</option>
+          <option value="center">وسط</option>
+          <option value="end">چپ</option>
+        </SelectField>
+      </div>
+    );
+  }
+
+  if (block.type === "spacer") {
+    return (
+      <div className="grid gap-3">
+        <p className="text-[10px] leading-5 text-muted-foreground">
+          ارتفاع فاصله را برای هر دستگاه جدا تنظیم کن.
+        </p>
+        <NumberField label="دسکتاپ" value={Number(p.heightDesktop || 80)} min={0} max={500} onChange={(v) => set("heightDesktop", v)} />
+        <NumberField label="تبلت" value={Number(p.heightTablet || 64)} min={0} max={500} onChange={(v) => set("heightTablet", v)} />
+        <NumberField label="موبایل" value={Number(p.heightMobile || 48)} min={0} max={500} onChange={(v) => set("heightMobile", v)} />
+      </div>
+    );
+  }
+
+  if (block.type === "divider") {
+    return (
+      <div className="grid gap-3">
+        <NumberField label="عرض %" value={Number(p.widthPercent || 100)} min={10} max={100} onChange={(v) => set("widthPercent", v)} />
+        <NumberField label="ضخامت" value={Number(p.thickness || 1)} min={1} max={12} onChange={(v) => set("thickness", v)} />
+        <ColorField label="رنگ خط" value={p.color || "#cbd5e1"} onChange={(v) => set("color", v)} />
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-3">
       <Field label="عنوان" value={p.title || ""} onChange={(v) => set("title", v)} />
