@@ -53,6 +53,8 @@ type PageBlock = {
 type BuilderEditorController = {
   selectedBlockId?: string;
   device?: "desktop" | "tablet" | "mobile";
+  draggedWidgetType?: string;
+  onDragSessionEnd?: () => void;
   onSelectBlock?: (id: string) => void;
   onInsertWidget?: (
     target: { kind: "root"; index: number } | { kind: "column"; containerId: string; columnId: string; index?: number },
@@ -624,11 +626,13 @@ function RootDropZone({
         event.preventDefault();
         event.stopPropagation();
         const payload = builderDropPayload(event);
-        if (payload.widgetType) {
-          editor.onInsertWidget?.({ kind: "root", index }, payload.widgetType);
+        const widgetType = payload.widgetType || editor.draggedWidgetType || "";
+        if (widgetType) {
+          editor.onInsertWidget?.({ kind: "root", index }, widgetType);
         } else if (payload.blockId) {
           editor.onMoveBlock?.(payload.blockId, { kind: "root", index });
         }
+        editor.onDragSessionEnd?.();
       }}
     >
       <span className="pointer-events-none absolute inset-x-0 top-1/2 hidden h-0.5 -translate-y-1/2 bg-blue-500 group-hover:block" />
@@ -768,11 +772,14 @@ function ContainerBlock({
                           containerId: block.id,
                           columnId: column.id,
                         };
-                        if (payload.widgetType) {
-                          editor.onInsertWidget?.(target, payload.widgetType);
+                        const widgetType =
+                          payload.widgetType || editor.draggedWidgetType || "";
+                        if (widgetType) {
+                          editor.onInsertWidget?.(target, widgetType);
                         } else if (payload.blockId && payload.blockId !== block.id) {
                           editor.onMoveBlock?.(payload.blockId, target);
                         }
+                        editor.onDragSessionEnd?.();
                       }
                     : undefined
                 }
