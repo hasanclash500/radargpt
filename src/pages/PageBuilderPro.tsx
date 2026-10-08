@@ -10,6 +10,21 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
+import {
+  childColumns,
+  cloneBlockDeep,
+  findBlock,
+  findLocatedBlock,
+  insertIntoColumn,
+  insertIntoRoot,
+  moveBlockToColumn,
+  moveBlockToRoot,
+  normalizeOrders,
+  removeBlock as removeTreeBlock,
+  resizeAdjacentColumns,
+  updateBlock as updateTreeBlock,
+  type BuilderBlock,
+} from "@/lib/page-builder-tree";
 import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
@@ -82,6 +97,7 @@ type MediaTarget =
   | null;
 
 const BLOCKS = [
+  { type: "container", label: "کانتینر", note: "ستون‌بندی و چیدمان آزاد" },
   { type: "hero", label: "هیرو", note: "عنوان، عکس و CTA اصلی" },
   { type: "intentHub", label: "انتخاب مسیر", note: "خرید، اجاره، فروش" },
   { type: "listings", label: "ویترین آگهی", note: "فایل‌های واقعی دیوساز" },
@@ -144,6 +160,26 @@ function defaultDesign() {
 
 function defaultProps(type: string): Record<string, any> {
   const design = defaultDesign();
+  if (type === "container")
+    return {
+      gap: 16,
+      mobileStack: true,
+      columns: [
+        {
+          id: id(),
+          widths: { desktop: 50, tablet: 50, mobile: 100 },
+          verticalAlign: "stretch",
+          widgets: [],
+        },
+        {
+          id: id(),
+          widths: { desktop: 50, tablet: 50, mobile: 100 },
+          verticalAlign: "stretch",
+          widgets: [],
+        },
+      ],
+      design,
+    };
   if (type === "hero")
     return {
       eyebrow: "دیوساز",
@@ -244,7 +280,7 @@ function newBlock(type: string): Block {
 
 function normalizeBlock(block: Block): Block {
   const props = block.props || {};
-  return {
+  const next: Block = {
     ...block,
     props: {
       ...props,
@@ -266,6 +302,27 @@ function normalizeBlock(block: Block): Block {
       },
     },
   };
+
+  if (block.type === "container") {
+    const columns = Array.isArray(props.columns) && props.columns.length
+      ? props.columns
+      : defaultProps("container").columns;
+    next.props.columns = columns.map((column: any, columnIndex: number) => ({
+      id: column.id || id(),
+      widths: {
+        desktop: Number(column.widths?.desktop ?? 100 / columns.length),
+        tablet: Number(column.widths?.tablet ?? 100 / columns.length),
+        mobile: Number(column.widths?.mobile ?? 100),
+      },
+      verticalAlign: column.verticalAlign || "stretch",
+      widgets: (Array.isArray(column.widgets) ? column.widgets : [])
+        .map((widget: Block, widgetIndex: number) =>
+          normalizeBlock({ ...widget, order: widgetIndex }),
+        ),
+    }));
+  }
+
+  return next;
 }
 
 function emptyDraft(): Draft {
@@ -532,6 +589,142 @@ function BlockContentEditor({
   const p = block.props || {};
   const set = (key: string, value: any) =>
     patchProps({ ...p, [key]: value });
+
+  if (block.type === "container") {
+    const columns = Array.isArray(p.columns) ? p.columns : [];
+    const setColumnCount = (count: number) => {
+      const safeCount = Math.max(1, Math.min(6, count));
+      const next = [...columns];
+      while (next.length < safeCount) {
+        next.push({
+          id: id(),
+          widths: {
+            desktop: 100 / safeCount,
+            tablet: 100 / safeCount,
+            mobile: 100,
+          },
+          verticalAlign: "stretch",
+          widgets: [],
+        });
+      }
+      while (next.length > safeCount) {
+        const removed = next.pop();
+        if (removed?.widgets?.length) {
+          next[next.length - 1] = {
+            ...next[next.length - 1],
+            widgets: [
+              ...(next[next.length - 1]?.widgets || []),
+              ...removed.widgets,
+            ],
+          };
+        }
+      }
+      const width = 100 / safeCount;
+      set(
+        "columns",
+        next.map((column: any) => ({
+          ...column,
+          widths: {
+            ...column.widths,
+            desktop: width,
+            tablet: width,
+            mobile: 100,
+          },
+        })),
+      );
+    };
+
+    return (
+      <div className="grid gap-4">
+        <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-3 dark:border-blue-900 dark:bg-blue-950/20">
+          <strong className="text-xs">چیدمان کانتینر</strong>
+          <p className="mt-1 text-[10px] leading-5 text-muted-foreground">
+            ویجت‌ها را از پنل سمت چپ مستقیم داخل ستون‌ها بکش. دستگیره بین ستون‌ها را هم می‌توانی با ماوس جابه‌جا کنی.
+          </p>
+        </div>
+        <NumberField
+          label="تعداد ستون"
+          value={columns.length || 2}
+          min={1}
+          max={6}
+          onChange={setColumnCount}
+        />
+        <NumberField
+          label="فاصله بین ستون‌ها"
+          value={Number(p.gap || 0)}
+          min={0}
+          max={80}
+          onChange={(v) => set("gap", v)}
+        />
+        <label className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-xs font-bold">
+          <input
+            type="checkbox"
+            checked={p.mobileStack !== false}
+            onChange={(event) => set("mobileStack", event.target.checked)}
+          />
+          در موبایل ستون‌ها زیر هم قرار بگیرند
+        </label>
+        <div className="grid gap-2">
+          {columns.map((column: any, index: number) => (
+            <div key={column.id} className="rounded-2xl border border-border/70 p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <strong className="text-[11px]">ستون {index + 1}</strong>
+                <span className="text-[9px] text-muted-foreground">
+                  {(column.widgets || []).length} ویجت
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["desktop", "tablet", "mobile"] as const).map((deviceKey) => (
+                  <NumberField
+                    key={deviceKey}
+                    label={deviceKey === "desktop" ? "دسکتاپ %" : deviceKey === "tablet" ? "تبلت %" : "موبایل %"}
+                    value={Number(column.widths?.[deviceKey] ?? (deviceKey === "mobile" ? 100 : 50))}
+                    min={5}
+                    max={100}
+                    onChange={(value) =>
+                      set(
+                        "columns",
+                        columns.map((entry: any) =>
+                          entry.id === column.id
+                            ? {
+                                ...entry,
+                                widths: {
+                                  ...(entry.widths || {}),
+                                  [deviceKey]: value,
+                                },
+                              }
+                            : entry,
+                        ),
+                      )
+                    }
+                  />
+                ))}
+              </div>
+              <SelectField
+                label="تراز عمودی"
+                value={column.verticalAlign || "stretch"}
+                onChange={(value) =>
+                  set(
+                    "columns",
+                    columns.map((entry: any) =>
+                      entry.id === column.id
+                        ? { ...entry, verticalAlign: value }
+                        : entry,
+                    ),
+                  )
+                }
+              >
+                <option value="start">بالا</option>
+                <option value="center">وسط</option>
+                <option value="end">پایین</option>
+                <option value="stretch">کشیده</option>
+              </SelectField>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (block.type === "hero") {
     return (
@@ -881,7 +1074,8 @@ export default function PageBuilderPro() {
     [draft.blocks],
   );
   const selectedBlock =
-    sortedBlocks.find((block) => block.id === selectedBlockId) || null;
+    (findBlock(sortedBlocks as BuilderBlock[], selectedBlockId) as Block | null) ||
+    null;
 
   const canvasWidth =
     device === "mobile" ? 390 : device === "tablet" ? 820 : 1280;
@@ -889,9 +1083,11 @@ export default function PageBuilderPro() {
   const patchBlock = (blockId: string, patch: Partial<Block>) =>
     setDraft((current) => ({
       ...current,
-      blocks: current.blocks.map((block) =>
-        block.id === blockId ? { ...block, ...patch } : block,
-      ),
+      blocks: updateTreeBlock(
+        current.blocks as BuilderBlock[],
+        blockId,
+        (block) => ({ ...block, ...patch }) as BuilderBlock,
+      ) as Block[],
     }));
 
   const patchBlockProps = (blockId: string, props: Record<string, any>) =>
@@ -912,27 +1108,46 @@ export default function PageBuilderPro() {
   };
 
   const removeBlock = (blockId: string) => {
-    setDraft((current) => {
-      const blocks = current.blocks
-        .filter((block) => block.id !== blockId)
-        .sort((a, b) => a.order - b.order)
-        .map((block, order) => ({ ...block, order }));
-      return { ...current, blocks };
-    });
+    setDraft((current) => ({
+      ...current,
+      blocks: removeTreeBlock(
+        current.blocks as BuilderBlock[],
+        blockId,
+      ) as Block[],
+    }));
     if (selectedBlockId === blockId) setSelectedBlockId("");
   };
 
   const duplicateBlock = (block: Block) => {
-    const copy: Block = {
-      ...block,
-      id: id(),
-      props: JSON.parse(JSON.stringify(block.props || {})),
-      order: draft.blocks.length,
-    };
-    setDraft((current) => ({
-      ...current,
-      blocks: [...current.blocks, copy],
-    }));
+    const copy = cloneBlockDeep(block as BuilderBlock, id) as Block;
+    setDraft((current) => {
+      const located = findLocatedBlock(
+        current.blocks as BuilderBlock[],
+        block.id,
+      );
+      if (located?.location.kind === "column") {
+        return {
+          ...current,
+          blocks: insertIntoColumn(
+            current.blocks as BuilderBlock[],
+            located.location.containerId,
+            located.location.columnId,
+            copy as BuilderBlock,
+            located.location.index + 1,
+          ) as Block[],
+        };
+      }
+      return {
+        ...current,
+        blocks: insertIntoRoot(
+          current.blocks as BuilderBlock[],
+          copy as BuilderBlock,
+          (located?.location.kind === "root"
+            ? located.location.index + 1
+            : current.blocks.length),
+        ) as Block[],
+      };
+    });
     setSelectedBlockId(copy.id);
   };
 
@@ -940,16 +1155,90 @@ export default function PageBuilderPro() {
     if (!sourceId || sourceId === targetId) return;
     setDraft((current) => {
       const blocks = [...current.blocks].sort((a, b) => a.order - b.order);
-      const from = blocks.findIndex((block) => block.id === sourceId);
-      const to = blocks.findIndex((block) => block.id === targetId);
-      if (from < 0 || to < 0) return current;
-      const [moved] = blocks.splice(from, 1);
-      blocks.splice(to, 0, moved);
+      const targetIndex = blocks.findIndex((block) => block.id === targetId);
+      if (targetIndex < 0) return current;
       return {
         ...current,
-        blocks: blocks.map((block, order) => ({ ...block, order })),
+        blocks: moveBlockToRoot(
+          current.blocks as BuilderBlock[],
+          sourceId,
+          targetIndex,
+        ) as Block[],
       };
     });
+  };
+
+  const insertWidgetAt = (
+    target:
+      | { kind: "root"; index: number }
+      | { kind: "column"; containerId: string; columnId: string; index?: number },
+    type: string,
+  ) => {
+    const block = newBlock(type);
+    setDraft((current) => ({
+      ...current,
+      blocks:
+        target.kind === "root"
+          ? (insertIntoRoot(
+              current.blocks as BuilderBlock[],
+              block as BuilderBlock,
+              target.index,
+            ) as Block[])
+          : (insertIntoColumn(
+              current.blocks as BuilderBlock[],
+              target.containerId,
+              target.columnId,
+              block as BuilderBlock,
+              target.index,
+            ) as Block[]),
+    }));
+    setSelectedBlockId(block.id);
+    setInspectorTab("content");
+  };
+
+  const moveBlockToTarget = (
+    blockId: string,
+    target:
+      | { kind: "root"; index: number }
+      | { kind: "column"; containerId: string; columnId: string; index?: number },
+  ) => {
+    setDraft((current) => ({
+      ...current,
+      blocks:
+        target.kind === "root"
+          ? (moveBlockToRoot(
+              current.blocks as BuilderBlock[],
+              blockId,
+              target.index,
+            ) as Block[])
+          : (moveBlockToColumn(
+              current.blocks as BuilderBlock[],
+              blockId,
+              target.containerId,
+              target.columnId,
+              target.index,
+            ) as Block[]),
+    }));
+    setSelectedBlockId(blockId);
+  };
+
+  const resizeColumns = (
+    containerId: string,
+    leftColumnId: string,
+    rightColumnId: string,
+    deltaPercent: number,
+  ) => {
+    setDraft((current) => ({
+      ...current,
+      blocks: resizeAdjacentColumns(
+        current.blocks as BuilderBlock[],
+        containerId,
+        leftColumnId,
+        rightColumnId,
+        device,
+        deltaPercent,
+      ) as Block[],
+    }));
   };
 
   const save = async () => {
@@ -1024,7 +1313,10 @@ export default function PageBuilderPro() {
       return;
     }
 
-    const block = draft.blocks.find((entry) => entry.id === mediaTarget.blockId);
+    const block = findBlock(
+      draft.blocks as BuilderBlock[],
+      mediaTarget.blockId,
+    ) as Block | null;
     if (!block) return;
     if (mediaTarget.type === "background") {
       patchBlockProps(block.id, {
@@ -1143,8 +1435,16 @@ export default function PageBuilderPro() {
                   <button
                     type="button"
                     key={item.type}
+                    draggable
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = "copy";
+                      event.dataTransfer.setData(
+                        "application/x-divsaz-widget",
+                        item.type,
+                      );
+                    }}
                     onClick={() => addBlock(item.type)}
-                    className="rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm"
+                    className="cursor-grab rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm active:cursor-grabbing"
                   >
                     <Plus className="size-4 text-primary" />
                     <strong className="mt-2 block text-xs">{item.label}</strong>
@@ -1294,10 +1594,14 @@ export default function PageBuilderPro() {
                 hideHeader
                 editor={{
                   selectedBlockId,
+                  device,
                   onSelectBlock: (blockId) => {
                     setSelectedBlockId(blockId);
                     setInspectorTab("content");
                   },
+                  onInsertWidget: insertWidgetAt,
+                  onMoveBlock: moveBlockToTarget,
+                  onResizeColumns: resizeColumns,
                 }}
               />
               {!sortedBlocks.length && (
