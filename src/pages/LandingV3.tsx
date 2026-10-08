@@ -26,7 +26,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 const SITE_URL = "https://divsaz.ir";
 
@@ -154,6 +154,7 @@ export default function LandingV3() {
   const settings = useQuery(api.folders.getSettings, {});
   const listings = useQuery(api.listings.listFeaturedPublic);
   const navigate = useNavigate();
+  const location = useLocation();
   const [search, setSearch] = useState("");
 
   const jsonLd = useMemo(
@@ -223,6 +224,7 @@ export default function LandingV3() {
       "دیوساز",
     ],
     canonical: SITE_URL + "/",
+    noIndex: location.pathname !== "/",
     image: SITE_URL + "/divsaz-hero-building.svg",
     ogTitle: "دیوساز؛ رادار تخصصی املاک صنعتی و اداری شهریار",
     ogDescription:
