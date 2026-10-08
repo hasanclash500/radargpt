@@ -236,7 +236,13 @@ export const savePage = mutation({
     blocks: v.array(blockValidator),
     seoTitle: v.optional(v.string()),
     seoDescription: v.optional(v.string()),
+    seoKeywords: v.optional(v.array(v.string())),
+    canonicalUrl: v.optional(v.string()),
+    ogTitle: v.optional(v.string()),
+    ogDescription: v.optional(v.string()),
+    ogImage: v.optional(v.string()),
     noIndex: v.optional(v.boolean()),
+    settings: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
     const current = await requireManager(ctx);
@@ -265,7 +271,18 @@ export const savePage = mutation({
       blocks: normalizeBlocks(args.blocks),
       seoTitle: args.seoTitle?.trim() || undefined,
       seoDescription: args.seoDescription?.trim() || undefined,
+      seoKeywords:
+        args.seoKeywords?.map((item) => item.trim()).filter(Boolean).slice(0, 30) ||
+        undefined,
+      canonicalUrl: args.canonicalUrl?.trim() || undefined,
+      ogTitle: args.ogTitle?.trim() || undefined,
+      ogDescription: args.ogDescription?.trim() || undefined,
+      ogImage: args.ogImage?.trim() || undefined,
       noIndex: args.noIndex ?? false,
+      settings:
+        args.settings && typeof args.settings === "object"
+          ? args.settings
+          : undefined,
       updatedAt: now,
     };
 
@@ -360,7 +377,13 @@ export const duplicatePage = mutation({
       blocks: normalizeBlocks(row.blocks),
       seoTitle: row.seoTitle,
       seoDescription: row.seoDescription,
+      seoKeywords: row.seoKeywords,
+      canonicalUrl: row.canonicalUrl,
+      ogTitle: row.ogTitle,
+      ogDescription: row.ogDescription,
+      ogImage: row.ogImage,
       noIndex: row.noIndex,
+      settings: row.settings,
       createdByUserId: current.userId,
       createdAt: now,
       updatedAt: now,
@@ -374,6 +397,93 @@ export const deletePage = mutation({
     await requireManager(ctx);
     const row = await ctx.db.get(args.id);
     if (!row) return true;
+    await ctx.db.delete(row._id);
+    return true;
+  },
+});
+
+export const generateMediaUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireManager(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const saveMedia = mutation({
+  args: {
+    storageId: v.id("_storage"),
+    kind: v.union(
+      v.literal("image"),
+      v.literal("font"),
+      v.literal("video"),
+      v.literal("file"),
+    ),
+    fileName: v.string(),
+    mimeType: v.string(),
+    size: v.optional(v.number()),
+    title: v.optional(v.string()),
+    alt: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const current = await requireManager(ctx);
+    return await ctx.db.insert("siteMedia", {
+      storageId: args.storageId,
+      kind: args.kind,
+      fileName: args.fileName.trim().slice(0, 180) || "media",
+      mimeType: args.mimeType.trim().slice(0, 120) || "application/octet-stream",
+      size: args.size,
+      title: args.title?.trim().slice(0, 180) || undefined,
+      alt: args.alt?.trim().slice(0, 240) || undefined,
+      createdByUserId: current.userId,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const listMedia = query({
+  args: {
+    kind: v.optional(
+      v.union(
+        v.literal("image"),
+        v.literal("font"),
+        v.literal("video"),
+        v.literal("file"),
+      ),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const current = await currentRole(ctx);
+    if (!current || current.role !== OFFICE_ROLES.MANAGER) return [];
+
+    const rows = args.kind
+      ? await ctx.db
+          .query("siteMedia")
+          .withIndex("by_kind_created", (q) => q.eq("kind", args.kind!))
+          .order("desc")
+          .take(300)
+      : await ctx.db
+          .query("siteMedia")
+          .withIndex("by_created")
+          .order("desc")
+          .take(300);
+
+    return await Promise.all(
+      rows.map(async (row) => ({
+        ...row,
+        url: await ctx.storage.getUrl(row.storageId),
+      })),
+    );
+  },
+});
+
+export const deleteMedia = mutation({
+  args: { id: v.id("siteMedia") },
+  handler: async (ctx, args) => {
+    await requireManager(ctx);
+    const row = await ctx.db.get(args.id);
+    if (!row) return true;
+    await ctx.storage.delete(row.storageId);
     await ctx.db.delete(row._id);
     return true;
   },
