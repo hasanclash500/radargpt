@@ -1075,6 +1075,7 @@ export default function PageBuilderPro() {
   const [selectedId, setSelectedId] = useState("");
   const [selectedBlockId, setSelectedBlockId] = useState("");
   const [device, setDevice] = useState<Device>("desktop");
+  const [showSiteChrome, setShowSiteChrome] = useState(false);
   const [busy, setBusy] = useState("");
   const [dragId, setDragId] = useState("");
   const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
@@ -1531,9 +1532,18 @@ export default function PageBuilderPro() {
 
         <section className="min-w-0 overflow-hidden bg-[linear-gradient(45deg,rgba(148,163,184,.08)_25%,transparent_25%,transparent_75%,rgba(148,163,184,.08)_75%),linear-gradient(45deg,rgba(148,163,184,.08)_25%,transparent_25%,transparent_75%,rgba(148,163,184,.08)_75%)] bg-[length:24px_24px] bg-[position:0_0,12px_12px]">
           <div className="flex items-center justify-between border-b border-border/70 bg-background/90 px-3 py-2">
-            <div className="flex items-center gap-2">
-              <strong className="text-xs">{draft.title}</strong>
+            <div className="flex min-w-0 items-center gap-2">
+              <strong className="truncate text-xs">{draft.title}</strong>
               <Badge variant="outline">{draft.status === "published" ? "منتشرشده" : "پیش‌نویس"}</Badge>
+              <Button
+                type="button"
+                size="sm"
+                variant={showSiteChrome ? "default" : "outline"}
+                className="h-7 px-2 text-[9px]"
+                onClick={() => setShowSiteChrome((value) => !value)}
+              >
+                {showSiteChrome ? "پوسته سایت روشن" : "پیش‌نمایش پوسته"}
+              </Button>
             </div>
             <div className="flex items-center gap-1 sm:hidden">
               <Button size="icon" variant={device === "desktop" ? "default" : "outline"} onClick={() => setDevice("desktop")}><Monitor className="size-4" /></Button>
@@ -1554,7 +1564,7 @@ export default function PageBuilderPro() {
               {sortedBlocks.length ? (
                 <SitePageRenderer
                   page={draft as any}
-                  hideHeader
+                  hideHeader={!showSiteChrome}
                   editor={{
                     selectedBlockId,
                     onSelectBlock: (blockId) => {
