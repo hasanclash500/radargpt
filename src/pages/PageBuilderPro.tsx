@@ -96,6 +96,7 @@ type MediaTarget =
   | null;
 
 const BLOCKS = [
+  { type: "container", label: "کانتینر", note: "ستون‌بندی و چیدمان آزاد" },
   { type: "hero", label: "هیرو", note: "عنوان، عکس و CTA اصلی" },
   { type: "intentHub", label: "انتخاب مسیر", note: "خرید، اجاره، فروش" },
   { type: "listings", label: "ویترین آگهی", note: "فایل‌های واقعی دیوساز" },
@@ -158,6 +159,26 @@ function defaultDesign() {
 
 function defaultProps(type: string): Record<string, any> {
   const design = defaultDesign();
+  if (type === "container")
+    return {
+      gap: 16,
+      mobileStack: true,
+      columns: [
+        {
+          id: id(),
+          widths: { desktop: 50, tablet: 50, mobile: 100 },
+          verticalAlign: "stretch",
+          widgets: [],
+        },
+        {
+          id: id(),
+          widths: { desktop: 50, tablet: 50, mobile: 100 },
+          verticalAlign: "stretch",
+          widgets: [],
+        },
+      ],
+      design,
+    };
   if (type === "hero")
     return {
       eyebrow: "دیوساز",
@@ -258,7 +279,7 @@ function newBlock(type: string): Block {
 
 function normalizeBlock(block: Block): Block {
   const props = block.props || {};
-  return {
+  const next: Block = {
     ...block,
     props: {
       ...props,
@@ -280,6 +301,27 @@ function normalizeBlock(block: Block): Block {
       },
     },
   };
+
+  if (block.type === "container") {
+    const columns = Array.isArray(props.columns) && props.columns.length
+      ? props.columns
+      : defaultProps("container").columns;
+    next.props.columns = columns.map((column: any, columnIndex: number) => ({
+      id: column.id || id(),
+      widths: {
+        desktop: Number(column.widths?.desktop ?? 100 / columns.length),
+        tablet: Number(column.widths?.tablet ?? 100 / columns.length),
+        mobile: Number(column.widths?.mobile ?? 100),
+      },
+      verticalAlign: column.verticalAlign || "stretch",
+      widgets: (Array.isArray(column.widgets) ? column.widgets : [])
+        .map((widget: Block, widgetIndex: number) =>
+          normalizeBlock({ ...widget, order: widgetIndex }),
+        ),
+    }));
+  }
+
+  return next;
 }
 
 function emptyDraft(): Draft {
