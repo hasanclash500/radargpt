@@ -600,6 +600,11 @@ function builderDropPayload(event: React.DragEvent<HTMLElement>) {
   };
 }
 
+function builderDropEffect(event: React.DragEvent<HTMLElement>) {
+  const types = Array.from(event.dataTransfer.types || []);
+  return types.includes("application/x-divsaz-widget") ? "copy" : "move";
+}
+
 function RootDropZone({
   index,
   editor,
@@ -613,7 +618,7 @@ function RootDropZone({
       className="group relative z-30 mx-2 h-3 rounded-full transition-all hover:h-9 hover:bg-blue-500/10"
       onDragOver={(event) => {
         event.preventDefault();
-        event.dataTransfer.dropEffect = "move";
+        event.dataTransfer.dropEffect = builderDropEffect(event);
       }}
       onDrop={(event) => {
         event.preventDefault();
@@ -659,9 +664,9 @@ function ContainerBlock({
       const desktop = Math.max(5, Math.min(100, Number(widths.desktop) || 50));
       const target = `${selector} [data-layout-column="${columnId}"]`;
       return [
-        `${target}{width:calc(${mobile}% - ${gap}px);align-self:${column.verticalAlign || "stretch"}}`,
-        `@media(min-width:640px){${target}{width:calc(${tablet}% - ${gap}px)}}`,
-        `@media(min-width:1024px){${target}{width:calc(${desktop}% - ${gap}px)}}`,
+        `${target}{box-sizing:border-box;flex:0 0 calc(${mobile}% - ${gap}px);width:calc(${mobile}% - ${gap}px);align-self:${column.verticalAlign || "stretch"}}`,
+        `@media(min-width:640px){${target}{flex-basis:calc(${tablet}% - ${gap}px);width:calc(${tablet}% - ${gap}px)}}`,
+        `@media(min-width:1024px){${target}{flex-basis:calc(${desktop}% - ${gap}px);width:calc(${desktop}% - ${gap}px)}}`,
       ].join("");
     })
     .join("");
@@ -674,14 +679,24 @@ function ContainerBlock({
     if (!editor?.onResizeColumns) return;
     event.preventDefault();
     event.stopPropagation();
-    const host = event.currentTarget.closest<HTMLElement>("[data-layout-container]");
-    const width = host?.getBoundingClientRect().width || 1;
+
+    const handle = event.currentTarget;
+    const host = handle.closest<HTMLElement>("[data-layout-container]");
+    const width = Math.max(1, host?.getBoundingClientRect().width || 1);
     let lastX = event.clientX;
 
+    try {
+      handle.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture is best-effort; window listeners below are the fallback.
+    }
+
     const move = (pointer: PointerEvent) => {
+      pointer.preventDefault();
       const dx = pointer.clientX - lastX;
+      if (!dx) return;
       lastX = pointer.clientX;
-      // The public site is RTL, so positive X shrinks the logical first column.
+      // RTL: moving the handle to the right shrinks the logical first column.
       const delta = (-dx / width) * 100;
       editor.onResizeColumns?.(
         block.id,
@@ -693,9 +708,19 @@ function ContainerBlock({
     const stop = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+      try {
+        if (handle.hasPointerCapture(event.pointerId)) {
+          handle.releasePointerCapture(event.pointerId);
+        }
+      } catch {
+        // Ignore browsers without pointer capture support.
+      }
     };
-    window.addEventListener("pointermove", move);
+
+    window.addEventListener("pointermove", move, { passive: false });
     window.addEventListener("pointerup", stop, { once: true });
+    window.addEventListener("pointercancel", stop, { once: true });
   };
 
   return (
@@ -728,7 +753,7 @@ function ContainerBlock({
                     ? (event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        event.dataTransfer.dropEffect = "move";
+                        event.dataTransfer.dropEffect = builderDropEffect(event);
                       }
                     : undefined
                 }
@@ -764,7 +789,7 @@ function ContainerBlock({
                 )}
 
                 {widgets.length === 0 && editor ? (
-                  <div className="flex min-h-20 items-center justify-center rounded-lg border border-dashed border-border/70 text-[9px] font-bold text-muted-foreground">
+                  <div className="pointer-events-none flex min-h-20 items-center justify-center rounded-lg border border-dashed border-border/70 text-[9px] font-bold text-muted-foreground">
                     ویجت را اینجا رها کن
                   </div>
                 ) : (
@@ -782,8 +807,11 @@ function ContainerBlock({
               {editor && columnIndex < columns.length - 1 && (
                 <button
                   type="button"
-                  className="relative z-40 -mx-2 w-4 cursor-col-resize touch-none self-stretch rounded-full bg-transparent after:absolute after:inset-y-2 after:left-1/2 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-blue-500/35 hover:after:bg-blue-600"
+                  draggable={false}
+                  className="relative z-50 -mx-2 w-5 cursor-col-resize touch-none self-stretch select-none rounded-full bg-transparent after:absolute after:inset-y-2 after:left-1/2 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-blue-500/45 hover:after:bg-blue-600"
                   aria-label="تغییر عرض ستون"
+                  title="برای تغییر عرض ستون بکشید"
+                  onDragStart={(event) => event.preventDefault()}
                   onPointerDown={(event) =>
                     beginResize(
                       event,
@@ -866,29 +894,44 @@ function EditableBlockFrame({
   return (
     <div
       className={
-        "relative cursor-pointer transition-[outline,box-shadow] " +
+        "group relative cursor-pointer transition-[outline,box-shadow] " +
         (selected
           ? "z-20 outline outline-2 outline-offset-[-2px] outline-blue-500"
           : "hover:outline hover:outline-1 hover:outline-offset-[-1px] hover:outline-blue-300")
       }
-      draggable
-      onDragStart={(event) => {
-        event.stopPropagation();
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("application/x-divsaz-block", block.id);
-      }}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
         editor.onSelectBlock?.(block.id);
       }}
     >
-      {selected && (
-        <div className="absolute end-2 top-2 z-[75] flex items-center gap-1 rounded-lg bg-blue-600 px-2 py-1 text-[8px] font-black text-white shadow">
-          <span className="cursor-grab">⋮⋮</span>
-          <span>{block.type === "container" ? "کانتینر" : "در حال ویرایش"}</span>
-        </div>
-      )}
+      <div
+        role="button"
+        tabIndex={0}
+        draggable
+        aria-label="جابه‌جایی بلوک"
+        title="برای جابه‌جایی این بلوک بکشید"
+        className={
+          "absolute start-2 top-2 z-[80] flex cursor-grab select-none items-center gap-1 rounded-lg px-2 py-1 text-[8px] font-black text-white shadow active:cursor-grabbing " +
+          (selected
+            ? "bg-blue-600"
+            : "bg-slate-700/85 opacity-70 group-hover:opacity-100")
+        }
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          editor.onSelectBlock?.(block.id);
+        }}
+        onDragStart={(event) => {
+          event.stopPropagation();
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("application/x-divsaz-block", block.id);
+          event.dataTransfer.setData("text/plain", block.id);
+        }}
+      >
+        <span aria-hidden="true">⋮⋮</span>
+        <span>{selected ? (block.type === "container" ? "کانتینر" : "انتخاب‌شده") : "جابجایی"}</span>
+      </div>
       <BlockRenderer block={block} editor={editor} depth={depth} />
     </div>
   );
