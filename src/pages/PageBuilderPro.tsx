@@ -1379,6 +1379,115 @@ function BlockContentEditor({
                       )}
                     </div>
                   )}
+
+                  <details className="mt-2 rounded-lg border border-border/60 bg-background p-2">
+                    <summary className="cursor-pointer text-[10px] font-black text-primary">
+                      ظاهر گرافیکی این عنصر
+                    </summary>
+                    <div className="mt-3 grid gap-2">
+                      <ColorField
+                        label="رنگ"
+                        value={element.color}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, {
+                              styles: { color: value },
+                            }),
+                          )
+                        }
+                      />
+                      <ColorField
+                        label="پس‌زمینه"
+                        value={element.backgroundColor}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, {
+                              styles: { backgroundColor: value },
+                            }),
+                          )
+                        }
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <NumberField
+                          label="اندازه فونت"
+                          value={element.fontSize}
+                          min={0}
+                          max={120}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { fontSize: value },
+                              }),
+                            )
+                          }
+                        />
+                        <NumberField
+                          label="وزن فونت"
+                          value={element.fontWeight}
+                          min={0}
+                          max={900}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { fontWeight: value },
+                              }),
+                            )
+                          }
+                        />
+                        <NumberField
+                          label="Padding"
+                          value={element.padding}
+                          min={0}
+                          max={200}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { padding: value },
+                              }),
+                            )
+                          }
+                        />
+                        <NumberField
+                          label="Radius"
+                          value={element.borderRadius}
+                          min={0}
+                          max={160}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { borderRadius: value },
+                              }),
+                            )
+                          }
+                        />
+                      </div>
+                      {element.tag !== "img" && (
+                        <SelectField
+                          label="تراز متن"
+                          value={element.textAlign || ""}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { textAlign: value },
+                              }),
+                            )
+                          }
+                        >
+                          <option value="">پیش‌فرض</option>
+                          <option value="right">راست</option>
+                          <option value="center">وسط</option>
+                          <option value="left">چپ</option>
+                        </SelectField>
+                      )}
+                    </div>
+                  </details>
                 </div>
               ))}
             </div>
