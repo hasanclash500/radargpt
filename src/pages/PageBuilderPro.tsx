@@ -839,10 +839,14 @@ function BlockContentEditor({
   block,
   patchProps,
   chooseImage,
+  chooseHtmlImage,
+  addChild,
 }: {
   block: Block;
   patchProps: (props: Record<string, any>) => void;
   chooseImage: (key: string) => void;
+  chooseHtmlImage: (elementIndex: number) => void;
+  addChild: (type: string) => void;
 }) {
   const p = block.props || {};
   const set = (key: string, value: any) =>
@@ -1103,6 +1107,131 @@ function BlockContentEditor({
         <NumberField label="عرض %" value={Number(p.widthPercent || 100)} min={10} max={100} onChange={(v) => set("widthPercent", v)} />
         <NumberField label="ضخامت" value={Number(p.thickness || 1)} min={1} max={12} onChange={(v) => set("thickness", v)} />
         <ColorField label="رنگ خط" value={p.color || "#cbd5e1"} onChange={(v) => set("color", v)} />
+      </div>
+    );
+  }
+
+  if (block.type === "container") {
+    const children = Array.isArray(p.children) ? p.children : [];
+    return (
+      <div className="grid gap-4">
+        <div className="grid grid-cols-2 gap-2">
+          <NumberField label="تعداد ستون" value={Number(p.columns || 1)} min={1} max={4} onChange={(v) => set("columns", v)} />
+          <NumberField label="فاصله ستون‌ها" value={Number(p.gap || 16)} min={0} max={80} onChange={(v) => set("gap", v)} />
+        </div>
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <strong className="text-xs">محتوای داخل کانتینر</strong>
+            <Badge variant="outline">{children.length} مورد</Badge>
+          </div>
+          <p className="mt-2 text-[10px] leading-5 text-muted-foreground">
+            هر ویجتی را که اینجا اضافه کنی داخل همین Container قرار می‌گیرد و بعداً مستقل قابل انتخاب و طراحی است.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {BLOCKS.filter((item) => item.type !== "container").map((item) => (
+              <Button
+                key={item.type}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-auto justify-start whitespace-normal py-2 text-[10px]"
+                onClick={() => addChild(item.type)}
+              >
+                <Plus className="size-3.5" />
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "customHtml") {
+    const elements = editableHtmlElements(p.html || "");
+    return (
+      <div className="grid gap-4">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[10px] leading-5 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+          HTML و CSS در رندر عمومی ایمن‌سازی می‌شوند. اسکریپت، iframe و event-handlerهای خام اجرا نمی‌شوند.
+        </div>
+
+        <section className="grid gap-3 rounded-2xl border border-border/70 p-3">
+          <div className="flex items-center gap-2">
+            <WandSparkles className="size-4 text-primary" />
+            <strong className="text-xs">ویرایش سریع گرافیکی</strong>
+          </div>
+          {!elements.length ? (
+            <p className="text-[10px] text-muted-foreground">المان متنی، لینک یا تصویر قابل ویرایش پیدا نشد.</p>
+          ) : (
+            <div className="grid gap-2">
+              {elements.map((element) => (
+                <div key={element.index} className="rounded-xl border border-border/60 bg-muted/20 p-2.5">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <Badge variant="outline">{element.tag}</Badge>
+                    <span className="text-[9px] text-muted-foreground">#{element.index + 1}</span>
+                  </div>
+
+                  {element.tag === "img" ? (
+                    <div className="grid gap-2">
+                      {element.src ? (
+                        <img src={element.src} alt={element.alt} className="h-24 w-full rounded-lg bg-muted object-contain" />
+                      ) : null}
+                      <Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => chooseHtmlImage(element.index)}>
+                        <ImagePlus className="size-4" />
+                        جایگزینی تصویر
+                      </Button>
+                      <Field
+                        label="Alt"
+                        value={element.alt}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, { alt: value }),
+                          )
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <div className="grid gap-2">
+                      <Area
+                        label="متن"
+                        value={element.text}
+                        rows={element.tag === "p" ? 3 : 2}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, { text: value }),
+                          )
+                        }
+                      />
+                      {element.tag === "a" && (
+                        <Field
+                          label="لینک مقصد"
+                          value={element.href}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, { href: value }),
+                            )
+                          }
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="grid gap-3 rounded-2xl border border-border/70 p-3">
+          <div className="flex items-center gap-2">
+            <Code2 className="size-4 text-primary" />
+            <strong className="text-xs">کد خام</strong>
+          </div>
+          <Area label="HTML" value={p.html || ""} onChange={(value) => set("html", value)} rows={14} />
+          <Area label="CSS" value={p.css || ""} onChange={(value) => set("css", value)} rows={14} />
+        </section>
       </div>
     );
   }
