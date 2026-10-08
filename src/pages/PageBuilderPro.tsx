@@ -1667,8 +1667,9 @@ export default function PageBuilderPro() {
       <div className="grid min-h-[calc(100dvh-110px)] xl:grid-cols-[270px_minmax(0,1fr)_340px]">
         <aside className="border-b border-border/70 bg-card xl:border-b-0 xl:border-l">
           <Tabs value={sidebarTab} onValueChange={setSidebarTab} className="flex h-full flex-col">
-            <TabsList className="m-2 grid grid-cols-3">
+            <TabsList className="m-2 grid grid-cols-4">
               <TabsTrigger value="widgets">ویجت</TabsTrigger>
+              <TabsTrigger value="sections">سکشن</TabsTrigger>
               <TabsTrigger value="structure">ساختار</TabsTrigger>
               <TabsTrigger value="pages">صفحات</TabsTrigger>
             </TabsList>
@@ -1703,11 +1704,36 @@ export default function PageBuilderPro() {
                 type="button"
                 variant="outline"
                 className="mt-3 w-full gap-2"
-                onClick={() => setMediaTarget({ type: "ogImage" })}
+                onClick={() => setMediaTarget({ type: "browse" })}
               >
                 <ImagePlus className="size-4" />
-                باز کردن Media Library
+                کتابخانه تصاویر
               </Button>
+            </TabsContent>
+
+            <TabsContent value="sections" className="m-0 flex-1 overflow-y-auto p-3">
+              <div className="mb-3 rounded-2xl border border-blue-200 bg-blue-50 p-3 text-[10px] leading-5 text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-100">
+                یک سکشن آماده را وارد کن؛ بعد تمام متن، تصویر، رنگ، فاصله،
+                فونت و چیدمانش قابل تغییر است.
+              </div>
+              <div className="grid gap-2">
+                {SECTION_PRESETS.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.id}
+                    onClick={() => insertPreset(preset.id)}
+                    className="rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:border-primary/40 hover:shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <strong className="text-xs">{preset.title}</strong>
+                      <Plus className="size-4 text-primary" />
+                    </div>
+                    <span className="mt-1 block text-[9px] leading-5 text-muted-foreground">
+                      {preset.description}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </TabsContent>
 
             <TabsContent value="structure" className="m-0 flex-1 overflow-y-auto p-3">
