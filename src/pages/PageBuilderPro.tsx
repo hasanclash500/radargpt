@@ -2332,10 +2332,49 @@ export default function PageBuilderPro() {
                 {!selectedBlock ? (
                   <p className="text-xs text-muted-foreground">یک بلوک انتخاب کن.</p>
                 ) : (
-                  <AdvancedEditor
-                    block={selectedBlock}
-                    patchProps={(props) => patchBlockProps(selectedBlock.id, props)}
-                  />
+                  <div className="grid gap-4">
+                    <AdvancedEditor
+                      block={selectedBlock}
+                      patchProps={(props) => patchBlockProps(selectedBlock.id, props)}
+                    />
+
+                    {containers.length > 0 && (
+                      <section className="grid gap-2 rounded-2xl border border-border/70 p-3">
+                        <strong className="text-xs">جابه‌جایی در ساختار صفحه</strong>
+                        <p className="text-[9px] leading-5 text-muted-foreground">
+                          این بلوک را داخل یک Container دیگر ببر یا به سطح اصلی صفحه برگردان.
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => moveBlockToContainer(selectedBlock.id, "")}
+                        >
+                          انتقال به سطح اصلی
+                        </Button>
+                        {containers
+                          .filter(
+                            (container) =>
+                              !collectBlockIds(selectedBlock).has(container.id),
+                          )
+                          .map((container) => (
+                            <Button
+                              key={container.id}
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="justify-start"
+                              onClick={() =>
+                                moveBlockToContainer(selectedBlock.id, container.id)
+                              }
+                            >
+                              <SquareDashed className="size-4" />
+                              داخل {container.props?.title || "Container " + container.id.slice(0, 5)}
+                            </Button>
+                          ))}
+                      </section>
+                    )}
+                  </div>
                 )}
               </TabsContent>
 
