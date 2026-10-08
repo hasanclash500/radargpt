@@ -63,6 +63,14 @@
     {
       "source": "/p/:path*",
       "destination": "/index.html"
+    },
+    {
+      "source": "/landing-v2",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/landing-v3",
+      "destination": "/index.html"
     }
   ]
 }
