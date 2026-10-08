@@ -1751,6 +1751,7 @@ export default function PageBuilderPro() {
       return;
     }
 
+    let nextSelectedId = imported[0].id;
     setDraft((current) => {
       const selected = findBlockInTree(current.blocks, selectedBlockId);
       if (selected?.type === "container") {
@@ -1758,17 +1759,29 @@ export default function PageBuilderPro() {
         for (const block of imported) {
           blocks = appendBlockToContainer(blocks, selected.id, block);
         }
+        nextSelectedId = selected.id;
         return { ...current, blocks };
       }
+
+      const wrapper = newBlock("container");
+      wrapper.props = {
+        ...wrapper.props,
+        columns: 1,
+        gap: 0,
+        children: imported,
+      };
+      wrapper.order = current.blocks.length;
+      nextSelectedId = wrapper.id;
+
       return {
         ...current,
-        blocks: [...current.blocks, ...imported].map((block, order) => ({
+        blocks: [...current.blocks, wrapper].map((block, order) => ({
           ...block,
           order,
         })),
       };
     });
-    setSelectedBlockId(imported[0].id);
+    setSelectedBlockId(nextSelectedId);
     setHtmlImportOpen(false);
     setHtmlImportValue("");
     setCssImportValue("");
