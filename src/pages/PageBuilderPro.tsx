@@ -14,6 +14,7 @@ import {
   childColumns,
   cloneBlockDeep,
   findBlock,
+  findLocatedBlock,
   insertIntoColumn,
   insertIntoRoot,
   moveBlockToColumn,
@@ -1119,13 +1120,34 @@ export default function PageBuilderPro() {
 
   const duplicateBlock = (block: Block) => {
     const copy = cloneBlockDeep(block as BuilderBlock, id) as Block;
-    setDraft((current) => ({
-      ...current,
-      blocks: insertIntoRoot(
+    setDraft((current) => {
+      const located = findLocatedBlock(
         current.blocks as BuilderBlock[],
-        { ...copy, order: current.blocks.length },
-      ) as Block[],
-    }));
+        block.id,
+      );
+      if (located?.location.kind === "column") {
+        return {
+          ...current,
+          blocks: insertIntoColumn(
+            current.blocks as BuilderBlock[],
+            located.location.containerId,
+            located.location.columnId,
+            copy as BuilderBlock,
+            located.location.index + 1,
+          ) as Block[],
+        };
+      }
+      return {
+        ...current,
+        blocks: insertIntoRoot(
+          current.blocks as BuilderBlock[],
+          copy as BuilderBlock,
+          (located?.location.kind === "root"
+            ? located.location.index + 1
+            : current.blocks.length),
+        ) as Block[],
+      };
+    });
     setSelectedBlockId(copy.id);
   };
 
