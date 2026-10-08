@@ -36,6 +36,11 @@ const ALLOWED_BLOCK_TYPES = new Set([
   "richText",
   "cta",
   "contact",
+  "heading",
+  "image",
+  "button",
+  "spacer",
+  "divider",
 ]);
 
 function normalizeSlug(value: string) {
