@@ -589,6 +589,142 @@ function BlockContentEditor({
   const set = (key: string, value: any) =>
     patchProps({ ...p, [key]: value });
 
+  if (block.type === "container") {
+    const columns = Array.isArray(p.columns) ? p.columns : [];
+    const setColumnCount = (count: number) => {
+      const safeCount = Math.max(1, Math.min(6, count));
+      const next = [...columns];
+      while (next.length < safeCount) {
+        next.push({
+          id: id(),
+          widths: {
+            desktop: 100 / safeCount,
+            tablet: 100 / safeCount,
+            mobile: 100,
+          },
+          verticalAlign: "stretch",
+          widgets: [],
+        });
+      }
+      while (next.length > safeCount) {
+        const removed = next.pop();
+        if (removed?.widgets?.length) {
+          next[next.length - 1] = {
+            ...next[next.length - 1],
+            widgets: [
+              ...(next[next.length - 1]?.widgets || []),
+              ...removed.widgets,
+            ],
+          };
+        }
+      }
+      const width = 100 / safeCount;
+      set(
+        "columns",
+        next.map((column: any) => ({
+          ...column,
+          widths: {
+            ...column.widths,
+            desktop: width,
+            tablet: width,
+            mobile: 100,
+          },
+        })),
+      );
+    };
+
+    return (
+      <div className="grid gap-4">
+        <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-3 dark:border-blue-900 dark:bg-blue-950/20">
+          <strong className="text-xs">چیدمان کانتینر</strong>
+          <p className="mt-1 text-[10px] leading-5 text-muted-foreground">
+            ویجت‌ها را از پنل سمت چپ مستقیم داخل ستون‌ها بکش. دستگیره بین ستون‌ها را هم می‌توانی با ماوس جابه‌جا کنی.
+          </p>
+        </div>
+        <NumberField
+          label="تعداد ستون"
+          value={columns.length || 2}
+          min={1}
+          max={6}
+          onChange={setColumnCount}
+        />
+        <NumberField
+          label="فاصله بین ستون‌ها"
+          value={Number(p.gap || 0)}
+          min={0}
+          max={80}
+          onChange={(v) => set("gap", v)}
+        />
+        <label className="flex items-center gap-2 rounded-xl border border-border/70 p-3 text-xs font-bold">
+          <input
+            type="checkbox"
+            checked={p.mobileStack !== false}
+            onChange={(event) => set("mobileStack", event.target.checked)}
+          />
+          در موبایل ستون‌ها زیر هم قرار بگیرند
+        </label>
+        <div className="grid gap-2">
+          {columns.map((column: any, index: number) => (
+            <div key={column.id} className="rounded-2xl border border-border/70 p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <strong className="text-[11px]">ستون {index + 1}</strong>
+                <span className="text-[9px] text-muted-foreground">
+                  {(column.widgets || []).length} ویجت
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(["desktop", "tablet", "mobile"] as const).map((deviceKey) => (
+                  <NumberField
+                    key={deviceKey}
+                    label={deviceKey === "desktop" ? "دسکتاپ %" : deviceKey === "tablet" ? "تبلت %" : "موبایل %"}
+                    value={Number(column.widths?.[deviceKey] ?? (deviceKey === "mobile" ? 100 : 50))}
+                    min={5}
+                    max={100}
+                    onChange={(value) =>
+                      set(
+                        "columns",
+                        columns.map((entry: any) =>
+                          entry.id === column.id
+                            ? {
+                                ...entry,
+                                widths: {
+                                  ...(entry.widths || {}),
+                                  [deviceKey]: value,
+                                },
+                              }
+                            : entry,
+                        ),
+                      )
+                    }
+                  />
+                ))}
+              </div>
+              <SelectField
+                label="تراز عمودی"
+                value={column.verticalAlign || "stretch"}
+                onChange={(value) =>
+                  set(
+                    "columns",
+                    columns.map((entry: any) =>
+                      entry.id === column.id
+                        ? { ...entry, verticalAlign: value }
+                        : entry,
+                    ),
+                  )
+                }
+              >
+                <option value="start">بالا</option>
+                <option value="center">وسط</option>
+                <option value="end">پایین</option>
+                <option value="stretch">کشیده</option>
+              </SelectField>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (block.type === "hero") {
     return (
       <div className="grid gap-3">
