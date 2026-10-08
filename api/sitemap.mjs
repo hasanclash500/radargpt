@@ -24,20 +24,22 @@ function absolute(path) {
 }
 
 function row(loc, lastmod) {
-  return `  <url><loc>${escapeXml(loc)}</loc><lastmod>${isoDate(lastmod)}</lastmod></url>`;
+  const modified = lastmod
+    ? `<lastmod>${isoDate(lastmod)}</lastmod>`
+    : "";
+  return `  <url><loc>${escapeXml(loc)}</loc>${modified}</url>`;
 }
 
 export default async function handler(req, res) {
-  const now = Date.now();
-  const rows = [
-    row(SITE + "/", now),
-    row(absolute("/listings"), now),
-    row(absolute("/blog"), now),
-    row(absolute("/about"), now),
-    row(absolute("/assistant"), now),
-    row(absolute("/request"), now),
-    row(absolute("/submit-listing"), now),
-  ];
+  const entries = new Map([
+    [SITE + "/", undefined],
+    [absolute("/listings"), undefined],
+    [absolute("/blog"), undefined],
+    [absolute("/about"), undefined],
+    [absolute("/assistant"), undefined],
+    [absolute("/request"), undefined],
+    [absolute("/submit-listing"), undefined],
+  ]);
 
   try {
     const convexUrl = process.env.VITE_CONVEX_URL || process.env.CONVEX_URL;
@@ -46,26 +48,27 @@ export default async function handler(req, res) {
       const data = await client.query(api.seo.sitemapEntries, {});
 
       for (const item of data.listings || []) {
-        rows.push(
-          row(absolute("/listings/" + encodeURIComponent(item.slug)), item.updatedAt),
+        entries.set(
+          absolute("/listings/" + encodeURIComponent(item.slug)),
+          item.updatedAt,
         );
       }
       for (const item of data.posts || []) {
-        rows.push(
-          row(absolute("/blog/" + encodeURIComponent(item.slug)), item.updatedAt),
+        entries.set(
+          absolute("/blog/" + encodeURIComponent(item.slug)),
+          item.updatedAt,
         );
       }
       for (const item of data.pages || []) {
-        rows.push(
-          row(absolute("/p/" + encodeURIComponent(item.slug)), item.updatedAt),
+        entries.set(
+          absolute("/p/" + encodeURIComponent(item.slug)),
+          item.updatedAt,
         );
       }
       for (const item of data.advisors || []) {
-        rows.push(
-          row(
-            absolute("/consultants/" + encodeURIComponent(item.slug)),
-            item.updatedAt,
-          ),
+        entries.set(
+          absolute("/consultants/" + encodeURIComponent(item.slug)),
+          item.updatedAt,
         );
       }
     }
@@ -74,16 +77,20 @@ export default async function handler(req, res) {
   }
 
   // Seed articles exist even before the first persisted blog post is created.
-  rows.push(
-    row(absolute("/blog/industrial-property-rent-shahriar"), now),
-    row(absolute("/blog/office-rent-shahriar"), now),
-  );
+  if (!entries.has(absolute("/blog/industrial-property-rent-shahriar"))) {
+    entries.set(absolute("/blog/industrial-property-rent-shahriar"), undefined);
+  }
+  if (!entries.has(absolute("/blog/office-rent-shahriar"))) {
+    entries.set(absolute("/blog/office-rent-shahriar"), undefined);
+  }
 
-  const unique = [...new Set(rows)];
+  const rows = [...entries.entries()].map(([loc, lastmod]) =>
+    row(loc, lastmod),
+  );
   const xml =
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    unique.join("\n") +
+    rows.join("\n") +
     "\n</urlset>\n";
 
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
