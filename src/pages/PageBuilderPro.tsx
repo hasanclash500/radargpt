@@ -1488,7 +1488,7 @@ export default function PageBuilderPro() {
       return;
     }
 
-    const block = draft.blocks.find((entry) => entry.id === mediaTarget.blockId);
+    const block = findBlockInTree(draft.blocks, mediaTarget.blockId);
     if (!block) return;
     if (mediaTarget.type === "background") {
       patchBlockProps(block.id, {
@@ -1501,6 +1501,16 @@ export default function PageBuilderPro() {
       });
       return;
     }
+    if (mediaTarget.type === "customHtmlImage") {
+      patchBlockProps(block.id, {
+        ...block.props,
+        html: updateHtmlElement(block.props?.html || "", mediaTarget.elementIndex, {
+          src: item.url,
+          alt: item.alt || item.title || "",
+        }),
+      });
+      return;
+    }
     patchBlockProps(block.id, {
       ...block.props,
       [mediaTarget.key]: item.url,
@@ -1508,6 +1518,38 @@ export default function PageBuilderPro() {
         ? { imageAlt: item.alt || item.title || "" }
         : {}),
     });
+  };
+
+  const importLandingCode = () => {
+    const imported = importHtmlSections(htmlImportValue, cssImportValue);
+    if (!imported.length) {
+      toast.error("کد HTML قابل وارد کردن پیدا نشد");
+      return;
+    }
+
+    setDraft((current) => {
+      const selected = findBlockInTree(current.blocks, selectedBlockId);
+      if (selected?.type === "container") {
+        let blocks = current.blocks;
+        for (const block of imported) {
+          blocks = appendBlockToContainer(blocks, selected.id, block);
+        }
+        return { ...current, blocks };
+      }
+      return {
+        ...current,
+        blocks: [...current.blocks, ...imported].map((block, order) => ({
+          ...block,
+          order,
+        })),
+      };
+    });
+    setSelectedBlockId(imported[0].id);
+    setHtmlImportOpen(false);
+    setHtmlImportValue("");
+    setCssImportValue("");
+    setInspectorTab("content");
+    toast.success(imported.length + " بخش از کد لندینگ وارد شد");
   };
 
   if (role === undefined) {
