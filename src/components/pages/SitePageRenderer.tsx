@@ -425,6 +425,142 @@ function ContactBlock({ props }: { props: Record<string, any> }) {
   );
 }
 
+function HeadingBlock({ props }: { props: Record<string, any> }) {
+  const tag = ["h1", "h2", "h3"].includes(props.tag) ? props.tag : "h2";
+  const Tag = tag as "h1" | "h2" | "h3";
+  const align =
+    props.align === "center"
+      ? "text-center"
+      : props.align === "end"
+        ? "text-left"
+        : "text-right";
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <div className={align}>
+        {props.eyebrow && (
+          <p className="mb-2 text-xs font-extrabold text-primary">{props.eyebrow}</p>
+        )}
+        <Tag className="font-black leading-tight">{props.title || "عنوان جدید"}</Tag>
+        {props.text && (
+          <p className="mt-3 whitespace-pre-line leading-8 text-muted-foreground">
+            {props.text}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ImageBlock({ props }: { props: Record<string, any> }) {
+  const imageUrl = safeHref(props.imageUrl || "");
+  const fit =
+    props.objectFit === "cover"
+      ? "object-cover"
+      : props.objectFit === "fill"
+        ? "object-fill"
+        : "object-contain";
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      {imageUrl !== "#" ? (
+        <figure className="overflow-hidden rounded-2xl">
+          <img
+            src={imageUrl}
+            alt={props.imageAlt || props.caption || "تصویر دیوساز"}
+            className={"h-auto max-h-[760px] w-full bg-muted/30 " + fit}
+            loading="lazy"
+          />
+          {props.caption && (
+            <figcaption className="px-2 py-2 text-center text-xs text-muted-foreground">
+              {props.caption}
+            </figcaption>
+          )}
+        </figure>
+      ) : (
+        <div className="flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-border bg-muted/20 text-sm text-muted-foreground">
+          تصویر را از کتابخانه رسانه انتخاب کنید
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ButtonBlock({ props }: { props: Record<string, any> }) {
+  const align =
+    props.align === "center"
+      ? "justify-center"
+      : props.align === "end"
+        ? "justify-end"
+        : "justify-start";
+  const variant =
+    props.variant === "outline" || props.variant === "secondary"
+      ? props.variant
+      : "default";
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
+      <div className={"flex " + align}>
+        <Button
+          asChild
+          variant={variant as any}
+          size={props.size === "sm" ? "sm" : props.size === "lg" ? "lg" : "default"}
+          className="rounded-xl"
+        >
+          <SmartLink href={props.href || "#"}>{props.label || "دکمه"}</SmartLink>
+        </Button>
+      </div>
+    </section>
+  );
+}
+
+function SpacerBlock({ props }: { props: Record<string, any> }) {
+  const desktop = Math.min(500, Math.max(0, Number(props.heightDesktop) || 80));
+  const tablet = Math.min(500, Math.max(0, Number(props.heightTablet) || desktop));
+  const mobile = Math.min(
+    500,
+    Math.max(0, Number(props.heightMobile) || Math.min(desktop, 56)),
+  );
+
+  return (
+    <div
+      aria-hidden="true"
+      className="divsaz-builder-spacer"
+      style={
+        {
+          "--spacer-d": desktop + "px",
+          "--spacer-t": tablet + "px",
+          "--spacer-m": mobile + "px",
+        } as React.CSSProperties
+      }
+    >
+      <style>{`
+        .divsaz-builder-spacer{height:var(--spacer-m)}
+        @media(min-width:640px){.divsaz-builder-spacer{height:var(--spacer-t)}}
+        @media(min-width:1024px){.divsaz-builder-spacer{height:var(--spacer-d)}}
+      `}</style>
+    </div>
+  );
+}
+
+function DividerBlock({ props }: { props: Record<string, any> }) {
+  const width = Math.min(100, Math.max(10, Number(props.widthPercent) || 100));
+  const thickness = Math.min(12, Math.max(1, Number(props.thickness) || 1));
+  const color = String(props.color || "rgba(148,163,184,.45)");
+  return (
+    <div className="mx-auto px-4 py-5 sm:px-6" style={{ width: width + "%" }}>
+      <div
+        aria-hidden="true"
+        style={{
+          height: thickness,
+          background: color,
+          borderRadius: 999,
+        }}
+      />
+    </div>
+  );
+}
+
 function safeBuilderId(value: unknown) {
   return String(value ?? "").replace(/[^a-zA-Z0-9_-]/g, "");
 }
@@ -660,6 +796,11 @@ function BlockRenderer({
   if (block.type === "richText") content = <RichTextBlock props={block.props} />;
   if (block.type === "cta") content = <CtaBlock props={block.props} />;
   if (block.type === "contact") content = <ContactBlock props={block.props} />;
+  if (block.type === "heading") content = <HeadingBlock props={block.props} />;
+  if (block.type === "image") content = <ImageBlock props={block.props} />;
+  if (block.type === "button") content = <ButtonBlock props={block.props} />;
+  if (block.type === "spacer") content = <SpacerBlock props={block.props} />;
+  if (block.type === "divider") content = <DividerBlock props={block.props} />;
   if (!content) return null;
 
   return (
@@ -742,12 +883,15 @@ export default function SitePageRenderer({
 
   const pageSettings = page.settings || {};
   const customFontUrl = safeHref(pageSettings.customFontUrl || "");
+  const hasCustomFont = Boolean(customFontUrl && customFontUrl !== "#");
   const customFontFamily =
     String(pageSettings.customFontFamily || "").trim() || "DivosazCustom";
   const pageStyle = {
     backgroundColor: pageSettings.backgroundColor || undefined,
     color: pageSettings.textColor || undefined,
-    fontFamily: customFontUrl !== "#" ? `"${customFontFamily}", Vazirmatn, sans-serif` : undefined,
+    fontFamily: hasCustomFont
+      ? `"${customFontFamily}", "Vazirmatn", ui-sans-serif, system-ui, sans-serif`
+      : '"Vazirmatn", ui-sans-serif, system-ui, sans-serif',
     fontSize: pageSettings.baseFontSize
       ? Math.min(24, Math.max(11, Number(pageSettings.baseFontSize))) + "px"
       : undefined,
@@ -759,17 +903,21 @@ export default function SitePageRenderer({
       style={pageStyle}
       className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background text-foreground"
     >
-      {customFontUrl !== "#" && (
-        <style>{`@font-face{font-family:"${customFontFamily.replace(/["{}]/g, "")}";src:url("${customFontUrl}") format("woff2");font-display:swap;}`}</style>
+      {hasCustomFont && (
+        <style>{`@font-face{font-family:"${customFontFamily.replace(/["{}]/g, "")}";src:url("${customFontUrl}");font-display:swap;}`}</style>
       )}
-      {!hideHeader && <PublicHeader />}
-      {!hideHeader && <PublicStoryStrip />}
-      {page.isHomepage && heroIndex < 0 && <BrandStorySection />}
+      {!hideHeader && pageSettings.showHeader !== false && <PublicHeader />}
+      {!hideHeader && pageSettings.showStories !== false && <PublicStoryStrip />}
+      {page.isHomepage &&
+        pageSettings.showBrandStory !== false &&
+        heroIndex < 0 && <BrandStorySection />}
       <RootDropZone index={0} editor={editor} />
       {blocks.map((block, index) => (
         <Fragment key={block.id}>
           <EditableBlockFrame block={block} editor={editor} depth={0} />
-          {page.isHomepage && index === heroIndex && <BrandStorySection />}
+          {page.isHomepage &&
+            pageSettings.showBrandStory !== false &&
+            index === heroIndex && <BrandStorySection />}
           <RootDropZone index={index + 1} editor={editor} />
         </Fragment>
       ))}
