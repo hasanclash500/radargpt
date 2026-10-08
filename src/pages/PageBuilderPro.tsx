@@ -495,6 +495,60 @@ function appendBlockToContainer(
   });
 }
 
+function extractBlockFromTree(
+  blocks: Block[],
+  blockId: string,
+): { blocks: Block[]; removed: Block | null } {
+  let removed: Block | null = null;
+  const next: Block[] = [];
+
+  for (const block of blocks) {
+    if (block.id === blockId) {
+      removed = block;
+      continue;
+    }
+
+    if (
+      !removed &&
+      block.type === "container" &&
+      Array.isArray(block.props?.children)
+    ) {
+      const childResult = extractBlockFromTree(block.props.children, blockId);
+      if (childResult.removed) {
+        removed = childResult.removed;
+        next.push({
+          ...block,
+          props: {
+            ...block.props,
+            children: childResult.blocks,
+          },
+        });
+        continue;
+      }
+    }
+
+    next.push(block);
+  }
+
+  return {
+    blocks: next.map((block, order) => ({ ...block, order })),
+    removed,
+  };
+}
+
+function collectBlockIds(block: Block | null): Set<string> {
+  const ids = new Set<string>();
+  if (!block) return ids;
+  const visit = (entry: Block) => {
+    ids.add(entry.id);
+    if (entry.type === "container" && Array.isArray(entry.props?.children)) {
+      entry.props.children.forEach(visit);
+    }
+  };
+  visit(block);
+  return ids;
+}
+
 function editableHtmlElements(html: string) {
   if (typeof window === "undefined") return [];
   const doc = new DOMParser().parseFromString(html || "", "text/html");
