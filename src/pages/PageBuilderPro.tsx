@@ -94,6 +94,7 @@ type MediaTarget =
   | { type: "background"; blockId: string }
   | { type: "ogImage" }
   | { type: "font" }
+  | { type: "browse" }
   | null;
 
 const BLOCKS = [
@@ -106,11 +107,79 @@ const BLOCKS = [
   { type: "richText", label: "متن آزاد", note: "عنوان و متن" },
   { type: "cta", label: "دعوت به اقدام", note: "دکمه و پیام" },
   { type: "contact", label: "تماس", note: "شماره و مسیر" },
+  { type: "heading", label: "عنوان", note: "H1 / H2 / H3 و متن کوتاه" },
+  { type: "image", label: "تصویر", note: "تصویر مستقل از کتابخانه رسانه" },
+  { type: "button", label: "دکمه", note: "دکمه مستقل با لینک" },
+  { type: "spacer", label: "فاصله", note: "فاصله Responsive" },
+  { type: "divider", label: "جداکننده", note: "خط جداکننده قابل تنظیم" },
 ] as const;
 
 const BLOCK_LABELS = Object.fromEntries(
   BLOCKS.map((item) => [item.type, item.label]),
 ) as Record<string, string>;
+
+const SECTION_PRESETS = [
+  {
+    id: "hero-modern",
+    title: "هیرو حرفه‌ای",
+    description: "عنوان، توضیح، دو دکمه و تصویر",
+    types: ["hero"],
+  },
+  {
+    id: "property-search",
+    title: "جستجو و انتخاب مسیر",
+    description: "خرید، اجاره، فروش و اجاره‌دادن",
+    types: ["intentHub"],
+  },
+  {
+    id: "featured-listings",
+    title: "آگهی‌های منتخب",
+    description: "ویترین آگهی‌های واقعی منتشرشده دیوساز",
+    types: ["listings"],
+  },
+  {
+    id: "services",
+    title: "خدمات دیوساز",
+    description: "کارت‌های خدمات املاک صنعتی و اداری",
+    types: ["services"],
+  },
+  {
+    id: "about-split",
+    title: "معرفی تصویر + متن",
+    description: "سکشن دو ستونه برای معرفی برند یا خدمات",
+    types: ["split"],
+  },
+  {
+    id: "seo-text",
+    title: "متن سئو",
+    description: "بخش متنی مناسب محتوای طولانی و سئو",
+    types: ["richText"],
+  },
+  {
+    id: "call-to-action",
+    title: "دعوت به اقدام",
+    description: "CTA برای تماس، ثبت تقاضا یا مشاهده آگهی",
+    types: ["cta"],
+  },
+  {
+    id: "contact",
+    title: "تماس و مسیریابی",
+    description: "شماره دفتر، آدرس و دکمه مسیریابی",
+    types: ["contact"],
+  },
+  {
+    id: "two-column",
+    title: "دو ستون خالی",
+    description: "کانتینر دو ستونه برای چیدمان آزاد ویجت‌ها",
+    types: ["container"],
+  },
+  {
+    id: "complete-landing",
+    title: "لندینگ کامل دیوساز",
+    description: "هیرو + مسیرها + آگهی + خدمات + CTA + تماس",
+    types: ["hero", "intentHub", "listings", "services", "cta", "contact"],
+  },
+] as const;
 
 function id() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -131,6 +200,10 @@ function defaultResponsive() {
     translateY: 0,
     titleSize: 0,
     bodySize: 0,
+    titleWeight: 0,
+    bodyWeight: 0,
+    titleLineHeight: 0,
+    bodyLineHeight: 0,
     textAlign: "start",
   };
 }
@@ -257,6 +330,46 @@ function defaultProps(type: string): Record<string, any> {
       secondaryHref: "tel:09120858095",
       design,
     };
+  if (type === "heading")
+    return {
+      eyebrow: "",
+      title: "عنوان جدید",
+      text: "",
+      tag: "h2",
+      align: "start",
+      design,
+    };
+  if (type === "image")
+    return {
+      imageUrl: "",
+      imageAlt: "",
+      caption: "",
+      objectFit: "contain",
+      design,
+    };
+  if (type === "button")
+    return {
+      label: "دکمه",
+      href: "#",
+      variant: "default",
+      size: "default",
+      align: "start",
+      design,
+    };
+  if (type === "spacer")
+    return {
+      heightDesktop: 80,
+      heightTablet: 64,
+      heightMobile: 48,
+      design,
+    };
+  if (type === "divider")
+    return {
+      widthPercent: 100,
+      thickness: 1,
+      color: "#cbd5e1",
+      design,
+    };
   return {
     title: "ارتباط با دیوساز",
     text: "برای مشاوره با دفتر تماس بگیرید.",
@@ -332,10 +445,7 @@ function emptyDraft(): Draft {
     pageType: "page",
     status: "draft",
     isHomepage: false,
-    blocks: [newBlock("hero"), newBlock("cta")].map((block, order) => ({
-      ...block,
-      order,
-    })),
+    blocks: [],
     seoTitle: "",
     seoDescription: "",
     seoKeywords: [],
@@ -345,11 +455,14 @@ function emptyDraft(): Draft {
     ogImage: "",
     noIndex: false,
     settings: {
-      backgroundColor: "",
-      textColor: "",
+      backgroundColor: "#ffffff",
+      textColor: "#0f172a",
       baseFontSize: 16,
-      customFontFamily: "",
+      customFontFamily: "Vazirmatn",
       customFontUrl: "",
+      showHeader: false,
+      showStories: false,
+      showBrandStory: false,
     },
   };
 }
@@ -374,11 +487,14 @@ function fromRow(row: any): Draft {
     ogImage: row.ogImage ?? "",
     noIndex: Boolean(row.noIndex),
     settings: {
-      backgroundColor: "",
-      textColor: "",
+      backgroundColor: "#ffffff",
+      textColor: "#0f172a",
       baseFontSize: 16,
-      customFontFamily: "",
+      customFontFamily: "Vazirmatn",
       customFontUrl: "",
+      showHeader: true,
+      showStories: true,
+      showBrandStory: true,
       ...(row.settings || {}),
     },
   };
@@ -885,6 +1001,106 @@ function BlockContentEditor({
     );
   }
 
+  if (block.type === "heading") {
+    return (
+      <div className="grid gap-3">
+        <Field label="بالانویس" value={p.eyebrow || ""} onChange={(v) => set("eyebrow", v)} />
+        <Field label="عنوان" value={p.title || ""} onChange={(v) => set("title", v)} />
+        <Area label="متن زیر عنوان" value={p.text || ""} onChange={(v) => set("text", v)} rows={4} />
+        <div className="grid grid-cols-2 gap-2">
+          <SelectField label="تگ HTML" value={p.tag || "h2"} onChange={(v) => set("tag", v)}>
+            <option value="h1">H1</option>
+            <option value="h2">H2</option>
+            <option value="h3">H3</option>
+          </SelectField>
+          <SelectField label="چینش" value={p.align || "start"} onChange={(v) => set("align", v)}>
+            <option value="start">راست</option>
+            <option value="center">وسط</option>
+            <option value="end">چپ</option>
+          </SelectField>
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "image") {
+    return (
+      <div className="grid gap-3">
+        {p.imageUrl ? (
+          <img
+            src={p.imageUrl}
+            alt={p.imageAlt || ""}
+            className="h-44 w-full rounded-2xl bg-muted object-contain"
+          />
+        ) : (
+          <div className="flex h-32 items-center justify-center rounded-2xl border border-dashed border-border text-xs text-muted-foreground">
+            هنوز تصویری انتخاب نشده
+          </div>
+        )}
+        <Button type="button" variant="outline" className="gap-2" onClick={() => chooseImage("imageUrl")}>
+          <ImagePlus className="size-4" />
+          انتخاب تصویر
+        </Button>
+        <Field label="Alt تصویر" value={p.imageAlt || ""} onChange={(v) => set("imageAlt", v)} />
+        <Field label="توضیح زیر تصویر" value={p.caption || ""} onChange={(v) => set("caption", v)} />
+        <SelectField label="نحوه نمایش" value={p.objectFit || "contain"} onChange={(v) => set("objectFit", v)}>
+          <option value="contain">بدون برش</option>
+          <option value="cover">پر کردن کادر</option>
+          <option value="fill">کشیده در کادر</option>
+        </SelectField>
+      </div>
+    );
+  }
+
+  if (block.type === "button") {
+    return (
+      <div className="grid gap-3">
+        <Field label="متن دکمه" value={p.label || ""} onChange={(v) => set("label", v)} />
+        <Field label="لینک" value={p.href || ""} onChange={(v) => set("href", v)} />
+        <div className="grid grid-cols-2 gap-2">
+          <SelectField label="استایل" value={p.variant || "default"} onChange={(v) => set("variant", v)}>
+            <option value="default">اصلی</option>
+            <option value="outline">دورخط</option>
+            <option value="secondary">ثانویه</option>
+          </SelectField>
+          <SelectField label="اندازه" value={p.size || "default"} onChange={(v) => set("size", v)}>
+            <option value="sm">کوچک</option>
+            <option value="default">معمولی</option>
+            <option value="lg">بزرگ</option>
+          </SelectField>
+        </div>
+        <SelectField label="چینش" value={p.align || "start"} onChange={(v) => set("align", v)}>
+          <option value="start">راست</option>
+          <option value="center">وسط</option>
+          <option value="end">چپ</option>
+        </SelectField>
+      </div>
+    );
+  }
+
+  if (block.type === "spacer") {
+    return (
+      <div className="grid gap-3">
+        <p className="text-[10px] leading-5 text-muted-foreground">
+          ارتفاع فاصله را برای هر دستگاه جدا تنظیم کن.
+        </p>
+        <NumberField label="دسکتاپ" value={Number(p.heightDesktop || 80)} min={0} max={500} onChange={(v) => set("heightDesktop", v)} />
+        <NumberField label="تبلت" value={Number(p.heightTablet || 64)} min={0} max={500} onChange={(v) => set("heightTablet", v)} />
+        <NumberField label="موبایل" value={Number(p.heightMobile || 48)} min={0} max={500} onChange={(v) => set("heightMobile", v)} />
+      </div>
+    );
+  }
+
+  if (block.type === "divider") {
+    return (
+      <div className="grid gap-3">
+        <NumberField label="عرض %" value={Number(p.widthPercent || 100)} min={10} max={100} onChange={(v) => set("widthPercent", v)} />
+        <NumberField label="ضخامت" value={Number(p.thickness || 1)} min={1} max={12} onChange={(v) => set("thickness", v)} />
+        <ColorField label="رنگ خط" value={p.color || "#cbd5e1"} onChange={(v) => set("color", v)} />
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-3">
       <Field label="عنوان" value={p.title || ""} onChange={(v) => set("title", v)} />
@@ -987,6 +1203,10 @@ function StyleEditor({
           <NumberField label="حرکت عمودی" value={Number(responsive.translateY || 0)} min={-500} max={500} onChange={(v) => setResponsive("translateY", v)} />
           <NumberField label="اندازه تیتر" value={Number(responsive.titleSize || 0)} min={0} max={120} onChange={(v) => setResponsive("titleSize", v)} />
           <NumberField label="اندازه متن" value={Number(responsive.bodySize || 0)} min={0} max={48} onChange={(v) => setResponsive("bodySize", v)} />
+          <NumberField label="وزن تیتر" value={Number(responsive.titleWeight || 0)} min={0} max={900} onChange={(v) => setResponsive("titleWeight", v)} />
+          <NumberField label="وزن متن" value={Number(responsive.bodyWeight || 0)} min={0} max={900} onChange={(v) => setResponsive("bodyWeight", v)} />
+          <NumberField label="Line-height تیتر" value={Number(responsive.titleLineHeight || 0)} min={0} max={160} onChange={(v) => setResponsive("titleLineHeight", v)} />
+          <NumberField label="Line-height متن" value={Number(responsive.bodyLineHeight || 0)} min={0} max={120} onChange={(v) => setResponsive("bodyLineHeight", v)} />
         </div>
       </div>
     </div>
@@ -1054,6 +1274,7 @@ export default function PageBuilderPro() {
   const [selectedId, setSelectedId] = useState("");
   const [selectedBlockId, setSelectedBlockId] = useState("");
   const [device, setDevice] = useState<Device>("desktop");
+  const [showSiteChrome, setShowSiteChrome] = useState(false);
   const [busy, setBusy] = useState("");
   const [dragId, setDragId] = useState("");
   const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
@@ -1105,6 +1326,31 @@ export default function PageBuilderPro() {
     setSelectedBlockId(block.id);
     setInspectorTab("content");
     toast.success(BLOCK_LABELS[type] + " اضافه شد");
+  };
+
+  const insertPreset = (presetId: string) => {
+    const preset = SECTION_PRESETS.find((item) => item.id === presetId);
+    if (!preset) return;
+
+    const additions = preset.types.map((type) => newBlock(type));
+    setDraft((current) => {
+      let blocks = current.blocks as BuilderBlock[];
+      for (const addition of additions) {
+        blocks = insertIntoRoot(
+          blocks,
+          addition as BuilderBlock,
+          blocks.length,
+        );
+      }
+      return {
+        ...current,
+        blocks: normalizeOrders(blocks) as Block[],
+      };
+    });
+
+    if (additions[0]) setSelectedBlockId(additions[0].id);
+    setInspectorTab("content");
+    toast.success("سکشن «" + preset.title + "» اضافه شد");
   };
 
   const removeBlock = (blockId: string) => {
@@ -1295,6 +1541,7 @@ export default function PageBuilderPro() {
 
   const chooseMedia = (item: SiteMediaItem) => {
     if (!item.url || !mediaTarget) return;
+    if (mediaTarget.type === "browse") return;
     if (mediaTarget.type === "font") {
       setDraft((current) => ({
         ...current,
@@ -1302,8 +1549,12 @@ export default function PageBuilderPro() {
           ...current.settings,
           customFontUrl: item.url,
           customFontFamily:
-            current.settings.customFontFamily ||
-            item.fileName.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, ""),
+            current.settings.customFontFamily &&
+            current.settings.customFontFamily !== "Vazirmatn"
+              ? current.settings.customFontFamily
+              : item.fileName
+                  .replace(/\.[^.]+$/, "")
+                  .replace(/[^a-zA-Z0-9-_]/g, "") || "DivosazCustom",
         },
       }));
       return;
@@ -1420,8 +1671,9 @@ export default function PageBuilderPro() {
       <div className="grid min-h-[calc(100dvh-110px)] xl:grid-cols-[270px_minmax(0,1fr)_340px]">
         <aside className="border-b border-border/70 bg-card xl:border-b-0 xl:border-l">
           <Tabs value={sidebarTab} onValueChange={setSidebarTab} className="flex h-full flex-col">
-            <TabsList className="m-2 grid grid-cols-3">
+            <TabsList className="m-2 grid grid-cols-4">
               <TabsTrigger value="widgets">ویجت</TabsTrigger>
+              <TabsTrigger value="sections">سکشن</TabsTrigger>
               <TabsTrigger value="structure">ساختار</TabsTrigger>
               <TabsTrigger value="pages">صفحات</TabsTrigger>
             </TabsList>
@@ -1456,11 +1708,36 @@ export default function PageBuilderPro() {
                 type="button"
                 variant="outline"
                 className="mt-3 w-full gap-2"
-                onClick={() => setMediaTarget({ type: "ogImage" })}
+                onClick={() => setMediaTarget({ type: "browse" })}
               >
                 <ImagePlus className="size-4" />
-                باز کردن Media Library
+                کتابخانه تصاویر
               </Button>
+            </TabsContent>
+
+            <TabsContent value="sections" className="m-0 flex-1 overflow-y-auto p-3">
+              <div className="mb-3 rounded-2xl border border-blue-200 bg-blue-50 p-3 text-[10px] leading-5 text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-100">
+                یک سکشن آماده را وارد کن؛ بعد تمام متن، تصویر، رنگ، فاصله،
+                فونت و چیدمانش قابل تغییر است.
+              </div>
+              <div className="grid gap-2">
+                {SECTION_PRESETS.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.id}
+                    onClick={() => insertPreset(preset.id)}
+                    className="rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:border-primary/40 hover:shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <strong className="text-xs">{preset.title}</strong>
+                      <Plus className="size-4 text-primary" />
+                    </div>
+                    <span className="mt-1 block text-[9px] leading-5 text-muted-foreground">
+                      {preset.description}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </TabsContent>
 
             <TabsContent value="structure" className="m-0 flex-1 overflow-y-auto p-3">
@@ -1571,9 +1848,19 @@ export default function PageBuilderPro() {
 
         <section className="min-w-0 overflow-hidden bg-[linear-gradient(45deg,rgba(148,163,184,.08)_25%,transparent_25%,transparent_75%,rgba(148,163,184,.08)_75%),linear-gradient(45deg,rgba(148,163,184,.08)_25%,transparent_25%,transparent_75%,rgba(148,163,184,.08)_75%)] bg-[length:24px_24px] bg-[position:0_0,12px_12px]">
           <div className="flex items-center justify-between border-b border-border/70 bg-background/90 px-3 py-2">
-            <div className="flex items-center gap-2">
-              <strong className="text-xs">{draft.title}</strong>
+            <div className="flex min-w-0 items-center gap-2">
+              <strong className="truncate text-xs">{draft.title}</strong>
               <Badge variant="outline">{draft.status === "published" ? "منتشرشده" : "پیش‌نویس"}</Badge>
+              <Button
+                type="button"
+                size="sm"
+                variant={showSiteChrome ? "default" : "outline"}
+                className="h-7 px-2 text-[9px]"
+                aria-pressed={showSiteChrome}
+                onClick={() => setShowSiteChrome((value) => !value)}
+              >
+                {showSiteChrome ? "پوسته سایت روشن" : "پیش‌نمایش پوسته"}
+              </Button>
             </div>
             <div className="flex items-center gap-1 sm:hidden">
               <Button size="icon" variant={device === "desktop" ? "default" : "outline"} onClick={() => setDevice("desktop")}><Monitor className="size-4" /></Button>
@@ -1584,29 +1871,57 @@ export default function PageBuilderPro() {
 
           <div className="h-[72dvh] overflow-auto p-3 sm:p-5 xl:h-[calc(100dvh-160px)]">
             <div
-              className="mx-auto min-h-full overflow-hidden rounded-2xl border border-border/70 bg-background shadow-2xl transition-[width] duration-300"
+              className="mx-auto min-h-full overflow-hidden rounded-2xl border border-border/70 shadow-2xl transition-[width] duration-300"
               style={{
                 width: "min(100%, " + canvasWidth + "px)",
+                backgroundColor: draft.settings.backgroundColor || "#ffffff",
+                color: draft.settings.textColor || "#0f172a",
               }}
             >
-              <SitePageRenderer
-                page={draft as any}
-                hideHeader
-                editor={{
-                  selectedBlockId,
-                  device,
-                  onSelectBlock: (blockId) => {
-                    setSelectedBlockId(blockId);
-                    setInspectorTab("content");
-                  },
-                  onInsertWidget: insertWidgetAt,
-                  onMoveBlock: moveBlockToTarget,
-                  onResizeColumns: resizeColumns,
-                }}
-              />
-              {!sortedBlocks.length && (
-                <div className="flex min-h-96 items-center justify-center p-6 text-center text-sm text-muted-foreground">
-                  از پنل «ویجت» یک بخش به صفحه اضافه کن.
+              {sortedBlocks.length ? (
+                <SitePageRenderer
+                  page={draft as any}
+                  hideHeader={!showSiteChrome}
+                  editor={{
+                    selectedBlockId,
+                    device,
+                    onSelectBlock: (blockId) => {
+                      setSelectedBlockId(blockId);
+                      setInspectorTab("content");
+                    },
+                    onInsertWidget: insertWidgetAt,
+                    onMoveBlock: moveBlockToTarget,
+                    onResizeColumns: resizeColumns,
+                  }}
+                />
+              ) : (
+                <div className="flex min-h-[720px] items-center justify-center bg-white p-6 text-center text-slate-500">
+                  <div>
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50">
+                      <Plus className="size-6" />
+                    </div>
+                    <strong className="mt-4 block text-sm text-slate-800">
+                      صفحه سفید آماده است
+                    </strong>
+                    <p className="mt-2 max-w-xs text-xs leading-6">
+                      ویجت را بکش و داخل صفحه یا ستون رها کن؛ یا یک سکشن آماده را
+                      با یک کلیک وارد کن.
+                    </p>
+                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      <Button type="button" size="sm" onClick={() => insertPreset("featured-listings")}>
+                        آگهی‌های منتخب
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("property-search")}>
+                        جستجو و مسیرها
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("two-column")}>
+                        دو ستون خالی
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("complete-landing")}>
+                        لندینگ کامل
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1747,14 +2062,138 @@ export default function PageBuilderPro() {
                       <Paintbrush className="size-4 text-primary" />
                       <strong className="text-xs">استایل کلی صفحه</strong>
                     </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              backgroundColor: "#ffffff",
+                              textColor: "#0f172a",
+                              customFontFamily: "Vazirmatn",
+                              customFontUrl: "",
+                              showHeader: false,
+                              showStories: false,
+                              showBrandStory: false,
+                            },
+                          }))
+                        }
+                      >
+                        بوم سفید
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              backgroundColor: "#ffffff",
+                              textColor: "#0f172a",
+                              customFontFamily: "Vazirmatn",
+                              customFontUrl: "",
+                              showHeader: true,
+                              showStories: true,
+                              showBrandStory: true,
+                            },
+                          }))
+                        }
+                      >
+                        قالب کامل سایت
+                      </Button>
+                    </div>
+
+                    <label className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 text-xs">
+                      <span>هدر سایت نمایش داده شود</span>
+                      <input
+                        type="checkbox"
+                        checked={draft.settings.showHeader !== false}
+                        onChange={(event) =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              showHeader: event.target.checked,
+                            },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 text-xs">
+                      <span>استوری‌ها نمایش داده شوند</span>
+                      <input
+                        type="checkbox"
+                        checked={draft.settings.showStories !== false}
+                        onChange={(event) =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              showStories: event.target.checked,
+                            },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 text-xs">
+                      <span>داستان برند نمایش داده شود</span>
+                      <input
+                        type="checkbox"
+                        checked={draft.settings.showBrandStory !== false}
+                        onChange={(event) =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              showBrandStory: event.target.checked,
+                            },
+                          }))
+                        }
+                      />
+                    </label>
+
                     <ColorField label="رنگ پس‌زمینه صفحه" value={draft.settings.backgroundColor || ""} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, backgroundColor: v } }))} />
                     <ColorField label="رنگ متن پیش‌فرض" value={draft.settings.textColor || ""} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, textColor: v } }))} />
                     <NumberField label="اندازه فونت پایه" value={Number(draft.settings.baseFontSize || 16)} min={11} max={24} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, baseFontSize: v } }))} />
-                    <Field label="نام فونت" value={draft.settings.customFontFamily || ""} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, customFontFamily: v } }))} placeholder="مثلاً DivosazBrand" />
-                    <Button type="button" variant="outline" className="gap-2" onClick={() => setMediaTarget({ type: "font" })}>
-                      <Type className="size-4" />
-                      آپلود / انتخاب فونت
-                    </Button>
+
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-100">
+                      <div className="flex items-center justify-between gap-2">
+                        <strong className="text-xs">فونت پیش‌فرض: وزیرمتن</strong>
+                        {!draft.settings.customFontUrl && <Badge variant="outline">فعال</Badge>}
+                      </div>
+                      <p className="mt-1 text-[9px] leading-5 opacity-75">
+                        Vazirmatn داخل خود پروژه نصب شده و برای نمایش به سرویس خارجی وابسته نیست.
+                      </p>
+                    </div>
+
+                    <Field label="نام فونت سفارشی" value={draft.settings.customFontFamily || "Vazirmatn"} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, customFontFamily: v } }))} placeholder="مثلاً DivosazBrand" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button type="button" variant="outline" className="gap-2" onClick={() => setMediaTarget({ type: "font" })}>
+                        <Type className="size-4" />
+                        فونت سفارشی
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              customFontFamily: "Vazirmatn",
+                              customFontUrl: "",
+                            },
+                          }))
+                        }
+                      >
+                        بازگشت به وزیر
+                      </Button>
+                    </div>
                     {draft.settings.customFontUrl && (
                       <div className="rounded-xl bg-muted p-2 text-[9px] text-muted-foreground" dir="ltr">
                         {draft.settings.customFontUrl}
