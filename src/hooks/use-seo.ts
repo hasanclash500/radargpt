@@ -6,11 +6,14 @@ type SeoConfig = {
   keywords?: string[];
   canonical?: string;
   image?: string;
+  imageAlt?: string;
   ogTitle?: string;
   ogDescription?: string;
   noIndex?: boolean;
   type?: "website" | "article";
   jsonLd?: Record<string, unknown>;
+  siteName?: string;
+  locale?: string;
 };
 
 function ensureMeta(selector: string, attrs: Record<string, string>) {
@@ -30,17 +33,26 @@ export function useSeo(config: SeoConfig) {
     keywords = [],
     canonical,
     image,
+    imageAlt,
     ogTitle,
     ogDescription,
     noIndex = false,
     type = "website",
     jsonLd,
+    siteName = "دیوساز",
+    locale = "fa_IR",
   } = config;
 
   useEffect(() => {
     const previousTitle = document.title;
-    const canonicalUrl = canonical || window.location.href.split("#")[0];
+    const canonicalUrl =
+      canonical || window.location.href.split(/[?#]/)[0];
+    const absoluteImage = image
+      ? new URL(image, window.location.origin).toString()
+      : "";
 
+    document.documentElement.lang = "fa";
+    document.documentElement.dir = "rtl";
     document.title = title;
 
     ensureMeta('meta[name="description"]', {
@@ -49,7 +61,15 @@ export function useSeo(config: SeoConfig) {
     });
     ensureMeta('meta[name="robots"]', {
       name: "robots",
-      content: noIndex ? "noindex, nofollow" : "index, follow",
+      content: noIndex
+        ? "noindex, nofollow"
+        : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+    });
+    ensureMeta('meta[name="googlebot"]', {
+      name: "googlebot",
+      content: noIndex
+        ? "noindex, nofollow"
+        : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
     });
     if (keywords.length) {
       ensureMeta('meta[name="keywords"]', {
@@ -65,6 +85,14 @@ export function useSeo(config: SeoConfig) {
     });
     ensureMeta('meta[property="og:type"]', { property: "og:type", content: type });
     ensureMeta('meta[property="og:url"]', { property: "og:url", content: canonicalUrl });
+    ensureMeta('meta[property="og:site_name"]', {
+      property: "og:site_name",
+      content: siteName,
+    });
+    ensureMeta('meta[property="og:locale"]', {
+      property: "og:locale",
+      content: locale,
+    });
     ensureMeta('meta[name="twitter:card"]', {
       name: "twitter:card",
       content: image ? "summary_large_image" : "summary",
@@ -75,9 +103,26 @@ export function useSeo(config: SeoConfig) {
       content: ogDescription || description,
     });
 
-    if (image) {
-      ensureMeta('meta[property="og:image"]', { property: "og:image", content: image });
-      ensureMeta('meta[name="twitter:image"]', { name: "twitter:image", content: image });
+    const ogImage = document.head.querySelector<HTMLMetaElement>('meta[property="og:image"]');
+    const twitterImage = document.head.querySelector<HTMLMetaElement>('meta[name="twitter:image"]');
+    const ogImageAlt = document.head.querySelector<HTMLMetaElement>('meta[property="og:image:alt"]');
+    if (absoluteImage) {
+      ensureMeta('meta[property="og:image"]', {
+        property: "og:image",
+        content: absoluteImage,
+      });
+      ensureMeta('meta[name="twitter:image"]', {
+        name: "twitter:image",
+        content: absoluteImage,
+      });
+      ensureMeta('meta[property="og:image:alt"]', {
+        property: "og:image:alt",
+        content: imageAlt || ogTitle || title,
+      });
+    } else {
+      ogImage?.remove();
+      twitterImage?.remove();
+      ogImageAlt?.remove();
     }
 
     let canonicalLink = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
@@ -107,11 +152,14 @@ export function useSeo(config: SeoConfig) {
     description,
     canonical,
     image,
+    imageAlt,
     ogTitle,
     ogDescription,
     noIndex,
     type,
     keywords.join("|"),
     JSON.stringify(jsonLd ?? null),
+    siteName,
+    locale,
   ]);
 }
