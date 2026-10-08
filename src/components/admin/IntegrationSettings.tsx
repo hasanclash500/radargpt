@@ -13,6 +13,7 @@ export default function IntegrationSettings() {
   const status = useQuery(api.integrations.getIntegrationStatus, {});
   const saveSettings = useMutation(api.integrations.saveIntegrationSettings);
   const test = useAction(api.integrations.testIntegrations);
+  const testAi = useAction(api.integrations.testAi);
 
   const [telegramToken, setTelegramToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
@@ -83,6 +84,26 @@ export default function IntegrationSettings() {
     }
   };
 
+  const runAiTest = async () => {
+    setTesting("ai");
+    try {
+      const result = await testAi({});
+      if (result?.ok) {
+        toast.success(result.answer || "اتصال هوش مصنوعی برقرار است");
+      } else {
+        toast.error(result?.error || "اتصال هوش مصنوعی برقرار نشد");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "آزمایش هوش مصنوعی ناموفق بود",
+      );
+    } finally {
+      setTesting(null);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -123,8 +144,36 @@ export default function IntegrationSettings() {
             />
           </div>
           <p className="mt-2 text-[10px] leading-5 text-muted-foreground">
-            مدل پیشنهادی پیش‌فرض: <span dir="ltr">openrouter/free</span>. در صورت داشتن نام یک مدل رایگان DeepSeek می‌توانید همان شناسه را وارد کنید.
+            مدل پیشنهادی پیش‌فرض: <span dir="ltr">openrouter/free</span>. این Router
+            فقط مدل‌های رایگان OpenRouter را انتخاب می‌کند و برای پاسخ عمومی دستیار
+            استفاده می‌شود.
           </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={testing !== null}
+              onClick={() => void runAiTest()}
+              className="gap-1.5"
+            >
+              {testing === "ai" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <BrainCircuit className="size-4" />
+              )}
+              تست هوش مصنوعی رایگان
+            </Button>
+            <Button asChild type="button" variant="ghost" size="sm">
+              <a
+                href="https://openrouter.ai/settings/keys"
+                target="_blank"
+                rel="noreferrer"
+              >
+                ساخت کلید رایگان OpenRouter
+              </a>
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
