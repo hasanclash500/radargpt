@@ -40,6 +40,8 @@ const ALLOWED_BLOCK_TYPES = new Set([
   "button",
   "spacer",
   "divider",
+  "container",
+  "customHtml",
 ]);
 
 function normalizeSlug(value: string) {
@@ -53,22 +55,32 @@ function normalizeSlug(value: string) {
     .slice(0, 80);
 }
 
-function normalizeBlocks(blocks: any[]) {
+function normalizeBlocks(blocks: any[], depth = 0): any[] {
+  if (!Array.isArray(blocks) || depth > 5) return [];
+
   return blocks
     .filter((block) => block && ALLOWED_BLOCK_TYPES.has(String(block.type)))
-    .slice(0, 40)
-    .map((block, index) => ({
-      id:
-        String(block.id || "").trim() ||
-        globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18),
-      type: String(block.type),
-      enabled: block.enabled !== false,
-      order: index,
-      props:
+    .slice(0, depth === 0 ? 80 : 40)
+    .map((block, index) => {
+      const props =
         block.props && typeof block.props === "object" && !Array.isArray(block.props)
-          ? block.props
-          : {},
-    }));
+          ? { ...block.props }
+          : {};
+
+      if (String(block.type) === "container") {
+        props.children = normalizeBlocks(props.children, depth + 1);
+      }
+
+      return {
+        id:
+          String(block.id || "").trim() ||
+          globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18),
+        type: String(block.type),
+        enabled: block.enabled !== false,
+        order: index,
+        props,
+      };
+    });
 }
 
 async function requireManager(ctx: any) {
