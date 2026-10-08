@@ -1004,6 +1004,10 @@ function StyleEditor({
           <NumberField label="حرکت عمودی" value={Number(responsive.translateY || 0)} min={-500} max={500} onChange={(v) => setResponsive("translateY", v)} />
           <NumberField label="اندازه تیتر" value={Number(responsive.titleSize || 0)} min={0} max={120} onChange={(v) => setResponsive("titleSize", v)} />
           <NumberField label="اندازه متن" value={Number(responsive.bodySize || 0)} min={0} max={48} onChange={(v) => setResponsive("bodySize", v)} />
+          <NumberField label="وزن تیتر" value={Number(responsive.titleWeight || 0)} min={0} max={900} onChange={(v) => setResponsive("titleWeight", v)} />
+          <NumberField label="وزن متن" value={Number(responsive.bodyWeight || 0)} min={0} max={900} onChange={(v) => setResponsive("bodyWeight", v)} />
+          <NumberField label="Line-height تیتر" value={Number(responsive.titleLineHeight || 0)} min={0} max={120} onChange={(v) => setResponsive("titleLineHeight", v)} />
+          <NumberField label="Line-height متن" value={Number(responsive.bodyLineHeight || 0)} min={0} max={100} onChange={(v) => setResponsive("bodyLineHeight", v)} />
         </div>
       </div>
     </div>
