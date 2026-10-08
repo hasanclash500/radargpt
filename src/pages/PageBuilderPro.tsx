@@ -2021,6 +2021,15 @@ export default function PageBuilderPro() {
                 <ImagePlus className="size-4" />
                 کتابخانه تصاویر
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-2 w-full gap-2 border-blue-300 text-blue-700 dark:border-blue-800 dark:text-blue-300"
+                onClick={() => setHtmlImportOpen(true)}
+              >
+                <Braces className="size-4" />
+                ورود لندینگ HTML / CSS
+              </Button>
             </TabsContent>
 
             <TabsContent value="sections" className="m-0 flex-1 overflow-y-auto p-3">
@@ -2603,6 +2612,69 @@ export default function PageBuilderPro() {
           </Tabs>
         </aside>
       </div>
+
+      <Dialog open={htmlImportOpen} onOpenChange={setHtmlImportOpen}>
+        <DialogContent
+          dir="rtl"
+          className="max-h-[90dvh] w-[min(980px,calc(100vw-1rem))] max-w-none overflow-y-auto rounded-3xl"
+        >
+          <DialogHeader className="text-right">
+            <DialogTitle>ورود لندینگ آماده با HTML و CSS</DialogTitle>
+            <DialogDescription className="text-right leading-6">
+              کد صفحه آماده را وارد کن. بخش‌های اصلی HTML جدا می‌شوند و بعد
+              می‌توانی متن، لینک، تصویر، استایل و سکشن‌های دیوساز را گرافیکی
+              تغییر بدهی.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[10px] leading-6 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+            JavaScript خام، iframe و event-handlerها اجرا نمی‌شوند. HTML و CSS
+            ایمن‌سازی و CSS هر بلوک Scope می‌شود تا استایل کل سایت را خراب نکند.
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-xs font-black">HTML</span>
+              <Textarea
+                dir="ltr"
+                value={htmlImportValue}
+                onChange={(event) => setHtmlImportValue(event.target.value)}
+                rows={18}
+                className="font-mono text-xs"
+                placeholder={"<!doctype html>\n<html>..."}
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-xs font-black">CSS</span>
+              <Textarea
+                dir="ltr"
+                value={cssImportValue}
+                onChange={(event) => setCssImportValue(event.target.value)}
+                rows={18}
+                className="font-mono text-xs"
+                placeholder={".hero { ... }"}
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+            <p className="max-w-xl text-[10px] leading-5 text-muted-foreground">
+              خروجی داخل یک کانتینر قابل جابه‌جایی قرار می‌گیرد. بعد از Import
+              می‌توانی ویجت «آگهی‌ها»، CTA، تصویر یا هر سکشن دیگر دیوساز را بین
+              بخش‌های واردشده Drag & Drop کنی.
+            </p>
+            <Button
+              type="button"
+              className="gap-2"
+              disabled={!htmlImportValue.trim()}
+              onClick={importLandingCode}
+            >
+              <Code2 className="size-4" />
+              تبدیل و ورود به صفحه‌ساز
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <MediaLibraryDialog
         open={Boolean(mediaTarget)}
