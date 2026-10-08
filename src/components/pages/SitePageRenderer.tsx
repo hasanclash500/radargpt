@@ -278,11 +278,38 @@ function IntentHubBlock({ props }: { props: Record<string, any> }) {
   );
 }
 
-function ListingsBlock({ props }: { props: Record<string, any> }) {
+function ListingsBlock({
+  props,
+  editing = false,
+}: {
+  props: Record<string, any>;
+  editing?: boolean;
+}) {
   const listings = useQuery(api.listings.listFeaturedPublic) ?? [];
   const limit = Math.min(12, Math.max(1, Number(props.limit) || 8));
   const visible = listings.slice(0, limit);
-  if (!visible.length) return null;
+  if (!visible.length) {
+    if (!editing) return null;
+    return (
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+        {props.eyebrow && (
+          <p className="text-xs font-extrabold text-primary">{props.eyebrow}</p>
+        )}
+        <h2 className="mt-1 text-2xl font-black">
+          {props.title || "ویترین آگهی‌های دیوساز"}
+        </h2>
+        <div className="mt-5 grid min-h-44 place-items-center rounded-3xl border border-dashed border-border bg-muted/20 p-6 text-center">
+          <div>
+            <Building2 className="mx-auto size-8 text-muted-foreground/40" />
+            <strong className="mt-3 block text-sm">سکشن آگهی‌ها آماده است</strong>
+            <p className="mt-1 text-xs leading-6 text-muted-foreground">
+              با انتشار یا ویژه‌کردن آگهی‌ها، فایل‌های واقعی دیوساز اینجا نمایش داده می‌شوند.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -790,7 +817,9 @@ function BlockRenderer({
   }
   if (block.type === "hero") content = <HeroBlock props={block.props} />;
   if (block.type === "intentHub") content = <IntentHubBlock props={block.props} />;
-  if (block.type === "listings") content = <ListingsBlock props={block.props} />;
+  if (block.type === "listings") {
+    content = <ListingsBlock props={block.props} editing={Boolean(editor)} />;
+  }
   if (block.type === "services") content = <ServicesBlock props={block.props} />;
   if (block.type === "split") content = <SplitBlock props={block.props} />;
   if (block.type === "richText") content = <RichTextBlock props={block.props} />;
