@@ -183,107 +183,6 @@ export const actionRole = internalQuery({
   },
 });
 
-export const testAiConnection = action({
-  args: {},
-  handler: async (ctx) => {
-    const role = await ctx.runQuery(internal.integrations.actionRole, {});
-    if (role !== OFFICE_ROLES.MANAGER) {
-      throw new Error("فقط مدیر اصلی اجازه تست اتصال هوش مصنوعی را دارد.");
-    }
-
-    const config = await ctx.runQuery(
-      internal.integrations.getSecretsInternal,
-      {},
-    );
-    const apiKey = (
-      config?.openRouterApiKey ||
-      process.env.OPENROUTER_API_KEY ||
-      ""
-    ).trim();
-    const model = (
-      config?.openRouterModel ||
-      process.env.OPENROUTER_MODEL ||
-      "openrouter/free"
-    ).trim();
-
-    if (!apiKey) {
-      return {
-        ok: false,
-        model,
-        message:
-          "کلید رایگان OpenRouter ثبت نشده است. یک API Key رایگان بسازید و در همین بخش ذخیره کنید.",
-      };
-    }
-
-    try {
-      const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer":
-              process.env.MEKA_SITE_URL ||
-              process.env.SITE_URL ||
-              "https://divsaz.ir",
-            "X-Title": "Divosaz AI Assistant",
-          },
-          body: JSON.stringify({
-            model: model || "openrouter/free",
-            messages: [
-              {
-                role: "user",
-                content:
-                  "فقط در یک جمله کوتاه فارسی بنویس: اتصال هوش مصنوعی دیوساز برقرار است.",
-              },
-            ],
-            temperature: 0.1,
-            max_tokens: 80,
-          }),
-        },
-      );
-
-      const raw = await response.text();
-      let payload: any = null;
-      try {
-        payload = raw ? JSON.parse(raw) : null;
-      } catch {
-        payload = null;
-      }
-
-      if (!response.ok) {
-        return {
-          ok: false,
-          model,
-          message:
-            payload?.error?.message ||
-            `اتصال OpenRouter ناموفق بود (HTTP ${response.status}).`,
-        };
-      }
-
-      const answer =
-        payload?.choices?.[0]?.message?.content?.trim() ||
-        "اتصال برقرار شد.";
-
-      return {
-        ok: true,
-        model: payload?.model || model,
-        message: answer.slice(0, 300),
-      };
-    } catch (error) {
-      return {
-        ok: false,
-        model,
-        message:
-          error instanceof Error
-            ? error.message
-            : "ارتباط با سرویس هوش مصنوعی برقرار نشد.",
-      };
-    }
-  },
-});
-
 async function postMessage(
   baseUrl: string,
   token: string,
@@ -448,7 +347,7 @@ export const notifyListingActivity = internalAction({
     mapsUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const config = await ctx.runQuery(
+    const config: any = await ctx.runQuery(
       internal.integrations.getSecretsInternal,
       {},
     );
@@ -610,9 +509,16 @@ export const testIntegrations = action({
   },
 });
 
+type AiTestResult = {
+  ok: boolean;
+  model: string;
+  answer?: string;
+  error?: string;
+};
+
 export const testAi = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<AiTestResult> => {
     const role = await ctx.runQuery(internal.integrations.actionRole, {});
     if (role !== OFFICE_ROLES.MANAGER) {
       throw new Error("فقط مدیر می‌تواند اتصال هوش مصنوعی را آزمایش کند.");
@@ -627,7 +533,7 @@ export const testAi = action({
       process.env.OPENROUTER_API_KEY ||
       ""
     ).trim();
-    const model = (
+    const model: string = (
       config?.openRouterModel ||
       process.env.OPENROUTER_MODEL ||
       "openrouter/free"
@@ -650,7 +556,10 @@ export const testAi = action({
           headers: {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
-            "HTTP-Referer": process.env.SITE_URL ?? "https://divsaz.ir",
+            "HTTP-Referer":
+              process.env.MEKA_SITE_URL ||
+              process.env.SITE_URL ||
+              "https://divsaz.ir",
             "X-Title": "Divosaz AI Connection Test",
           },
           body: JSON.stringify({
