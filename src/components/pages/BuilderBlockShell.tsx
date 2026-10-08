@@ -1,3 +1,4 @@
+import { scopeBuilderCss } from "@/components/pages/CustomHtmlContent";
 import { motion, type Variants } from "framer-motion";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -38,6 +39,7 @@ type BlockDesign = {
   zIndex?: number;
   animation?: "none" | "fade" | "fadeUp" | "slideRight" | "slideLeft" | "zoom";
   animationDuration?: number;
+  customCss?: string;
   desktop?: ResponsiveDesign;
   tablet?: ResponsiveDesign;
   mobile?: ResponsiveDesign;
@@ -245,6 +247,7 @@ export default function BuilderBlockShell({
     responsiveCss(selector, design.mobile),
     `@media(min-width:640px){${responsiveCss(selector, design.tablet)}}`,
     `@media(min-width:1024px){${responsiveCss(selector, design.desktop)}}`,
+    design.customCss ? scopeBuilderCss(design.customCss, selector) : "",
   ].join("");
 
   const animation = design.animation || "none";
