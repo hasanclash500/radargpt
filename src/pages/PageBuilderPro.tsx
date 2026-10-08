@@ -1713,14 +1713,137 @@ export default function PageBuilderPro() {
                       <Paintbrush className="size-4 text-primary" />
                       <strong className="text-xs">استایل کلی صفحه</strong>
                     </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              backgroundColor: "#ffffff",
+                              textColor: "#0f172a",
+                              customFontFamily: "Vazirmatn",
+                              customFontUrl: "",
+                              showHeader: false,
+                              showStories: false,
+                              showBrandStory: false,
+                            },
+                          }))
+                        }
+                      >
+                        بوم سفید
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              backgroundColor: "#ffffff",
+                              textColor: "#0f172a",
+                              customFontFamily: "Vazirmatn",
+                              customFontUrl: "",
+                              showHeader: true,
+                              showStories: true,
+                              showBrandStory: true,
+                            },
+                          }))
+                        }
+                      >
+                        قالب کامل سایت
+                      </Button>
+                    </div>
+
+                    <label className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 text-xs">
+                      <span>هدر سایت نمایش داده شود</span>
+                      <input
+                        type="checkbox"
+                        checked={draft.settings.showHeader !== false}
+                        onChange={(event) =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              showHeader: event.target.checked,
+                            },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 text-xs">
+                      <span>استوری‌ها نمایش داده شوند</span>
+                      <input
+                        type="checkbox"
+                        checked={draft.settings.showStories !== false}
+                        onChange={(event) =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              showStories: event.target.checked,
+                            },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="flex items-center justify-between gap-3 rounded-xl border border-border/70 p-3 text-xs">
+                      <span>بخش داستان برند نمایش داده شود</span>
+                      <input
+                        type="checkbox"
+                        checked={draft.settings.showBrandStory !== false}
+                        onChange={(event) =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              showBrandStory: event.target.checked,
+                            },
+                          }))
+                        }
+                      />
+                    </label>
+
                     <ColorField label="رنگ پس‌زمینه صفحه" value={draft.settings.backgroundColor || ""} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, backgroundColor: v } }))} />
                     <ColorField label="رنگ متن پیش‌فرض" value={draft.settings.textColor || ""} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, textColor: v } }))} />
                     <NumberField label="اندازه فونت پایه" value={Number(draft.settings.baseFontSize || 16)} min={11} max={24} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, baseFontSize: v } }))} />
-                    <Field label="نام فونت" value={draft.settings.customFontFamily || ""} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, customFontFamily: v } }))} placeholder="مثلاً DivosazBrand" />
-                    <Button type="button" variant="outline" className="gap-2" onClick={() => setMediaTarget({ type: "font" })}>
-                      <Type className="size-4" />
-                      آپلود / انتخاب فونت
-                    </Button>
+
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950/20 dark:text-emerald-100">
+                      <div className="flex items-center justify-between gap-2">
+                        <strong className="text-xs">فونت پیش‌فرض: وزیرمتن</strong>
+                        {!draft.settings.customFontUrl && <Badge variant="outline">فعال</Badge>}
+                      </div>
+                      <p className="mt-1 text-[9px] leading-5 opacity-75">
+                        Vazirmatn داخل خود پروژه نصب شده و برای لود شدن به سرویس خارجی وابسته نیست.
+                      </p>
+                    </div>
+
+                    <Field label="نام فونت سفارشی" value={draft.settings.customFontFamily || "Vazirmatn"} onChange={(v) => setDraft((d) => ({ ...d, settings: { ...d.settings, customFontFamily: v } }))} placeholder="مثلاً DivosazBrand" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button type="button" variant="outline" className="gap-2" onClick={() => setMediaTarget({ type: "font" })}>
+                        <Type className="size-4" />
+                        فونت سفارشی
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            settings: {
+                              ...d.settings,
+                              customFontFamily: "Vazirmatn",
+                              customFontUrl: "",
+                            },
+                          }))
+                        }
+                      >
+                        بازگشت به وزیر
+                      </Button>
+                    </div>
                     {draft.settings.customFontUrl && (
                       <div className="rounded-xl bg-muted p-2 text-[9px] text-muted-foreground" dir="ltr">
                         {draft.settings.customFontUrl}
