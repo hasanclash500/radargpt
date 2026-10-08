@@ -60,8 +60,13 @@ export const getIntegrationStatus = query({
         config?.baleBotToken?.trim() && config?.baleChatId?.trim(),
       ),
       baleChatId: config?.baleChatId ?? "",
-      aiConfigured: Boolean(config?.openRouterApiKey?.trim()),
-      aiModel: config?.openRouterModel?.trim() || "openrouter/free",
+      aiConfigured: Boolean(
+        config?.openRouterApiKey?.trim() || process.env.OPENROUTER_API_KEY?.trim(),
+      ),
+      aiModel:
+        config?.openRouterModel?.trim() ||
+        process.env.OPENROUTER_MODEL?.trim() ||
+        "openrouter/free",
       notifyLeads: config?.notifyLeads ?? true,
       notifyPublicationRequests: config?.notifyPublicationRequests ?? true,
       notifyListingActivity: config?.notifyListingActivity ?? true,
@@ -342,7 +347,7 @@ export const notifyListingActivity = internalAction({
     mapsUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const config = await ctx.runQuery(
+    const config: any = await ctx.runQuery(
       internal.integrations.getSecretsInternal,
       {},
     );
@@ -504,6 +509,113 @@ export const testIntegrations = action({
   },
 });
 
+type AiTestResult = {
+  ok: boolean;
+  model: string;
+  answer?: string;
+  error?: string;
+};
+
+export const testAi = action({
+  args: {},
+  handler: async (ctx): Promise<AiTestResult> => {
+    const role = await ctx.runQuery(internal.integrations.actionRole, {});
+    if (role !== OFFICE_ROLES.MANAGER) {
+      throw new Error("فقط مدیر می‌تواند اتصال هوش مصنوعی را آزمایش کند.");
+    }
+
+    const config = await ctx.runQuery(
+      internal.integrations.getSecretsInternal,
+      {},
+    );
+    const apiKey = (
+      config?.openRouterApiKey ||
+      process.env.OPENROUTER_API_KEY ||
+      ""
+    ).trim();
+    const model: string = (
+      config?.openRouterModel ||
+      process.env.OPENROUTER_MODEL ||
+      "openrouter/free"
+    ).trim();
+
+    if (!apiKey) {
+      return {
+        ok: false,
+        model,
+        error:
+          "کلید رایگان OpenRouter ثبت نشده است. یک API Key رایگان بسازید و در همین بخش ذخیره کنید.",
+      };
+    }
+
+    try {
+      const response = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer":
+              process.env.MEKA_SITE_URL ||
+              process.env.SITE_URL ||
+              "https://divsaz.ir",
+            "X-Title": "Divosaz AI Connection Test",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: "user",
+                content:
+                  "فقط با یک جمله کوتاه فارسی پاسخ بده: اتصال هوش مصنوعی دیوساز برقرار است.",
+              },
+            ],
+            temperature: 0,
+            max_tokens: 80,
+          }),
+        },
+      );
+
+      const raw = await response.text();
+      let body: any = null;
+      try {
+        body = raw ? JSON.parse(raw) : null;
+      } catch {
+        body = null;
+      }
+
+      if (!response.ok) {
+        return {
+          ok: false,
+          model,
+          error:
+            body?.error?.message ||
+            `OpenRouter پاسخ ناموفق داد (HTTP ${response.status}).`,
+        };
+      }
+
+      const answer = String(
+        body?.choices?.[0]?.message?.content || "",
+      ).trim();
+
+      return {
+        ok: true,
+        model,
+        answer: answer || "اتصال هوش مصنوعی برقرار است.",
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        model,
+        error:
+          error instanceof Error
+            ? error.message
+            : "ارتباط با OpenRouter برقرار نشد.",
+      };
+    }
+  },
+});
 
 export const discoverChatId = action({
   args: {
