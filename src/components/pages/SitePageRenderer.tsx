@@ -429,9 +429,14 @@ function BlockRenderer({ block }: { block: PageBlock }) {
 export default function SitePageRenderer({
   page,
   hideHeader = false,
+  editor,
 }: {
   page: SitePage;
   hideHeader?: boolean;
+  editor?: {
+    selectedBlockId?: string;
+    onSelectBlock?: (id: string) => void;
+  };
 }) {
   useSeo({
     title: page.seoTitle || page.title,
@@ -477,7 +482,32 @@ export default function SitePageRenderer({
       {page.isHomepage && heroIndex < 0 && <BrandStorySection />}
       {blocks.map((block, index) => (
         <Fragment key={block.id}>
-          <BlockRenderer block={block} />
+          <div
+            className={
+              editor
+                ? "relative cursor-pointer transition-[outline,box-shadow] " +
+                  (editor.selectedBlockId === block.id
+                    ? "z-20 outline outline-2 outline-offset-[-2px] outline-blue-500"
+                    : "hover:outline hover:outline-1 hover:outline-offset-[-1px] hover:outline-blue-300")
+                : ""
+            }
+            onClick={
+              editor
+                ? (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    editor.onSelectBlock?.(block.id);
+                  }
+                : undefined
+            }
+          >
+            {editor?.selectedBlockId === block.id && (
+              <span className="pointer-events-none absolute end-2 top-2 z-[70] rounded-lg bg-blue-600 px-2 py-1 text-[9px] font-black text-white shadow">
+                در حال ویرایش
+              </span>
+            )}
+            <BlockRenderer block={block} />
+          </div>
           {page.isHomepage && index === heroIndex && <BrandStorySection />}
         </Fragment>
       ))}
