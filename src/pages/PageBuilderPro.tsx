@@ -937,7 +937,8 @@ export default function PageBuilderPro() {
     [draft.blocks],
   );
   const selectedBlock =
-    sortedBlocks.find((block) => block.id === selectedBlockId) || null;
+    (findBlock(sortedBlocks as BuilderBlock[], selectedBlockId) as Block | null) ||
+    null;
 
   const canvasWidth =
     device === "mobile" ? 390 : device === "tablet" ? 820 : 1280;
@@ -945,9 +946,11 @@ export default function PageBuilderPro() {
   const patchBlock = (blockId: string, patch: Partial<Block>) =>
     setDraft((current) => ({
       ...current,
-      blocks: current.blocks.map((block) =>
-        block.id === blockId ? { ...block, ...patch } : block,
-      ),
+      blocks: updateTreeBlock(
+        current.blocks as BuilderBlock[],
+        blockId,
+        (block) => ({ ...block, ...patch }) as BuilderBlock,
+      ) as Block[],
     }));
 
   const patchBlockProps = (blockId: string, props: Record<string, any>) =>
@@ -968,26 +971,24 @@ export default function PageBuilderPro() {
   };
 
   const removeBlock = (blockId: string) => {
-    setDraft((current) => {
-      const blocks = current.blocks
-        .filter((block) => block.id !== blockId)
-        .sort((a, b) => a.order - b.order)
-        .map((block, order) => ({ ...block, order }));
-      return { ...current, blocks };
-    });
+    setDraft((current) => ({
+      ...current,
+      blocks: removeTreeBlock(
+        current.blocks as BuilderBlock[],
+        blockId,
+      ) as Block[],
+    }));
     if (selectedBlockId === blockId) setSelectedBlockId("");
   };
 
   const duplicateBlock = (block: Block) => {
-    const copy: Block = {
-      ...block,
-      id: id(),
-      props: JSON.parse(JSON.stringify(block.props || {})),
-      order: draft.blocks.length,
-    };
+    const copy = cloneBlockDeep(block as BuilderBlock, id) as Block;
     setDraft((current) => ({
       ...current,
-      blocks: [...current.blocks, copy],
+      blocks: insertIntoRoot(
+        current.blocks as BuilderBlock[],
+        { ...copy, order: current.blocks.length },
+      ) as Block[],
     }));
     setSelectedBlockId(copy.id);
   };
@@ -996,16 +997,90 @@ export default function PageBuilderPro() {
     if (!sourceId || sourceId === targetId) return;
     setDraft((current) => {
       const blocks = [...current.blocks].sort((a, b) => a.order - b.order);
-      const from = blocks.findIndex((block) => block.id === sourceId);
-      const to = blocks.findIndex((block) => block.id === targetId);
-      if (from < 0 || to < 0) return current;
-      const [moved] = blocks.splice(from, 1);
-      blocks.splice(to, 0, moved);
+      const targetIndex = blocks.findIndex((block) => block.id === targetId);
+      if (targetIndex < 0) return current;
       return {
         ...current,
-        blocks: blocks.map((block, order) => ({ ...block, order })),
+        blocks: moveBlockToRoot(
+          current.blocks as BuilderBlock[],
+          sourceId,
+          targetIndex,
+        ) as Block[],
       };
     });
+  };
+
+  const insertWidgetAt = (
+    target:
+      | { kind: "root"; index: number }
+      | { kind: "column"; containerId: string; columnId: string; index?: number },
+    type: string,
+  ) => {
+    const block = newBlock(type);
+    setDraft((current) => ({
+      ...current,
+      blocks:
+        target.kind === "root"
+          ? (insertIntoRoot(
+              current.blocks as BuilderBlock[],
+              block as BuilderBlock,
+              target.index,
+            ) as Block[])
+          : (insertIntoColumn(
+              current.blocks as BuilderBlock[],
+              target.containerId,
+              target.columnId,
+              block as BuilderBlock,
+              target.index,
+            ) as Block[]),
+    }));
+    setSelectedBlockId(block.id);
+    setInspectorTab("content");
+  };
+
+  const moveBlockToTarget = (
+    blockId: string,
+    target:
+      | { kind: "root"; index: number }
+      | { kind: "column"; containerId: string; columnId: string; index?: number },
+  ) => {
+    setDraft((current) => ({
+      ...current,
+      blocks:
+        target.kind === "root"
+          ? (moveBlockToRoot(
+              current.blocks as BuilderBlock[],
+              blockId,
+              target.index,
+            ) as Block[])
+          : (moveBlockToColumn(
+              current.blocks as BuilderBlock[],
+              blockId,
+              target.containerId,
+              target.columnId,
+              target.index,
+            ) as Block[]),
+    }));
+    setSelectedBlockId(blockId);
+  };
+
+  const resizeColumns = (
+    containerId: string,
+    leftColumnId: string,
+    rightColumnId: string,
+    deltaPercent: number,
+  ) => {
+    setDraft((current) => ({
+      ...current,
+      blocks: resizeAdjacentColumns(
+        current.blocks as BuilderBlock[],
+        containerId,
+        leftColumnId,
+        rightColumnId,
+        device,
+        deltaPercent,
+      ) as Block[],
+    }));
   };
 
   const save = async () => {
@@ -1080,7 +1155,10 @@ export default function PageBuilderPro() {
       return;
     }
 
-    const block = draft.blocks.find((entry) => entry.id === mediaTarget.blockId);
+    const block = findBlock(
+      draft.blocks as BuilderBlock[],
+      mediaTarget.blockId,
+    ) as Block | null;
     if (!block) return;
     if (mediaTarget.type === "background") {
       patchBlockProps(block.id, {
