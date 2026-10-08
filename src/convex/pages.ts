@@ -41,6 +41,7 @@ const ALLOWED_BLOCK_TYPES = new Set([
   "button",
   "spacer",
   "divider",
+  "customHtml",
 ]);
 
 function normalizeSlug(value: string) {
@@ -54,22 +55,60 @@ function normalizeSlug(value: string) {
     .slice(0, 80);
 }
 
-function normalizeBlocks(blocks: any[]) {
+function normalizeBlocks(blocks: any[], depth = 0): any[] {
+  if (!Array.isArray(blocks) || depth > 6) return [];
+
   return blocks
     .filter((block) => block && ALLOWED_BLOCK_TYPES.has(String(block.type)))
-    .slice(0, 40)
-    .map((block, index) => ({
-      id:
-        String(block.id || "").trim() ||
-        globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18),
-      type: String(block.type),
-      enabled: block.enabled !== false,
-      order: index,
-      props:
+    .slice(0, depth === 0 ? 80 : 50)
+    .map((block, index) => {
+      const type = String(block.type);
+      const props =
         block.props && typeof block.props === "object" && !Array.isArray(block.props)
-          ? block.props
-          : {},
-    }));
+          ? { ...block.props }
+          : {};
+
+      if (type === "container") {
+        const columns = Array.isArray(props.columns)
+          ? props.columns.slice(0, 6)
+          : [];
+        props.columns = columns.map((column: any, columnIndex: number) => {
+          const widths =
+            column?.widths && typeof column.widths === "object"
+              ? column.widths
+              : {};
+          const verticalAlign = ["start", "center", "end", "stretch"].includes(
+            String(column?.verticalAlign || ""),
+          )
+            ? String(column.verticalAlign)
+            : "stretch";
+
+          return {
+            id:
+              String(column?.id || "").trim() ||
+              globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18) +
+                columnIndex,
+            widths: {
+              desktop: Number(widths.desktop) || 100 / Math.max(1, columns.length),
+              tablet: Number(widths.tablet) || 100 / Math.max(1, columns.length),
+              mobile: Number(widths.mobile) || 100,
+            },
+            verticalAlign,
+            widgets: normalizeBlocks(column?.widgets, depth + 1),
+          };
+        });
+      }
+
+      return {
+        id:
+          String(block.id || "").trim() ||
+          globalThis.crypto.randomUUID().replace(/-/g, "").slice(0, 18),
+        type,
+        enabled: block.enabled !== false,
+        order: index,
+        props,
+      };
+    });
 }
 
 async function requireManager(ctx: any) {

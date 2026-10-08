@@ -7,6 +7,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
@@ -29,6 +36,8 @@ import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
   Bot,
+  Braces,
+  Code2,
   Copy,
   Eye,
   FilePlus2,
@@ -92,6 +101,7 @@ type Draft = {
 type MediaTarget =
   | { type: "blockImage"; blockId: string; key: string }
   | { type: "background"; blockId: string }
+  | { type: "customHtmlImage"; blockId: string; elementIndex: number }
   | { type: "ogImage" }
   | { type: "font" }
   | { type: "browse" }
@@ -112,6 +122,7 @@ const BLOCKS = [
   { type: "button", label: "دکمه", note: "دکمه مستقل با لینک" },
   { type: "spacer", label: "فاصله", note: "فاصله Responsive" },
   { type: "divider", label: "جداکننده", note: "خط جداکننده قابل تنظیم" },
+  { type: "customHtml", label: "HTML / CSS", note: "کد آماده + ویرایش گرافیکی" },
 ] as const;
 
 const BLOCK_LABELS = Object.fromEntries(
@@ -370,6 +381,12 @@ function defaultProps(type: string): Record<string, any> {
       color: "#cbd5e1",
       design,
     };
+  if (type === "customHtml")
+    return {
+      html: '<section class="custom-section"><h2>عنوان سکشن</h2><p>متن سکشن را ویرایش کنید.</p><a href="/listings">مشاهده آگهی‌ها</a></section>',
+      css: '.custom-section{padding:48px 24px;border-radius:24px;background:#fff}.custom-section h2{font-size:32px;font-weight:800}.custom-section p{margin-top:12px;line-height:2}.custom-section a{display:inline-block;margin-top:20px;padding:12px 18px;border-radius:12px;background:#0b3b66;color:white;text-decoration:none}',
+      design,
+    };
   return {
     title: "ارتباط با دیوساز",
     text: "برای مشاوره با دفتر تماس بگیرید.",
@@ -436,6 +453,134 @@ function normalizeBlock(block: Block): Block {
   }
 
   return next;
+}
+
+function editableHtmlElements(html: string) {
+  if (typeof window === "undefined") return [];
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const nodes = Array.from(
+    doc.body.querySelectorAll("h1,h2,h3,h4,p,a,button,img"),
+  ).slice(0, 80);
+
+  return nodes.map((node, index) => {
+    const tag = node.tagName.toLowerCase();
+    return {
+      index,
+      tag,
+      text: tag === "img" ? "" : node.textContent || "",
+      href:
+        tag === "a"
+          ? node.getAttribute("href") || ""
+          : tag === "button"
+            ? node.getAttribute("data-href") || ""
+            : "",
+      src: tag === "img" ? node.getAttribute("src") || "" : "",
+      alt: tag === "img" ? node.getAttribute("alt") || "" : "",
+    };
+  });
+}
+
+function updateHtmlElement(
+  html: string,
+  elementIndex: number,
+  patch: { text?: string; href?: string; src?: string; alt?: string },
+) {
+  if (typeof window === "undefined") return html;
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const nodes = Array.from(
+    doc.body.querySelectorAll("h1,h2,h3,h4,p,a,button,img"),
+  ).slice(0, 80);
+  const node = nodes[elementIndex];
+  if (!node) return html;
+
+  if (patch.text !== undefined && node.tagName.toLowerCase() !== "img") {
+    node.textContent = patch.text;
+  }
+  if (patch.href !== undefined) {
+    const tag = node.tagName.toLowerCase();
+    if (tag === "a") {
+      node.setAttribute("href", patch.href);
+    } else if (tag === "button") {
+      const anchor = doc.createElement("a");
+      for (const attribute of Array.from(node.attributes)) {
+        if (!attribute.name.toLowerCase().startsWith("on")) {
+          anchor.setAttribute(attribute.name, attribute.value);
+        }
+      }
+      anchor.removeAttribute("type");
+      anchor.removeAttribute("data-href");
+      anchor.setAttribute("href", patch.href);
+      anchor.innerHTML = node.innerHTML;
+      node.replaceWith(anchor);
+    }
+  }
+  if (patch.src !== undefined && node.tagName.toLowerCase() === "img") {
+    node.setAttribute("src", patch.src);
+  }
+  if (patch.alt !== undefined && node.tagName.toLowerCase() === "img") {
+    node.setAttribute("alt", patch.alt);
+  }
+
+  return doc.body.innerHTML;
+}
+
+function importHtmlSections(html: string, css: string): Block[] {
+  if (typeof window === "undefined") return [];
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const embeddedCss = Array.from(doc.querySelectorAll("style"))
+    .map((style) => style.textContent || "")
+    .join("\n");
+
+  doc
+    .querySelectorAll("style,script,link,meta,base")
+    .forEach((node) => node.remove());
+
+  let candidates = Array.from(doc.body.children);
+  if (
+    candidates.length === 1 &&
+    ["main", "div"].includes(candidates[0].tagName.toLowerCase()) &&
+    candidates[0].children.length > 1
+  ) {
+    candidates = Array.from(candidates[0].children);
+  }
+
+  if (!candidates.length && doc.body.innerHTML.trim()) {
+    candidates = [doc.body];
+  }
+
+  const mergedCss = [embeddedCss, css].filter(Boolean).join("\n");
+  return candidates.slice(0, 40).map((element, order) => ({
+    id: id(),
+    type: "customHtml",
+    enabled: true,
+    order,
+    props: {
+      html:
+        element === doc.body
+          ? doc.body.innerHTML
+          : (element as HTMLElement).outerHTML,
+      css: mergedCss,
+      design: defaultDesign(),
+    },
+  }));
+}
+
+function wrapImportedLanding(blocks: Block[]): Block {
+  const container = newBlock("container");
+  container.props = {
+    ...container.props,
+    gap: 0,
+    mobileStack: true,
+    columns: [
+      {
+        id: id(),
+        widths: { desktop: 100, tablet: 100, mobile: 100 },
+        verticalAlign: "stretch",
+        widgets: blocks.map((block, order) => ({ ...block, order })),
+      },
+    ],
+  };
+  return container;
 }
 
 function emptyDraft(): Draft {
@@ -697,10 +842,12 @@ function BlockContentEditor({
   block,
   patchProps,
   chooseImage,
+  chooseHtmlImage,
 }: {
   block: Block;
   patchProps: (props: Record<string, any>) => void;
   chooseImage: (key: string) => void;
+  chooseHtmlImage: (elementIndex: number) => void;
 }) {
   const p = block.props || {};
   const set = (key: string, value: any) =>
@@ -1101,6 +1248,106 @@ function BlockContentEditor({
     );
   }
 
+  if (block.type === "customHtml") {
+    const elements = editableHtmlElements(p.html || "");
+    return (
+      <div className="grid gap-4">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[10px] leading-5 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+          HTML و CSS در سایت ایمن‌سازی می‌شوند؛ JavaScript، iframe و event-handler خام اجرا نمی‌شوند.
+        </div>
+
+        <section className="grid gap-3 rounded-2xl border border-border/70 p-3">
+          <div className="flex items-center gap-2">
+            <WandSparkles className="size-4 text-primary" />
+            <strong className="text-xs">ویرایش گرافیکی عناصر کد</strong>
+          </div>
+          {!elements.length ? (
+            <p className="text-[10px] leading-5 text-muted-foreground">
+              تیتر، متن، لینک، دکمه یا تصویر قابل ویرایش پیدا نشد.
+            </p>
+          ) : (
+            <div className="grid gap-2">
+              {elements.map((element) => (
+                <div key={element.index} className="rounded-xl border border-border/60 bg-muted/20 p-2.5">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <Badge variant="outline">{element.tag}</Badge>
+                    <span className="text-[9px] text-muted-foreground">#{element.index + 1}</span>
+                  </div>
+                  {element.tag === "img" ? (
+                    <div className="grid gap-2">
+                      {element.src ? (
+                        <img
+                          src={element.src}
+                          alt={element.alt}
+                          className="h-24 w-full rounded-lg bg-muted object-contain"
+                        />
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => chooseHtmlImage(element.index)}
+                      >
+                        <ImagePlus className="size-4" />
+                        جایگزینی تصویر
+                      </Button>
+                      <Field
+                        label="Alt تصویر"
+                        value={element.alt}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, { alt: value }),
+                          )
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <div className="grid gap-2">
+                      <Area
+                        label="متن"
+                        value={element.text}
+                        rows={element.tag === "p" ? 3 : 2}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, { text: value }),
+                          )
+                        }
+                      />
+                      {(element.tag === "a" || element.tag === "button") && (
+                        <Field
+                          label="لینک مقصد"
+                          value={element.href}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, { href: value }),
+                            )
+                          }
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="grid gap-3 rounded-2xl border border-border/70 p-3">
+          <div className="flex items-center gap-2">
+            <Code2 className="size-4 text-primary" />
+            <strong className="text-xs">ویرایش کد خام</strong>
+          </div>
+          <Area label="HTML" value={p.html || ""} onChange={(value) => set("html", value)} rows={14} />
+          <Area label="CSS" value={p.css || ""} onChange={(value) => set("css", value)} rows={14} />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-3">
       <Field label="عنوان" value={p.title || ""} onChange={(v) => set("title", v)} />
@@ -1280,6 +1527,9 @@ export default function PageBuilderPro() {
   const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
   const [sidebarTab, setSidebarTab] = useState("widgets");
   const [inspectorTab, setInspectorTab] = useState("content");
+  const [htmlImportOpen, setHtmlImportOpen] = useState(false);
+  const [htmlImportValue, setHtmlImportValue] = useState("");
+  const [cssImportValue, setCssImportValue] = useState("");
 
   useEffect(() => {
     if (!selectedId) return;
@@ -1580,6 +1830,20 @@ export default function PageBuilderPro() {
       });
       return;
     }
+    if (mediaTarget.type === "customHtmlImage") {
+      patchBlockProps(block.id, {
+        ...block.props,
+        html: updateHtmlElement(
+          block.props?.html || "",
+          mediaTarget.elementIndex,
+          {
+            src: item.url,
+            alt: item.alt || item.title || "",
+          },
+        ),
+      });
+      return;
+    }
     patchBlockProps(block.id, {
       ...block.props,
       [mediaTarget.key]: item.url,
@@ -1587,6 +1851,70 @@ export default function PageBuilderPro() {
         ? { imageAlt: item.alt || item.title || "" }
         : {}),
     });
+  };
+
+  const importLandingCode = () => {
+    const imported = importHtmlSections(htmlImportValue, cssImportValue);
+    if (!imported.length) {
+      toast.error("کد HTML قابل وارد کردن پیدا نشد");
+      return;
+    }
+
+    const wrapper = wrapImportedLanding(imported);
+    setDraft((current) => {
+      const selected = findBlock(
+        current.blocks as BuilderBlock[],
+        selectedBlockId,
+      ) as Block | null;
+
+      if (selected?.type === "container") {
+        const firstColumn = childColumns(selected as BuilderBlock)[0];
+        if (firstColumn) {
+          return {
+            ...current,
+            blocks: insertIntoColumn(
+              current.blocks as BuilderBlock[],
+              selected.id,
+              firstColumn.id,
+              wrapper as BuilderBlock,
+            ) as Block[],
+          };
+        }
+      }
+
+      const located = findLocatedBlock(
+        current.blocks as BuilderBlock[],
+        selectedBlockId,
+      );
+      if (located?.location.kind === "column") {
+        return {
+          ...current,
+          blocks: insertIntoColumn(
+            current.blocks as BuilderBlock[],
+            located.location.containerId,
+            located.location.columnId,
+            wrapper as BuilderBlock,
+            located.location.index + 1,
+          ) as Block[],
+        };
+      }
+
+      return {
+        ...current,
+        blocks: insertIntoRoot(
+          current.blocks as BuilderBlock[],
+          wrapper as BuilderBlock,
+          current.blocks.length,
+        ) as Block[],
+      };
+    });
+
+    setSelectedBlockId(wrapper.id);
+    setInspectorTab("content");
+    setHtmlImportOpen(false);
+    setHtmlImportValue("");
+    setCssImportValue("");
+    toast.success(imported.length + " بخش از لندینگ وارد شد");
   };
 
   if (role === undefined) {
@@ -1712,6 +2040,15 @@ export default function PageBuilderPro() {
               >
                 <ImagePlus className="size-4" />
                 کتابخانه تصاویر
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-2 w-full gap-2 border-blue-300 text-blue-700 dark:border-blue-800 dark:text-blue-300"
+                onClick={() => setHtmlImportOpen(true)}
+              >
+                <Braces className="size-4" />
+                ورود لندینگ HTML / CSS
               </Button>
             </TabsContent>
 
@@ -1970,6 +2307,13 @@ export default function PageBuilderPro() {
                           type: "blockImage",
                           blockId: selectedBlock.id,
                           key,
+                        })
+                      }
+                      chooseHtmlImage={(elementIndex) =>
+                        setMediaTarget({
+                          type: "customHtmlImage",
+                          blockId: selectedBlock.id,
+                          elementIndex,
                         })
                       }
                     />
@@ -2288,6 +2632,69 @@ export default function PageBuilderPro() {
           </Tabs>
         </aside>
       </div>
+
+      <Dialog open={htmlImportOpen} onOpenChange={setHtmlImportOpen}>
+        <DialogContent
+          dir="rtl"
+          className="max-h-[90dvh] w-[min(980px,calc(100vw-1rem))] max-w-none overflow-y-auto rounded-3xl"
+        >
+          <DialogHeader className="text-right">
+            <DialogTitle>ورود لندینگ آماده با HTML و CSS</DialogTitle>
+            <DialogDescription className="text-right leading-6">
+              کد صفحه آماده را وارد کن. بخش‌های اصلی HTML جدا می‌شوند و بعد
+              می‌توانی متن، لینک، تصویر، استایل و سکشن‌های دیوساز را گرافیکی
+              تغییر بدهی.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[10px] leading-6 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+            JavaScript خام، iframe و event-handlerها اجرا نمی‌شوند. HTML و CSS
+            ایمن‌سازی و CSS هر بلوک Scope می‌شود تا استایل کل سایت را خراب نکند.
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-xs font-black">HTML</span>
+              <Textarea
+                dir="ltr"
+                value={htmlImportValue}
+                onChange={(event) => setHtmlImportValue(event.target.value)}
+                rows={18}
+                className="font-mono text-xs"
+                placeholder={"<!doctype html>\n<html>..."}
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-xs font-black">CSS</span>
+              <Textarea
+                dir="ltr"
+                value={cssImportValue}
+                onChange={(event) => setCssImportValue(event.target.value)}
+                rows={18}
+                className="font-mono text-xs"
+                placeholder={".hero { ... }"}
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+            <p className="max-w-xl text-[10px] leading-5 text-muted-foreground">
+              خروجی داخل یک کانتینر قابل جابه‌جایی قرار می‌گیرد. بعد از Import
+              می‌توانی ویجت «آگهی‌ها»، CTA، تصویر یا هر سکشن دیگر دیوساز را بین
+              بخش‌های واردشده Drag & Drop کنی.
+            </p>
+            <Button
+              type="button"
+              className="gap-2"
+              disabled={!htmlImportValue.trim()}
+              onClick={importLandingCode}
+            >
+              <Code2 className="size-4" />
+              تبدیل و ورود به صفحه‌ساز
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <MediaLibraryDialog
         open={Boolean(mediaTarget)}
