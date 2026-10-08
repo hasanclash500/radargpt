@@ -455,6 +455,114 @@ function normalizeBlock(block: Block): Block {
   return next;
 }
 
+function editableHtmlElements(html: string) {
+  if (typeof window === "undefined") return [];
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const nodes = Array.from(
+    doc.body.querySelectorAll("h1,h2,h3,h4,p,a,button,img"),
+  ).slice(0, 80);
+
+  return nodes.map((node, index) => {
+    const tag = node.tagName.toLowerCase();
+    return {
+      index,
+      tag,
+      text: tag === "img" ? "" : node.textContent || "",
+      href: tag === "a" ? node.getAttribute("href") || "" : "",
+      src: tag === "img" ? node.getAttribute("src") || "" : "",
+      alt: tag === "img" ? node.getAttribute("alt") || "" : "",
+    };
+  });
+}
+
+function updateHtmlElement(
+  html: string,
+  elementIndex: number,
+  patch: { text?: string; href?: string; src?: string; alt?: string },
+) {
+  if (typeof window === "undefined") return html;
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const nodes = Array.from(
+    doc.body.querySelectorAll("h1,h2,h3,h4,p,a,button,img"),
+  ).slice(0, 80);
+  const node = nodes[elementIndex];
+  if (!node) return html;
+
+  if (patch.text !== undefined && node.tagName.toLowerCase() !== "img") {
+    node.textContent = patch.text;
+  }
+  if (patch.href !== undefined && node.tagName.toLowerCase() === "a") {
+    node.setAttribute("href", patch.href);
+  }
+  if (patch.src !== undefined && node.tagName.toLowerCase() === "img") {
+    node.setAttribute("src", patch.src);
+  }
+  if (patch.alt !== undefined && node.tagName.toLowerCase() === "img") {
+    node.setAttribute("alt", patch.alt);
+  }
+
+  return doc.body.innerHTML;
+}
+
+function importHtmlSections(html: string, css: string): Block[] {
+  if (typeof window === "undefined") return [];
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const embeddedCss = Array.from(doc.querySelectorAll("style"))
+    .map((style) => style.textContent || "")
+    .join("\n");
+
+  doc
+    .querySelectorAll("style,script,link,meta,base")
+    .forEach((node) => node.remove());
+
+  let candidates = Array.from(doc.body.children);
+  if (
+    candidates.length === 1 &&
+    ["main", "div"].includes(candidates[0].tagName.toLowerCase()) &&
+    candidates[0].children.length > 1
+  ) {
+    candidates = Array.from(candidates[0].children);
+  }
+
+  if (!candidates.length && doc.body.innerHTML.trim()) {
+    candidates = [doc.body];
+  }
+
+  const mergedCss = [embeddedCss, css].filter(Boolean).join("\n");
+  return candidates.slice(0, 40).map((element, order) => ({
+    id: id(),
+    type: "customHtml",
+    enabled: true,
+    order,
+    props: {
+      html:
+        element === doc.body
+          ? doc.body.innerHTML
+          : (element as HTMLElement).outerHTML,
+      css: mergedCss,
+      design: defaultDesign(),
+    },
+  }));
+}
+
+function wrapImportedLanding(blocks: Block[]): Block {
+  const container = newBlock("container");
+  container.props = {
+    ...container.props,
+    gap: 0,
+    mobileStack: true,
+    columns: [
+      {
+        id: id(),
+        widths: { desktop: 100, tablet: 100, mobile: 100 },
+        verticalAlign: "stretch",
+        widgets: blocks.map((block, order) => ({ ...block, order })),
+      },
+    ],
+  };
+  return container;
+}
+
 function emptyDraft(): Draft {
   return {
     title: "صفحه جدید",
