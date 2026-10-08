@@ -892,11 +892,13 @@ function BlockContentEditor({
   patchProps,
   chooseImage,
   chooseHtmlImage,
+  addWidgetToColumn,
 }: {
   block: Block;
   patchProps: (props: Record<string, any>) => void;
   chooseImage: (key: string) => void;
   chooseHtmlImage: (elementIndex: number) => void;
+  addWidgetToColumn: (columnId: string, type: string) => void;
 }) {
   const p = block.props || {};
   const set = (key: string, value: any) =>
@@ -1031,6 +1033,29 @@ function BlockContentEditor({
                 <option value="end">پایین</option>
                 <option value="stretch">کشیده</option>
               </SelectField>
+
+              <label className="mt-2 grid gap-1.5">
+                <span className="text-[10px] font-black text-primary">
+                  افزودن ویجت به ستون {index + 1}
+                </span>
+                <select
+                  defaultValue=""
+                  onChange={(event) => {
+                    const type = event.target.value;
+                    if (!type) return;
+                    addWidgetToColumn(column.id, type);
+                    event.currentTarget.value = "";
+                  }}
+                  className="h-10 rounded-md border border-primary/30 bg-background px-3 text-xs"
+                >
+                  <option value="">انتخاب ویجت…</option>
+                  {BLOCKS.map((item) => (
+                    <option key={item.type} value={item.type}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           ))}
         </div>
@@ -2192,11 +2217,12 @@ export default function PageBuilderPro() {
                     key={item.type}
                     draggable
                     onDragStart={(event) => {
-                      event.dataTransfer.effectAllowed = "copy";
+                      event.dataTransfer.effectAllowed = "copyMove";
                       event.dataTransfer.setData(
                         "application/x-divsaz-widget",
                         item.type,
                       );
+                      event.dataTransfer.setData("text/plain", item.type);
                     }}
                     onClick={() => addBlock(item.type)}
                     className="cursor-grab rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm active:cursor-grabbing"
@@ -2490,6 +2516,16 @@ export default function PageBuilderPro() {
                           blockId: selectedBlock.id,
                           elementIndex,
                         })
+                      }
+                      addWidgetToColumn={(columnId, type) =>
+                        insertWidgetAt(
+                          {
+                            kind: "column",
+                            containerId: selectedBlock.id,
+                            columnId,
+                          },
+                          type,
+                        )
                       }
                     />
                   </>
