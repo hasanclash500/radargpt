@@ -1540,6 +1540,7 @@ export default function PageBuilderPro() {
                 size="sm"
                 variant={showSiteChrome ? "default" : "outline"}
                 className="h-7 px-2 text-[9px]"
+                aria-pressed={showSiteChrome}
                 onClick={() => setShowSiteChrome((value) => !value)}
               >
                 {showSiteChrome ? "پوسته سایت روشن" : "پیش‌نمایش پوسته"}
