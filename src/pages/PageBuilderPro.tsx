@@ -1413,8 +1413,16 @@ export default function PageBuilderPro() {
                   <button
                     type="button"
                     key={item.type}
+                    draggable
+                    onDragStart={(event) => {
+                      event.dataTransfer.effectAllowed = "copy";
+                      event.dataTransfer.setData(
+                        "application/x-divsaz-widget",
+                        item.type,
+                      );
+                    }}
                     onClick={() => addBlock(item.type)}
-                    className="rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm"
+                    className="cursor-grab rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm active:cursor-grabbing"
                   >
                     <Plus className="size-4 text-primary" />
                     <strong className="mt-2 block text-xs">{item.label}</strong>
@@ -1564,10 +1572,14 @@ export default function PageBuilderPro() {
                 hideHeader
                 editor={{
                   selectedBlockId,
+                  device,
                   onSelectBlock: (blockId) => {
                     setSelectedBlockId(blockId);
                     setInspectorTab("content");
                   },
+                  onInsertWidget: insertWidgetAt,
+                  onMoveBlock: moveBlockToTarget,
+                  onResizeColumns: resizeColumns,
                 }}
               />
               {!sortedBlocks.length && (
