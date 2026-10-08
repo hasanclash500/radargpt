@@ -79,6 +79,7 @@ type MediaTarget =
   | { type: "background"; blockId: string }
   | { type: "ogImage" }
   | { type: "font" }
+  | { type: "browse" }
   | null;
 
 const BLOCKS = [
@@ -90,11 +91,73 @@ const BLOCKS = [
   { type: "richText", label: "متن آزاد", note: "عنوان و متن" },
   { type: "cta", label: "دعوت به اقدام", note: "دکمه و پیام" },
   { type: "contact", label: "تماس", note: "شماره و مسیر" },
+  { type: "heading", label: "عنوان", note: "H1 / H2 / H3 و متن کوتاه" },
+  { type: "image", label: "تصویر", note: "تصویر مستقل از Media Library" },
+  { type: "button", label: "دکمه", note: "دکمه مستقل با لینک" },
+  { type: "spacer", label: "فاصله", note: "فاصله مستقل در هر دستگاه" },
+  { type: "divider", label: "جداکننده", note: "خط جداکننده قابل تنظیم" },
 ] as const;
 
 const BLOCK_LABELS = Object.fromEntries(
   BLOCKS.map((item) => [item.type, item.label]),
 ) as Record<string, string>;
+
+const SECTION_PRESETS = [
+  {
+    id: "hero-modern",
+    title: "هیرو حرفه‌ای",
+    description: "عنوان اصلی، توضیح، دو CTA و تصویر",
+    types: ["hero"],
+  },
+  {
+    id: "property-search",
+    title: "جستجو و انتخاب مسیر",
+    description: "می‌خرم، اجاره می‌کنم، می‌فروشم و اجاره می‌دهم",
+    types: ["intentHub"],
+  },
+  {
+    id: "featured-listings",
+    title: "آگهی‌های منتخب",
+    description: "ویترین آگهی‌های واقعی منتشرشده دیوساز",
+    types: ["listings"],
+  },
+  {
+    id: "services",
+    title: "خدمات دیوساز",
+    description: "کارت‌های خدمات املاک صنعتی و اداری",
+    types: ["services"],
+  },
+  {
+    id: "about-split",
+    title: "معرفی تصویر + متن",
+    description: "سکشن دو ستونه برای معرفی برند یا خدمات",
+    types: ["split"],
+  },
+  {
+    id: "seo-text",
+    title: "متن سئو",
+    description: "بخش متنی مناسب توضیحات و محتوای سئو",
+    types: ["richText"],
+  },
+  {
+    id: "call-to-action",
+    title: "دعوت به اقدام",
+    description: "CTA برای تماس، ثبت تقاضا یا مشاهده آگهی",
+    types: ["cta"],
+  },
+  {
+    id: "contact",
+    title: "تماس و مسیریابی",
+    description: "شماره دفتر، آدرس و دکمه مسیریابی",
+    types: ["contact"],
+  },
+  {
+    id: "complete-landing",
+    title: "لندینگ کامل دیوساز",
+    description: "هیرو + مسیرها + آگهی + خدمات + CTA + تماس",
+    types: ["hero", "intentHub", "listings", "services", "cta", "contact"],
+  },
+] as const;
 
 function id() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -115,6 +178,10 @@ function defaultResponsive() {
     translateY: 0,
     titleSize: 0,
     bodySize: 0,
+    titleWeight: 0,
+    bodyWeight: 0,
+    titleLineHeight: 0,
+    bodyLineHeight: 0,
     textAlign: "start",
   };
 }
@@ -221,6 +288,46 @@ function defaultProps(type: string): Record<string, any> {
       secondaryHref: "tel:09120858095",
       design,
     };
+  if (type === "heading")
+    return {
+      eyebrow: "",
+      title: "عنوان جدید",
+      text: "",
+      tag: "h2",
+      align: "start",
+      design,
+    };
+  if (type === "image")
+    return {
+      imageUrl: "",
+      imageAlt: "",
+      caption: "",
+      objectFit: "contain",
+      design,
+    };
+  if (type === "button")
+    return {
+      label: "دکمه",
+      href: "#",
+      variant: "default",
+      size: "default",
+      align: "start",
+      design,
+    };
+  if (type === "spacer")
+    return {
+      heightDesktop: 80,
+      heightTablet: 64,
+      heightMobile: 48,
+      design,
+    };
+  if (type === "divider")
+    return {
+      widthPercent: 100,
+      thickness: 1,
+      color: "#cbd5e1",
+      design,
+    };
   return {
     title: "ارتباط با دیوساز",
     text: "برای مشاوره با دفتر تماس بگیرید.",
@@ -275,10 +382,7 @@ function emptyDraft(): Draft {
     pageType: "page",
     status: "draft",
     isHomepage: false,
-    blocks: [newBlock("hero"), newBlock("cta")].map((block, order) => ({
-      ...block,
-      order,
-    })),
+    blocks: [],
     seoTitle: "",
     seoDescription: "",
     seoKeywords: [],
@@ -288,11 +392,14 @@ function emptyDraft(): Draft {
     ogImage: "",
     noIndex: false,
     settings: {
-      backgroundColor: "",
-      textColor: "",
+      backgroundColor: "#ffffff",
+      textColor: "#0f172a",
       baseFontSize: 16,
-      customFontFamily: "",
+      customFontFamily: "Vazirmatn",
       customFontUrl: "",
+      showHeader: false,
+      showStories: false,
+      showBrandStory: false,
     },
   };
 }
@@ -317,11 +424,14 @@ function fromRow(row: any): Draft {
     ogImage: row.ogImage ?? "",
     noIndex: Boolean(row.noIndex),
     settings: {
-      backgroundColor: "",
-      textColor: "",
+      backgroundColor: "#ffffff",
+      textColor: "#0f172a",
       baseFontSize: 16,
-      customFontFamily: "",
+      customFontFamily: "Vazirmatn",
       customFontUrl: "",
+      showHeader: true,
+      showStories: true,
+      showBrandStory: true,
       ...(row.settings || {}),
     },
   };
@@ -911,6 +1021,25 @@ export default function PageBuilderPro() {
     toast.success(BLOCK_LABELS[type] + " اضافه شد");
   };
 
+  const insertPreset = (presetId: string) => {
+    const preset = SECTION_PRESETS.find((item) => item.id === presetId);
+    if (!preset) return;
+    const additions = preset.types.map((type, index) => ({
+      ...newBlock(type),
+      order: draft.blocks.length + index,
+    }));
+    setDraft((current) => ({
+      ...current,
+      blocks: [...current.blocks, ...additions].map((block, order) => ({
+        ...block,
+        order,
+      })),
+    }));
+    if (additions[0]) setSelectedBlockId(additions[0].id);
+    setInspectorTab("content");
+    toast.success("سکشن «" + preset.title + "» اضافه شد");
+  };
+
   const removeBlock = (blockId: string) => {
     setDraft((current) => {
       const blocks = current.blocks
@@ -1006,6 +1135,7 @@ export default function PageBuilderPro() {
 
   const chooseMedia = (item: SiteMediaItem) => {
     if (!item.url || !mediaTarget) return;
+    if (mediaTarget.type === "browse") return;
     if (mediaTarget.type === "font") {
       setDraft((current) => ({
         ...current,
@@ -1128,8 +1258,9 @@ export default function PageBuilderPro() {
       <div className="grid min-h-[calc(100dvh-110px)] xl:grid-cols-[270px_minmax(0,1fr)_340px]">
         <aside className="border-b border-border/70 bg-card xl:border-b-0 xl:border-l">
           <Tabs value={sidebarTab} onValueChange={setSidebarTab} className="flex h-full flex-col">
-            <TabsList className="m-2 grid grid-cols-3">
+            <TabsList className="m-2 grid grid-cols-4">
               <TabsTrigger value="widgets">ویجت</TabsTrigger>
+              <TabsTrigger value="sections">سکشن</TabsTrigger>
               <TabsTrigger value="structure">ساختار</TabsTrigger>
               <TabsTrigger value="pages">صفحات</TabsTrigger>
             </TabsList>
@@ -1156,11 +1287,36 @@ export default function PageBuilderPro() {
                 type="button"
                 variant="outline"
                 className="mt-3 w-full gap-2"
-                onClick={() => setMediaTarget({ type: "ogImage" })}
+                onClick={() => setMediaTarget({ type: "browse" })}
               >
                 <ImagePlus className="size-4" />
-                باز کردن Media Library
+                کتابخانه تصاویر
               </Button>
+            </TabsContent>
+
+            <TabsContent value="sections" className="m-0 flex-1 overflow-y-auto p-3">
+              <div className="mb-3 rounded-2xl border border-blue-200 bg-blue-50 p-3 text-[10px] leading-5 text-blue-900 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-100">
+                سکشن‌های آماده فقط نقطه شروع هستند؛ بعد از افزودن، تمام رنگ‌ها،
+                فاصله‌ها، فونت، تصویر و متن را خودت تغییر بده.
+              </div>
+              <div className="grid gap-2">
+                {SECTION_PRESETS.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.id}
+                    onClick={() => insertPreset(preset.id)}
+                    className="rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:border-primary/40 hover:shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <strong className="text-xs">{preset.title}</strong>
+                      <Plus className="size-4 text-primary" />
+                    </div>
+                    <span className="mt-1 block text-[9px] leading-5 text-muted-foreground">
+                      {preset.description}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </TabsContent>
 
             <TabsContent value="structure" className="m-0 flex-1 overflow-y-auto p-3">
@@ -1284,9 +1440,11 @@ export default function PageBuilderPro() {
 
           <div className="h-[72dvh] overflow-auto p-3 sm:p-5 xl:h-[calc(100dvh-160px)]">
             <div
-              className="mx-auto min-h-full overflow-hidden rounded-2xl border border-border/70 bg-background shadow-2xl transition-[width] duration-300"
+              className="mx-auto min-h-full overflow-hidden rounded-2xl border border-border/70 shadow-2xl transition-[width] duration-300"
               style={{
                 width: "min(100%, " + canvasWidth + "px)",
+                backgroundColor: draft.settings.backgroundColor || "#ffffff",
+                color: draft.settings.textColor || "#0f172a",
               }}
             >
               <SitePageRenderer
@@ -1301,8 +1459,16 @@ export default function PageBuilderPro() {
                 }}
               />
               {!sortedBlocks.length && (
-                <div className="flex min-h-96 items-center justify-center p-6 text-center text-sm text-muted-foreground">
-                  از پنل «ویجت» یک بخش به صفحه اضافه کن.
+                <div className="flex min-h-[640px] items-center justify-center bg-white p-6 text-center text-slate-500">
+                  <div>
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50">
+                      <Plus className="size-6" />
+                    </div>
+                    <strong className="mt-4 block text-sm text-slate-800">صفحه سفید آماده است</strong>
+                    <p className="mt-2 max-w-xs text-xs leading-6">
+                      از «ویجت» یک المان تکی اضافه کن یا از «سکشن» بخش‌های آماده مثل آگهی‌ها و جستجو را وارد کن.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
