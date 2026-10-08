@@ -1,5 +1,6 @@
 import BrandStorySection from "@/components/BrandStorySection";
 import BuilderBlockShell from "@/components/pages/BuilderBlockShell";
+import CustomHtmlContent from "@/components/pages/CustomHtmlContent";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
@@ -534,7 +535,95 @@ function DividerBlock({ props }: { props: Record<string, any> }) {
   );
 }
 
-function BlockRenderer({ block }: { block: PageBlock }) {
+type EditorBridge = {
+  selectedBlockId?: string;
+  onSelectBlock?: (id: string) => void;
+};
+
+function BlockFrame({
+  block,
+  editor,
+}: {
+  block: PageBlock;
+  editor?: EditorBridge;
+}) {
+  if (!block.enabled) return null;
+
+  return (
+    <div
+      className={
+        editor
+          ? "relative cursor-pointer transition-[outline,box-shadow] " +
+            (editor.selectedBlockId === block.id
+              ? "z-20 outline outline-2 outline-offset-[-2px] outline-blue-500"
+              : "hover:outline hover:outline-1 hover:outline-offset-[-1px] hover:outline-blue-300")
+          : ""
+      }
+      onClick={
+        editor
+          ? (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              editor.onSelectBlock?.(block.id);
+            }
+          : undefined
+      }
+    >
+      {editor?.selectedBlockId === block.id && (
+        <span className="pointer-events-none absolute end-2 top-2 z-[70] rounded-lg bg-blue-600 px-2 py-1 text-[9px] font-black text-white shadow">
+          در حال ویرایش
+        </span>
+      )}
+      <BlockRenderer block={block} editor={editor} />
+    </div>
+  );
+}
+
+function ContainerBlock({
+  block,
+  editor,
+}: {
+  block: PageBlock;
+  editor?: EditorBridge;
+}) {
+  const props = block.props || {};
+  const children = Array.isArray(props.children)
+    ? [...props.children].sort((a, b) => a.order - b.order)
+    : [];
+  const columns = Math.min(4, Math.max(1, Number(props.columns) || 1));
+  const gap = Math.min(80, Math.max(0, Number(props.gap) || 16));
+  const className =
+    columns === 1
+      ? "grid grid-cols-1"
+      : columns === 2
+        ? "grid grid-cols-1 md:grid-cols-2"
+        : columns === 3
+          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <div className={className} style={{ gap }}>
+        {children.map((child) => (
+          <BlockFrame key={child.id} block={child} editor={editor} />
+        ))}
+        {!children.length && editor && (
+          <div className="col-span-full flex min-h-32 items-center justify-center rounded-2xl border border-dashed border-border/70 bg-muted/20 text-xs text-muted-foreground">
+            این Container خالی است؛ از پنل ویرایش، ویجت یا سکشن داخل آن اضافه کن.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function BlockRenderer({
+  block,
+  editor,
+}: {
+  block: PageBlock;
+  editor?: EditorBridge;
+}) {
   if (!block.enabled) return null;
 
   let content: React.ReactNode = null;
@@ -551,6 +640,16 @@ function BlockRenderer({ block }: { block: PageBlock }) {
   if (block.type === "button") content = <ButtonBlock props={block.props} />;
   if (block.type === "spacer") content = <SpacerBlock props={block.props} />;
   if (block.type === "divider") content = <DividerBlock props={block.props} />;
+  if (block.type === "customHtml")
+    content = (
+      <CustomHtmlContent
+        blockId={block.id}
+        html={block.props?.html || ""}
+        css={block.props?.css || ""}
+      />
+    );
+  if (block.type === "container")
+    content = <ContainerBlock block={block} editor={editor} />;
   if (!content) return null;
 
   return (
@@ -621,32 +720,7 @@ export default function SitePageRenderer({
         heroIndex < 0 && <BrandStorySection />}
       {blocks.map((block, index) => (
         <Fragment key={block.id}>
-          <div
-            className={
-              editor
-                ? "relative cursor-pointer transition-[outline,box-shadow] " +
-                  (editor.selectedBlockId === block.id
-                    ? "z-20 outline outline-2 outline-offset-[-2px] outline-blue-500"
-                    : "hover:outline hover:outline-1 hover:outline-offset-[-1px] hover:outline-blue-300")
-                : ""
-            }
-            onClick={
-              editor
-                ? (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    editor.onSelectBlock?.(block.id);
-                  }
-                : undefined
-            }
-          >
-            {editor?.selectedBlockId === block.id && (
-              <span className="pointer-events-none absolute end-2 top-2 z-[70] rounded-lg bg-blue-600 px-2 py-1 text-[9px] font-black text-white shadow">
-                در حال ویرایش
-              </span>
-            )}
-            <BlockRenderer block={block} />
-          </div>
+          <BlockFrame block={block} editor={editor} />
           {page.isHomepage &&
             pageSettings.showBrandStory !== false &&
             index === heroIndex && <BrandStorySection />}
