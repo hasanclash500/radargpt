@@ -10,6 +10,20 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
+import {
+  childColumns,
+  cloneBlockDeep,
+  findBlock,
+  insertIntoColumn,
+  insertIntoRoot,
+  moveBlockToColumn,
+  moveBlockToRoot,
+  normalizeOrders,
+  removeBlock as removeTreeBlock,
+  resizeAdjacentColumns,
+  updateBlock as updateTreeBlock,
+  type BuilderBlock,
+} from "@/lib/page-builder-tree";
 import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
