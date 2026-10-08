@@ -7,6 +7,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
@@ -29,6 +36,8 @@ import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
   Bot,
+  Braces,
+  Code2,
   Copy,
   Eye,
   FilePlus2,
@@ -92,6 +101,7 @@ type Draft = {
 type MediaTarget =
   | { type: "blockImage"; blockId: string; key: string }
   | { type: "background"; blockId: string }
+  | { type: "customHtmlImage"; blockId: string; elementIndex: number }
   | { type: "ogImage" }
   | { type: "font" }
   | { type: "browse" }
@@ -112,6 +122,7 @@ const BLOCKS = [
   { type: "button", label: "دکمه", note: "دکمه مستقل با لینک" },
   { type: "spacer", label: "فاصله", note: "فاصله Responsive" },
   { type: "divider", label: "جداکننده", note: "خط جداکننده قابل تنظیم" },
+  { type: "customHtml", label: "HTML / CSS", note: "کد آماده + ویرایش گرافیکی" },
 ] as const;
 
 const BLOCK_LABELS = Object.fromEntries(
@@ -368,6 +379,12 @@ function defaultProps(type: string): Record<string, any> {
       widthPercent: 100,
       thickness: 1,
       color: "#cbd5e1",
+      design,
+    };
+  if (type === "customHtml")
+    return {
+      html: '<section class="custom-section"><h2>عنوان سکشن</h2><p>متن سکشن را ویرایش کنید.</p><a href="/listings">مشاهده آگهی‌ها</a></section>',
+      css: '.custom-section{padding:48px 24px;border-radius:24px;background:#fff}.custom-section h2{font-size:32px;font-weight:800}.custom-section p{margin-top:12px;line-height:2}.custom-section a{display:inline-block;margin-top:20px;padding:12px 18px;border-radius:12px;background:#0b3b66;color:white;text-decoration:none}',
       design,
     };
   return {
