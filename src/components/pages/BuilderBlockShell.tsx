@@ -15,6 +15,10 @@ type ResponsiveDesign = {
   translateY?: number;
   titleSize?: number;
   bodySize?: number;
+  titleWeight?: number;
+  bodyWeight?: number;
+  titleLineHeight?: number;
+  bodyLineHeight?: number;
   textAlign?: "start" | "center" | "end";
 };
 
@@ -117,13 +121,24 @@ function responsiveCss(
     const n = finite(input);
     if (n !== undefined) rules.push(`${name}:${Math.min(max, Math.max(min, n))}px`);
   };
+  const positivePx = (
+    name: string,
+    input: unknown,
+    min = 1,
+    max = 2200,
+  ) => {
+    const n = finite(input);
+    if (n !== undefined && n > 0) {
+      rules.push(`${name}:${Math.min(max, Math.max(min, n))}px`);
+    }
+  };
 
   const width = finite(value.widthPercent);
   if (width !== undefined) {
     rules.push(`width:${Math.min(100, Math.max(10, width))}%`);
     rules.push("margin-inline:auto");
   }
-  px("max-width", value.maxWidth, 240, 2200);
+  positivePx("max-width", value.maxWidth, 240, 2200);
   px("min-height", value.minHeight, 0, 1600);
   px("padding-top", value.paddingTop, 0, 400);
   px("padding-right", value.paddingRight, 0, 400);
@@ -145,12 +160,36 @@ function responsiveCss(
   }
 
   const title = finite(value.titleSize);
-  if (title !== undefined) {
+  if (title !== undefined && title > 0) {
     rules.push(`--divsaz-builder-title-size:${Math.min(120, Math.max(12, title))}px`);
   }
   const body = finite(value.bodySize);
-  if (body !== undefined) {
+  if (body !== undefined && body > 0) {
     rules.push(`--divsaz-builder-body-size:${Math.min(48, Math.max(9, body))}px`);
+  }
+  const titleWeight = finite(value.titleWeight);
+  if (titleWeight !== undefined && titleWeight > 0) {
+    rules.push(
+      `--divsaz-builder-title-weight:${Math.min(900, Math.max(100, titleWeight))}`,
+    );
+  }
+  const bodyWeight = finite(value.bodyWeight);
+  if (bodyWeight !== undefined && bodyWeight > 0) {
+    rules.push(
+      `--divsaz-builder-body-weight:${Math.min(900, Math.max(100, bodyWeight))}`,
+    );
+  }
+  const titleLineHeight = finite(value.titleLineHeight);
+  if (titleLineHeight !== undefined && titleLineHeight > 0) {
+    rules.push(
+      `--divsaz-builder-title-line-height:${Math.min(160, Math.max(12, titleLineHeight))}px`,
+    );
+  }
+  const bodyLineHeight = finite(value.bodyLineHeight);
+  if (bodyLineHeight !== undefined && bodyLineHeight > 0) {
+    rules.push(
+      `--divsaz-builder-body-line-height:${Math.min(120, Math.max(10, bodyLineHeight))}px`,
+    );
   }
 
   if (!rules.length) return "";
@@ -201,8 +240,8 @@ export default function BuilderBlockShell({
   };
 
   const css = [
-    `${selector} h1,${selector} h2,${selector} h3{font-size:var(--divsaz-builder-title-size,revert)!important}`,
-    `${selector} p,${selector} li,${selector} a,${selector} button{font-size:var(--divsaz-builder-body-size,revert)}`,
+    `${selector} h1,${selector} h2,${selector} h3{font-size:var(--divsaz-builder-title-size,revert)!important;font-weight:var(--divsaz-builder-title-weight,revert);line-height:var(--divsaz-builder-title-line-height,revert)}`,
+    `${selector} p,${selector} li,${selector} a,${selector} button{font-size:var(--divsaz-builder-body-size,revert);font-weight:var(--divsaz-builder-body-weight,revert);line-height:var(--divsaz-builder-body-line-height,revert)}`,
     responsiveCss(selector, design.mobile),
     `@media(min-width:640px){${responsiveCss(selector, design.tablet)}}`,
     `@media(min-width:1024px){${responsiveCss(selector, design.desktop)}}`,
