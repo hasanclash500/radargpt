@@ -22,6 +22,7 @@ import "./index.css";
 // Lazy load route components for better code splitting
 const Homepage = lazy(() => import("./pages/Homepage.tsx"));
 const LandingV2 = lazy(() => import("./pages/LandingV2.tsx"));
+const LandingV3 = lazy(() => import("./pages/LandingV3.tsx"));
 const SitePage = lazy(() => import("./pages/SitePage.tsx"));
 const PageBuilder = lazy(() => import("./pages/PageBuilderPro.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
@@ -190,6 +191,7 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route path="/" element={<Homepage />} />
               <Route path="/landing-v2" element={<LandingV2 />} />
+              <Route path="/landing-v3" element={<LandingV3 />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/p/:slug" element={<SitePage />} />
               <Route path="/blog/:slug" element={<BlogArticle />} />

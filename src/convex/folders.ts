@@ -256,7 +256,7 @@ export const updateSettings = mutation({
       v.union(v.literal("navy"), v.literal("emerald"), v.literal("light")),
     ),
     homepageVariant: v.optional(
-      v.union(v.literal("classic"), v.literal("modern")),
+      v.union(v.literal("classic"), v.literal("modern"), v.literal("visual")),
     ),
     enabledModules: v.optional(v.array(v.string())),
     customCities: v.optional(v.array(v.string())),

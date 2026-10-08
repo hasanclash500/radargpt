@@ -5,6 +5,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
       "source": "/blog",
       "destination": "/index.html"
     },
@@ -58,6 +62,14 @@
     },
     {
       "source": "/p/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/landing-v2",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/landing-v3",
       "destination": "/index.html"
     }
   ]

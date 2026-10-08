@@ -4,3 +4,12 @@ Disallow: /dashboard
 Disallow: /dashboard/
 Disallow: /admin
 Disallow: /auth
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+Sitemap: https://divsaz.ir/sitemap.xml
