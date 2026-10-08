@@ -1286,6 +1286,9 @@ export default function PageBuilderPro() {
   const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
   const [sidebarTab, setSidebarTab] = useState("widgets");
   const [inspectorTab, setInspectorTab] = useState("content");
+  const [htmlImportOpen, setHtmlImportOpen] = useState(false);
+  const [htmlImportValue, setHtmlImportValue] = useState("");
+  const [cssImportValue, setCssImportValue] = useState("");
 
   useEffect(() => {
     if (!selectedId) return;
@@ -1301,7 +1304,11 @@ export default function PageBuilderPro() {
     [draft.blocks],
   );
   const selectedBlock =
-    sortedBlocks.find((block) => block.id === selectedBlockId) || null;
+    findBlockInTree(sortedBlocks, selectedBlockId) || null;
+  const flatBlocks = useMemo(() => flattenBlocks(sortedBlocks), [sortedBlocks]);
+  const containers = flatBlocks
+    .map((entry) => entry.block)
+    .filter((block) => block.type === "container");
 
   const canvasWidth =
     device === "mobile" ? 390 : device === "tablet" ? 820 : 1280;
@@ -1309,9 +1316,10 @@ export default function PageBuilderPro() {
   const patchBlock = (blockId: string, patch: Partial<Block>) =>
     setDraft((current) => ({
       ...current,
-      blocks: current.blocks.map((block) =>
-        block.id === blockId ? { ...block, ...patch } : block,
-      ),
+      blocks: updateBlockInTree(current.blocks, blockId, (block) => ({
+        ...block,
+        ...patch,
+      })),
     }));
 
   const patchBlockProps = (blockId: string, props: Record<string, any>) =>
@@ -1319,13 +1327,22 @@ export default function PageBuilderPro() {
 
   const addBlock = (type: string) => {
     const block = newBlock(type);
-    setDraft((current) => ({
-      ...current,
-      blocks: [
-        ...current.blocks,
-        { ...block, order: current.blocks.length },
-      ],
-    }));
+    setDraft((current) => {
+      const selected = findBlockInTree(current.blocks, selectedBlockId);
+      if (selected?.type === "container") {
+        return {
+          ...current,
+          blocks: appendBlockToContainer(current.blocks, selected.id, block),
+        };
+      }
+      return {
+        ...current,
+        blocks: [
+          ...current.blocks,
+          { ...block, order: current.blocks.length },
+        ],
+      };
+    });
     setSelectedBlockId(block.id);
     setInspectorTab("content");
     toast.success(BLOCK_LABELS[type] + " اضافه شد");
@@ -1336,28 +1353,35 @@ export default function PageBuilderPro() {
     if (!preset) return;
     const additions = preset.types.map((type, index) => ({
       ...newBlock(type),
-      order: draft.blocks.length + index,
+      order: index,
     }));
-    setDraft((current) => ({
-      ...current,
-      blocks: [...current.blocks, ...additions].map((block, order) => ({
-        ...block,
-        order,
-      })),
-    }));
+    setDraft((current) => {
+      const selected = findBlockInTree(current.blocks, selectedBlockId);
+      if (selected?.type === "container") {
+        let blocks = current.blocks;
+        for (const addition of additions) {
+          blocks = appendBlockToContainer(blocks, selected.id, addition);
+        }
+        return { ...current, blocks };
+      }
+      return {
+        ...current,
+        blocks: [...current.blocks, ...additions].map((block, order) => ({
+          ...block,
+          order,
+        })),
+      };
+    });
     if (additions[0]) setSelectedBlockId(additions[0].id);
     setInspectorTab("content");
     toast.success("سکشن «" + preset.title + "» اضافه شد");
   };
 
   const removeBlock = (blockId: string) => {
-    setDraft((current) => {
-      const blocks = current.blocks
-        .filter((block) => block.id !== blockId)
-        .sort((a, b) => a.order - b.order)
-        .map((block, order) => ({ ...block, order }));
-      return { ...current, blocks };
-    });
+    setDraft((current) => ({
+      ...current,
+      blocks: removeBlockFromTree(current.blocks, blockId),
+    }));
     if (selectedBlockId === blockId) setSelectedBlockId("");
   };
 
