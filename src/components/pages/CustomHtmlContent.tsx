@@ -8,6 +8,7 @@ const FORBIDDEN_TAGS = new Set([
   "link",
   "meta",
   "base",
+  "style",
 ]);
 
 function safeHref(value: string) {
@@ -67,10 +68,10 @@ export function sanitizeBuilderHtml(source: string) {
         continue;
       }
 
-      if (name === "href") {
+      if (name === "href" || name === "action" || name === "formaction") {
         const next = safeHref(value);
-        if (next) element.setAttribute("href", next);
-        else element.removeAttribute("href");
+        if (next) element.setAttribute(attribute.name, next);
+        else element.removeAttribute(attribute.name);
         continue;
       }
 
