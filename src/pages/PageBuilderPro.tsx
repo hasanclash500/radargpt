@@ -94,6 +94,7 @@ type MediaTarget =
   | { type: "background"; blockId: string }
   | { type: "ogImage" }
   | { type: "font" }
+  | { type: "browse" }
   | null;
 
 const BLOCKS = [
@@ -106,11 +107,79 @@ const BLOCKS = [
   { type: "richText", label: "متن آزاد", note: "عنوان و متن" },
   { type: "cta", label: "دعوت به اقدام", note: "دکمه و پیام" },
   { type: "contact", label: "تماس", note: "شماره و مسیر" },
+  { type: "heading", label: "عنوان", note: "H1 / H2 / H3 و متن کوتاه" },
+  { type: "image", label: "تصویر", note: "تصویر مستقل از کتابخانه رسانه" },
+  { type: "button", label: "دکمه", note: "دکمه مستقل با لینک" },
+  { type: "spacer", label: "فاصله", note: "فاصله Responsive" },
+  { type: "divider", label: "جداکننده", note: "خط جداکننده قابل تنظیم" },
 ] as const;
 
 const BLOCK_LABELS = Object.fromEntries(
   BLOCKS.map((item) => [item.type, item.label]),
 ) as Record<string, string>;
+
+const SECTION_PRESETS = [
+  {
+    id: "hero-modern",
+    title: "هیرو حرفه‌ای",
+    description: "عنوان، توضیح، دو دکمه و تصویر",
+    types: ["hero"],
+  },
+  {
+    id: "property-search",
+    title: "جستجو و انتخاب مسیر",
+    description: "خرید، اجاره، فروش و اجاره‌دادن",
+    types: ["intentHub"],
+  },
+  {
+    id: "featured-listings",
+    title: "آگهی‌های منتخب",
+    description: "ویترین آگهی‌های واقعی منتشرشده دیوساز",
+    types: ["listings"],
+  },
+  {
+    id: "services",
+    title: "خدمات دیوساز",
+    description: "کارت‌های خدمات املاک صنعتی و اداری",
+    types: ["services"],
+  },
+  {
+    id: "about-split",
+    title: "معرفی تصویر + متن",
+    description: "سکشن دو ستونه برای معرفی برند یا خدمات",
+    types: ["split"],
+  },
+  {
+    id: "seo-text",
+    title: "متن سئو",
+    description: "بخش متنی مناسب محتوای طولانی و سئو",
+    types: ["richText"],
+  },
+  {
+    id: "call-to-action",
+    title: "دعوت به اقدام",
+    description: "CTA برای تماس، ثبت تقاضا یا مشاهده آگهی",
+    types: ["cta"],
+  },
+  {
+    id: "contact",
+    title: "تماس و مسیریابی",
+    description: "شماره دفتر، آدرس و دکمه مسیریابی",
+    types: ["contact"],
+  },
+  {
+    id: "two-column",
+    title: "دو ستون خالی",
+    description: "کانتینر دو ستونه برای چیدمان آزاد ویجت‌ها",
+    types: ["container"],
+  },
+  {
+    id: "complete-landing",
+    title: "لندینگ کامل دیوساز",
+    description: "هیرو + مسیرها + آگهی + خدمات + CTA + تماس",
+    types: ["hero", "intentHub", "listings", "services", "cta", "contact"],
+  },
+] as const;
 
 function id() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -131,6 +200,10 @@ function defaultResponsive() {
     translateY: 0,
     titleSize: 0,
     bodySize: 0,
+    titleWeight: 0,
+    bodyWeight: 0,
+    titleLineHeight: 0,
+    bodyLineHeight: 0,
     textAlign: "start",
   };
 }
@@ -257,6 +330,46 @@ function defaultProps(type: string): Record<string, any> {
       secondaryHref: "tel:09120858095",
       design,
     };
+  if (type === "heading")
+    return {
+      eyebrow: "",
+      title: "عنوان جدید",
+      text: "",
+      tag: "h2",
+      align: "start",
+      design,
+    };
+  if (type === "image")
+    return {
+      imageUrl: "",
+      imageAlt: "",
+      caption: "",
+      objectFit: "contain",
+      design,
+    };
+  if (type === "button")
+    return {
+      label: "دکمه",
+      href: "#",
+      variant: "default",
+      size: "default",
+      align: "start",
+      design,
+    };
+  if (type === "spacer")
+    return {
+      heightDesktop: 80,
+      heightTablet: 64,
+      heightMobile: 48,
+      design,
+    };
+  if (type === "divider")
+    return {
+      widthPercent: 100,
+      thickness: 1,
+      color: "#cbd5e1",
+      design,
+    };
   return {
     title: "ارتباط با دیوساز",
     text: "برای مشاوره با دفتر تماس بگیرید.",
@@ -332,10 +445,7 @@ function emptyDraft(): Draft {
     pageType: "page",
     status: "draft",
     isHomepage: false,
-    blocks: [newBlock("hero"), newBlock("cta")].map((block, order) => ({
-      ...block,
-      order,
-    })),
+    blocks: [],
     seoTitle: "",
     seoDescription: "",
     seoKeywords: [],
@@ -345,11 +455,14 @@ function emptyDraft(): Draft {
     ogImage: "",
     noIndex: false,
     settings: {
-      backgroundColor: "",
-      textColor: "",
+      backgroundColor: "#ffffff",
+      textColor: "#0f172a",
       baseFontSize: 16,
-      customFontFamily: "",
+      customFontFamily: "Vazirmatn",
       customFontUrl: "",
+      showHeader: false,
+      showStories: false,
+      showBrandStory: false,
     },
   };
 }
@@ -374,11 +487,14 @@ function fromRow(row: any): Draft {
     ogImage: row.ogImage ?? "",
     noIndex: Boolean(row.noIndex),
     settings: {
-      backgroundColor: "",
-      textColor: "",
+      backgroundColor: "#ffffff",
+      textColor: "#0f172a",
       baseFontSize: 16,
-      customFontFamily: "",
+      customFontFamily: "Vazirmatn",
       customFontUrl: "",
+      showHeader: true,
+      showStories: true,
+      showBrandStory: true,
       ...(row.settings || {}),
     },
   };
