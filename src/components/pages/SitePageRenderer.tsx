@@ -1,5 +1,6 @@
 import BrandStorySection from "@/components/BrandStorySection";
 import BuilderBlockShell from "@/components/pages/BuilderBlockShell";
+import CustomHtmlContent from "@/components/pages/CustomHtmlContent";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
@@ -830,6 +831,15 @@ function BlockRenderer({
   if (block.type === "button") content = <ButtonBlock props={block.props} />;
   if (block.type === "spacer") content = <SpacerBlock props={block.props} />;
   if (block.type === "divider") content = <DividerBlock props={block.props} />;
+  if (block.type === "customHtml") {
+    content = (
+      <CustomHtmlContent
+        blockId={block.id}
+        html={block.props?.html || ""}
+        css={block.props?.css || ""}
+      />
+    );
+  }
   if (!content) return null;
 
   return (
