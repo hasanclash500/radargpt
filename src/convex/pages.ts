@@ -27,6 +27,7 @@ const RESERVED_SLUGS = new Set([
 ]);
 
 const ALLOWED_BLOCK_TYPES = new Set([
+  "container",
   "hero",
   "intentHub",
   "listings",
@@ -530,12 +531,13 @@ export const generateWithAi = action({
       "تو طراح حرفه‌ای صفحات وب برای برند املاک دیوساز هستی.",
       "خروجی فقط JSON معتبر و بدون markdown باشد.",
       "هیچ HTML، JavaScript یا CSS خام تولید نکن.",
-      "فقط از block type های مجاز استفاده کن: hero, intentHub, listings, services, split, richText, cta, contact.",
+      "فقط از block type های مجاز استفاده کن: container, hero, intentHub, listings, services, split, richText, cta, contact.",
       "زبان صفحه فارسی و راست‌به‌چپ است و رنگ‌بندی توسط قالب دیوساز اعمال می‌شود.",
       "ساختار خروجی: {title:string, seoTitle:string, seoDescription:string, blocks:[{id:string,type:string,enabled:true,order:number,props:object}]}",
       "برای لینک داخلی فقط مسیرهای امن مثل /listings, /assistant, /request, /submit-listing, /blog یا #section استفاده کن.",
       "intentHub برای چهار مسیر خرید، اجاره، فروش و اجاره‌دادن است.",
       "listings برای نمایش فایل‌های واقعی منتشرشده دیوساز است؛ ملک یا قیمت ساختگی داخل متن ایجاد نکن.",
+      "container props: {gap:number,mobileStack:boolean,columns:[{id:string,widths:{desktop:number,tablet:number,mobile:number},verticalAlign:'start'|'center'|'end'|'stretch',widgets:Array<block>}]}؛ در صورت نیاز برای چیدمان چندستونه از container استفاده کن.",
       "services props: {title,text,items:[{title,text}]}",
       "hero props: {eyebrow,title,highlight,text,primaryLabel,primaryHref,secondaryLabel,secondaryHref}",
       "split props: {eyebrow,title,text,buttonLabel,buttonHref,imageUrl,imagePosition:'start'|'end'}",
