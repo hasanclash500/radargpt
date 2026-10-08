@@ -1829,23 +1829,35 @@ export default function PageBuilderPro() {
                 برای جابه‌جایی، بلوک را بکش و روی بلوک مقصد رها کن.
               </p>
               <div className="grid gap-2">
-                {sortedBlocks.map((block) => (
+                {flatBlocks.map(({ block, depth }) => (
                   <div
                     key={block.id}
-                    draggable
-                    onDragStart={(event: DragEvent<HTMLDivElement>) => {
-                      setDragId(block.id);
-                      event.dataTransfer.effectAllowed = "move";
-                    }}
-                    onDragOver={(event) => {
-                      event.preventDefault();
-                      event.dataTransfer.dropEffect = "move";
-                    }}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      moveDroppedBlock(dragId, block.id);
-                      setDragId("");
-                    }}
+                    draggable={depth === 0}
+                    onDragStart={
+                      depth === 0
+                        ? (event: DragEvent<HTMLDivElement>) => {
+                            setDragId(block.id);
+                            event.dataTransfer.effectAllowed = "move";
+                          }
+                        : undefined
+                    }
+                    onDragOver={
+                      depth === 0
+                        ? (event) => {
+                            event.preventDefault();
+                            event.dataTransfer.dropEffect = "move";
+                          }
+                        : undefined
+                    }
+                    onDrop={
+                      depth === 0
+                        ? (event) => {
+                            event.preventDefault();
+                            moveDroppedBlock(dragId, block.id);
+                            setDragId("");
+                          }
+                        : undefined
+                    }
                     onClick={() => {
                       setSelectedBlockId(block.id);
                       setInspectorTab("content");
@@ -1856,8 +1868,15 @@ export default function PageBuilderPro() {
                         ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
                         : "border-border/70 bg-background")
                     }
+                    style={{ marginInlineStart: Math.min(depth * 18, 54) }}
                   >
-                    <GripVertical className="size-4 shrink-0 cursor-grab text-muted-foreground" />
+                    {depth === 0 ? (
+                      <GripVertical className="size-4 shrink-0 cursor-grab text-muted-foreground" />
+                    ) : (
+                      <span className="flex size-4 shrink-0 items-center justify-center rounded bg-primary/10 text-[9px] font-black text-primary">
+                        {depth}
+                      </span>
+                    )}
                     <div className="min-w-0 flex-1">
                       <strong className="block truncate text-xs">
                         {BLOCK_LABELS[block.type] || block.type}
@@ -1866,6 +1885,11 @@ export default function PageBuilderPro() {
                         {block.props?.title || block.props?.eyebrow || block.id}
                       </span>
                     </div>
+                    {block.type === "container" && (
+                      <Badge variant="outline">
+                        {Array.isArray(block.props?.children) ? block.props.children.length : 0}
+                      </Badge>
+                    )}
                     {!block.enabled && <Badge variant="outline">خاموش</Badge>}
                   </div>
                 ))}
@@ -2046,6 +2070,26 @@ export default function PageBuilderPro() {
                           key,
                         })
                       }
+                      chooseHtmlImage={(elementIndex) =>
+                        setMediaTarget({
+                          type: "customHtmlImage",
+                          blockId: selectedBlock.id,
+                          elementIndex,
+                        })
+                      }
+                      addChild={(type) => {
+                        const child = newBlock(type);
+                        setDraft((current) => ({
+                          ...current,
+                          blocks: appendBlockToContainer(
+                            current.blocks,
+                            selectedBlock.id,
+                            child,
+                          ),
+                        }));
+                        setSelectedBlockId(child.id);
+                        setInspectorTab("content");
+                      }}
                     />
                   </>
                 )}
