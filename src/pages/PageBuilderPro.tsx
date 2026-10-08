@@ -2280,6 +2280,13 @@ export default function PageBuilderPro() {
                           key,
                         })
                       }
+                      chooseHtmlImage={(elementIndex) =>
+                        setMediaTarget({
+                          type: "customHtmlImage",
+                          blockId: selectedBlock.id,
+                          elementIndex,
+                        })
+                      }
                     />
                   </>
                 )}
