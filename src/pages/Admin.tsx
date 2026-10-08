@@ -500,9 +500,14 @@ export default function Admin() {
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Label>نسخه صفحه اصلی سایت</Label>
-                  <Button asChild type="button" variant="ghost" size="sm" className="h-8 text-xs">
-                    <span className="flex flex-wrap gap-1"><Link to="/landing-v2" target="_blank">لندینگ ۲</Link><span className="text-muted-foreground">·</span><Link to="/landing-v3" target="_blank">لندینگ ۳</Link></span>
-                  </Button>
+                  <div className="flex flex-wrap gap-1">
+                    <Button asChild type="button" variant="ghost" size="sm" className="h-8 text-xs">
+                      <Link to="/landing-v2" target="_blank">پیش‌نمایش ۲</Link>
+                    </Button>
+                    <Button asChild type="button" variant="ghost" size="sm" className="h-8 text-xs">
+                      <Link to="/landing-v3" target="_blank">پیش‌نمایش ۳</Link>
+                    </Button>
+                  </div>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {[
