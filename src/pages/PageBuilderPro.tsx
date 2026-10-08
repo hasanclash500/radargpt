@@ -468,7 +468,12 @@ function editableHtmlElements(html: string) {
       index,
       tag,
       text: tag === "img" ? "" : node.textContent || "",
-      href: tag === "a" ? node.getAttribute("href") || "" : "",
+      href:
+        tag === "a"
+          ? node.getAttribute("href") || ""
+          : tag === "button"
+            ? node.getAttribute("data-href") || ""
+            : "",
       src: tag === "img" ? node.getAttribute("src") || "" : "",
       alt: tag === "img" ? node.getAttribute("alt") || "" : "",
     };
@@ -491,8 +496,23 @@ function updateHtmlElement(
   if (patch.text !== undefined && node.tagName.toLowerCase() !== "img") {
     node.textContent = patch.text;
   }
-  if (patch.href !== undefined && node.tagName.toLowerCase() === "a") {
-    node.setAttribute("href", patch.href);
+  if (patch.href !== undefined) {
+    const tag = node.tagName.toLowerCase();
+    if (tag === "a") {
+      node.setAttribute("href", patch.href);
+    } else if (tag === "button") {
+      const anchor = doc.createElement("a");
+      for (const attribute of Array.from(node.attributes)) {
+        if (!attribute.name.toLowerCase().startsWith("on")) {
+          anchor.setAttribute(attribute.name, attribute.value);
+        }
+      }
+      anchor.removeAttribute("type");
+      anchor.removeAttribute("data-href");
+      anchor.setAttribute("href", patch.href);
+      anchor.innerHTML = node.innerHTML;
+      node.replaceWith(anchor);
+    }
   }
   if (patch.src !== undefined && node.tagName.toLowerCase() === "img") {
     node.setAttribute("src", patch.src);
@@ -1296,7 +1316,7 @@ function BlockContentEditor({
                           )
                         }
                       />
-                      {element.tag === "a" && (
+                      {(element.tag === "a" || element.tag === "button") && (
                         <Field
                           label="لینک مقصد"
                           value={element.href}
