@@ -1946,6 +1946,20 @@ export default function PageBuilderPro() {
                 <ImagePlus className="size-4" />
                 کتابخانه تصاویر
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-2 w-full gap-2 border-blue-300 text-blue-700 dark:border-blue-800 dark:text-blue-300"
+                onClick={() => setHtmlImportOpen(true)}
+              >
+                <Braces className="size-4" />
+                ورود لندینگ HTML / CSS
+              </Button>
+              {selectedBlock?.type === "container" && (
+                <p className="mt-2 rounded-xl bg-primary/5 px-3 py-2 text-[9px] leading-5 text-primary">
+                  چون Container انتخاب شده، ویجت و کد واردشده داخل همین Container قرار می‌گیرد.
+                </p>
+              )}
             </TabsContent>
 
             <TabsContent value="sections" className="m-0 flex-1 overflow-y-auto p-3">
@@ -2040,6 +2054,36 @@ export default function PageBuilderPro() {
                       </Badge>
                     )}
                     {!block.enabled && <Badge variant="outline">خاموش</Badge>}
+                    <div className="ms-1 flex shrink-0 gap-0.5">
+                      <button
+                        type="button"
+                        className="flex size-6 items-center justify-center rounded-md border border-border/60 bg-background text-[11px] hover:bg-muted"
+                        title="انتقال به بالا"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setDraft((current) => {
+                            const result = reorderBlockInTree(current.blocks, block.id, -1);
+                            return result.changed ? { ...current, blocks: result.blocks } : current;
+                          });
+                        }}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        className="flex size-6 items-center justify-center rounded-md border border-border/60 bg-background text-[11px] hover:bg-muted"
+                        title="انتقال به پایین"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setDraft((current) => {
+                            const result = reorderBlockInTree(current.blocks, block.id, 1);
+                            return result.changed ? { ...current, blocks: result.blocks } : current;
+                          });
+                        }}
+                      >
+                        ↓
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2554,6 +2598,64 @@ export default function PageBuilderPro() {
           </Tabs>
         </aside>
       </div>
+
+      <Dialog open={htmlImportOpen} onOpenChange={setHtmlImportOpen}>
+        <DialogContent
+          dir="rtl"
+          className="max-h-[90dvh] w-[min(980px,calc(100vw-1rem))] max-w-none overflow-y-auto rounded-3xl"
+        >
+          <DialogHeader className="text-right">
+            <DialogTitle>ورود لندینگ آماده با HTML و CSS</DialogTitle>
+            <DialogDescription className="text-right leading-6">
+              کد صفحه آماده را وارد کن. HTML به بخش‌های قابل ویرایش تبدیل می‌شود و CSS برای هر بخش Scope می‌شود تا استایل سایت را خراب نکند.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[10px] leading-6 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+            JavaScript خام، iframe و event-handlerها اجرا نمی‌شوند. لینک‌ها، متن‌ها، تصاویر و CSS قابل استفاده‌اند و بعد از Import می‌توانی آن‌ها را گرافیکی یا با کد ویرایش کنی.
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <label className="grid gap-2">
+              <span className="text-xs font-black">HTML</span>
+              <Textarea
+                dir="ltr"
+                value={htmlImportValue}
+                onChange={(event) => setHtmlImportValue(event.target.value)}
+                rows={18}
+                className="font-mono text-xs"
+                placeholder={"<!doctype html>\n<html>..."}
+              />
+            </label>
+            <label className="grid gap-2">
+              <span className="text-xs font-black">CSS</span>
+              <Textarea
+                dir="ltr"
+                value={cssImportValue}
+                onChange={(event) => setCssImportValue(event.target.value)}
+                rows={18}
+                className="font-mono text-xs"
+                placeholder={".hero { ... }"}
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+            <p className="max-w-xl text-[10px] leading-5 text-muted-foreground">
+              اگر Container انتخاب شده باشد، کد داخل همان قرار می‌گیرد؛ در غیر این صورت یک Container مادر ساخته می‌شود تا بتوانی سکشن‌های دیوساز را بین بخش‌های کد واردشده اضافه کنی.
+            </p>
+            <Button
+              type="button"
+              className="gap-2"
+              disabled={!htmlImportValue.trim()}
+              onClick={importLandingCode}
+            >
+              <Code2 className="size-4" />
+              تبدیل و ورود به صفحه‌ساز
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <MediaLibraryDialog
         open={Boolean(mediaTarget)}
