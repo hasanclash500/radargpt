@@ -341,6 +341,19 @@ function defaultProps(type: string): Record<string, any> {
       color: "#cbd5e1",
       design,
     };
+  if (type === "container")
+    return {
+      columns: 1,
+      gap: 16,
+      children: [],
+      design,
+    };
+  if (type === "customHtml")
+    return {
+      html: '<section class="custom-section"><h2>عنوان سکشن</h2><p>متن سکشن را ویرایش کنید.</p><a href="/listings">مشاهده آگهی‌ها</a></section>',
+      css: '.custom-section{padding:48px 24px;border-radius:24px;background:#fff}.custom-section h2{font-size:32px;font-weight:800}.custom-section p{margin-top:12px;line-height:2}.custom-section a{display:inline-block;margin-top:20px;padding:12px 18px;border-radius:12px;background:#0b3b66;color:white;text-decoration:none}',
+      design,
+    };
   return {
     title: "ارتباط با دیوساز",
     text: "برای مشاوره با دفتر تماس بگیرید.",
@@ -364,28 +377,207 @@ function newBlock(type: string): Block {
 
 function normalizeBlock(block: Block): Block {
   const props = block.props || {};
-  return {
-    ...block,
-    props: {
-      ...props,
-      design: {
-        ...defaultDesign(),
-        ...(props.design || {}),
-        desktop: {
-          ...defaultResponsive(),
-          ...(props.design?.desktop || {}),
-        },
-        tablet: {
-          ...defaultResponsive(),
-          ...(props.design?.tablet || {}),
-        },
-        mobile: {
-          ...defaultResponsive(),
-          ...(props.design?.mobile || {}),
-        },
+  const normalizedProps: Record<string, any> = {
+    ...props,
+    design: {
+      ...defaultDesign(),
+      ...(props.design || {}),
+      desktop: {
+        ...defaultResponsive(),
+        ...(props.design?.desktop || {}),
+      },
+      tablet: {
+        ...defaultResponsive(),
+        ...(props.design?.tablet || {}),
+      },
+      mobile: {
+        ...defaultResponsive(),
+        ...(props.design?.mobile || {}),
       },
     },
   };
+
+  if (block.type === "container") {
+    normalizedProps.children = Array.isArray(props.children)
+      ? props.children
+          .map((child: Block, index: number) => ({
+            ...normalizeBlock(child),
+            order: index,
+          }))
+      : [];
+  }
+
+  return {
+    ...block,
+    props: normalizedProps,
+  };
+}
+
+function findBlockInTree(blocks: Block[], blockId: string): Block | null {
+  for (const block of blocks) {
+    if (block.id === blockId) return block;
+    if (block.type === "container" && Array.isArray(block.props?.children)) {
+      const found = findBlockInTree(block.props.children, blockId);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function updateBlockInTree(
+  blocks: Block[],
+  blockId: string,
+  updater: (block: Block) => Block,
+): Block[] {
+  return blocks.map((block) => {
+    if (block.id === blockId) return updater(block);
+    if (block.type === "container" && Array.isArray(block.props?.children)) {
+      return {
+        ...block,
+        props: {
+          ...block.props,
+          children: updateBlockInTree(block.props.children, blockId, updater),
+        },
+      };
+    }
+    return block;
+  });
+}
+
+function removeBlockFromTree(blocks: Block[], blockId: string): Block[] {
+  return blocks
+    .filter((block) => block.id !== blockId)
+    .map((block) => {
+      if (block.type === "container" && Array.isArray(block.props?.children)) {
+        return {
+          ...block,
+          props: {
+            ...block.props,
+            children: removeBlockFromTree(block.props.children, blockId).map(
+              (child, order) => ({ ...child, order }),
+            ),
+          },
+        };
+      }
+      return block;
+    })
+    .map((block, order) => ({ ...block, order }));
+}
+
+function flattenBlocks(blocks: Block[], depth = 0): Array<{ block: Block; depth: number }> {
+  const result: Array<{ block: Block; depth: number }> = [];
+  for (const block of [...blocks].sort((a, b) => a.order - b.order)) {
+    result.push({ block, depth });
+    if (block.type === "container" && Array.isArray(block.props?.children)) {
+      result.push(...flattenBlocks(block.props.children, depth + 1));
+    }
+  }
+  return result;
+}
+
+function appendBlockToContainer(
+  blocks: Block[],
+  containerId: string,
+  child: Block,
+): Block[] {
+  return updateBlockInTree(blocks, containerId, (container) => {
+    if (container.type !== "container") return container;
+    const children = Array.isArray(container.props?.children)
+      ? container.props.children
+      : [];
+    return {
+      ...container,
+      props: {
+        ...container.props,
+        children: [...children, { ...child, order: children.length }],
+      },
+    };
+  });
+}
+
+function editableHtmlElements(html: string) {
+  if (typeof window === "undefined") return [];
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const nodes = Array.from(
+    doc.body.querySelectorAll("h1,h2,h3,h4,p,a,button,img"),
+  ).slice(0, 80);
+  return nodes.map((node, index) => {
+    const tag = node.tagName.toLowerCase();
+    return {
+      index,
+      tag,
+      text: tag === "img" ? "" : node.textContent || "",
+      href: tag === "a" ? node.getAttribute("href") || "" : "",
+      src: tag === "img" ? node.getAttribute("src") || "" : "",
+      alt: tag === "img" ? node.getAttribute("alt") || "" : "",
+    };
+  });
+}
+
+function updateHtmlElement(
+  html: string,
+  elementIndex: number,
+  patch: { text?: string; href?: string; src?: string; alt?: string },
+) {
+  if (typeof window === "undefined") return html;
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const nodes = Array.from(
+    doc.body.querySelectorAll("h1,h2,h3,h4,p,a,button,img"),
+  ).slice(0, 80);
+  const node = nodes[elementIndex];
+  if (!node) return html;
+
+  if (patch.text !== undefined && node.tagName.toLowerCase() !== "img") {
+    node.textContent = patch.text;
+  }
+  if (patch.href !== undefined && node.tagName.toLowerCase() === "a") {
+    node.setAttribute("href", patch.href);
+  }
+  if (patch.src !== undefined && node.tagName.toLowerCase() === "img") {
+    node.setAttribute("src", patch.src);
+  }
+  if (patch.alt !== undefined && node.tagName.toLowerCase() === "img") {
+    node.setAttribute("alt", patch.alt);
+  }
+  return doc.body.innerHTML;
+}
+
+function importHtmlSections(html: string, css: string) {
+  if (typeof window === "undefined") return [] as Block[];
+  const doc = new DOMParser().parseFromString(html || "", "text/html");
+  const embeddedCss = Array.from(doc.querySelectorAll("style"))
+    .map((style) => style.textContent || "")
+    .join("\n");
+  doc.querySelectorAll("style,script,link,meta,base").forEach((node) => node.remove());
+
+  let candidates = Array.from(doc.body.children);
+  if (
+    candidates.length === 1 &&
+    ["main", "div"].includes(candidates[0].tagName.toLowerCase()) &&
+    candidates[0].children.length > 1
+  ) {
+    candidates = Array.from(candidates[0].children);
+  }
+
+  if (!candidates.length && doc.body.innerHTML.trim()) {
+    candidates = [doc.body];
+  }
+
+  const mergedCss = [embeddedCss, css].filter(Boolean).join("\n");
+  return candidates.slice(0, 40).map((element, order) => ({
+    id: id(),
+    type: "customHtml",
+    enabled: true,
+    order,
+    props: {
+      html:
+        element === doc.body
+          ? doc.body.innerHTML
+          : (element as HTMLElement).outerHTML,
+      css: mergedCss,
+      design: defaultDesign(),
+    },
+  }));
 }
 
 function emptyDraft(): Draft {
