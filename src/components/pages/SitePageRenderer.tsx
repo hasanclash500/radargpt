@@ -49,6 +49,26 @@ type PageBlock = {
   props: Record<string, any>;
 };
 
+type BuilderEditorController = {
+  selectedBlockId?: string;
+  device?: "desktop" | "tablet" | "mobile";
+  onSelectBlock?: (id: string) => void;
+  onInsertWidget?: (
+    target: { kind: "root"; index: number } | { kind: "column"; containerId: string; columnId: string; index?: number },
+    widgetType: string,
+  ) => void;
+  onMoveBlock?: (
+    blockId: string,
+    target: { kind: "root"; index: number } | { kind: "column"; containerId: string; columnId: string; index?: number },
+  ) => void;
+  onResizeColumns?: (
+    containerId: string,
+    leftColumnId: string,
+    rightColumnId: string,
+    deltaPercent: number,
+  ) => void;
+};
+
 type SitePage = {
   title: string;
   isHomepage?: boolean;
@@ -405,10 +425,233 @@ function ContactBlock({ props }: { props: Record<string, any> }) {
   );
 }
 
-function BlockRenderer({ block }: { block: PageBlock }) {
+function safeBuilderId(value: unknown) {
+  return String(value ?? "").replace(/[^a-zA-Z0-9_-]/g, "");
+}
+
+function builderDropPayload(event: React.DragEvent<HTMLElement>) {
+  return {
+    widgetType: event.dataTransfer.getData("application/x-divsaz-widget"),
+    blockId: event.dataTransfer.getData("application/x-divsaz-block"),
+  };
+}
+
+function RootDropZone({
+  index,
+  editor,
+}: {
+  index: number;
+  editor?: BuilderEditorController;
+}) {
+  if (!editor) return null;
+  return (
+    <div
+      className="group relative z-30 mx-2 h-3 rounded-full transition-all hover:h-9 hover:bg-blue-500/10"
+      onDragOver={(event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const payload = builderDropPayload(event);
+        if (payload.widgetType) {
+          editor.onInsertWidget?.({ kind: "root", index }, payload.widgetType);
+        } else if (payload.blockId) {
+          editor.onMoveBlock?.(payload.blockId, { kind: "root", index });
+        }
+      }}
+    >
+      <span className="pointer-events-none absolute inset-x-0 top-1/2 hidden h-0.5 -translate-y-1/2 bg-blue-500 group-hover:block" />
+      <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 px-2 py-0.5 text-[8px] font-black text-white group-hover:block">
+        رها کن
+      </span>
+    </div>
+  );
+}
+
+function ContainerBlock({
+  block,
+  editor,
+  depth,
+}: {
+  block: PageBlock;
+  editor?: BuilderEditorController;
+  depth: number;
+}) {
+  const props = block.props || {};
+  const columns = Array.isArray(props.columns) ? props.columns : [];
+  const gap = Math.max(0, Math.min(80, Number(props.gap) || 0));
+  const mobileStack = props.mobileStack !== false;
+  const containerId = safeBuilderId(block.id);
+  const selector = `[data-layout-container="${containerId}"]`;
+
+  const columnCss = columns
+    .map((column: any) => {
+      const columnId = safeBuilderId(column.id);
+      const widths = column.widths || {};
+      const mobile = mobileStack ? 100 : Math.max(5, Math.min(100, Number(widths.mobile) || 100));
+      const tablet = Math.max(5, Math.min(100, Number(widths.tablet) || Number(widths.desktop) || 50));
+      const desktop = Math.max(5, Math.min(100, Number(widths.desktop) || 50));
+      const target = `${selector} [data-layout-column="${columnId}"]`;
+      return [
+        `${target}{width:calc(${mobile}% - ${gap}px);align-self:${column.verticalAlign || "stretch"}}`,
+        `@media(min-width:640px){${target}{width:calc(${tablet}% - ${gap}px)}}`,
+        `@media(min-width:1024px){${target}{width:calc(${desktop}% - ${gap}px)}}`,
+      ].join("");
+    })
+    .join("");
+
+  const beginResize = (
+    event: React.PointerEvent<HTMLButtonElement>,
+    leftColumnId: string,
+    rightColumnId: string,
+  ) => {
+    if (!editor?.onResizeColumns) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const host = event.currentTarget.closest<HTMLElement>("[data-layout-container]");
+    const width = host?.getBoundingClientRect().width || 1;
+    let lastX = event.clientX;
+
+    const move = (pointer: PointerEvent) => {
+      const dx = pointer.clientX - lastX;
+      lastX = pointer.clientX;
+      // The public site is RTL, so positive X shrinks the logical first column.
+      const delta = (-dx / width) * 100;
+      editor.onResizeColumns?.(
+        block.id,
+        leftColumnId,
+        rightColumnId,
+        delta,
+      );
+    };
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop, { once: true });
+  };
+
+  return (
+    <section className="mx-auto w-full px-3 py-3 sm:px-4">
+      <style>{columnCss}</style>
+      <div
+        data-layout-container={containerId}
+        className={
+          "relative mx-auto flex w-full flex-wrap items-stretch " +
+          (editor ? "min-h-24 rounded-2xl border border-dashed border-blue-300/70 bg-blue-500/[0.025] p-2" : "")
+        }
+        style={{ gap }}
+      >
+        {columns.map((column: any, columnIndex: number) => {
+          const widgets = Array.isArray(column.widgets)
+            ? [...column.widgets].sort((a: PageBlock, b: PageBlock) => a.order - b.order)
+            : [];
+          return (
+            <Fragment key={column.id}>
+              <div
+                data-layout-column={safeBuilderId(column.id)}
+                className={
+                  "relative min-w-0 " +
+                  (editor
+                    ? "rounded-xl border border-dashed border-slate-300/80 bg-background/80 p-1.5"
+                    : "")
+                }
+                onDragOver={
+                  editor
+                    ? (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.dataTransfer.dropEffect = "move";
+                      }
+                    : undefined
+                }
+                onDrop={
+                  editor
+                    ? (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const payload = builderDropPayload(event);
+                        const target = {
+                          kind: "column" as const,
+                          containerId: block.id,
+                          columnId: column.id,
+                        };
+                        if (payload.widgetType) {
+                          editor.onInsertWidget?.(target, payload.widgetType);
+                        } else if (payload.blockId && payload.blockId !== block.id) {
+                          editor.onMoveBlock?.(payload.blockId, target);
+                        }
+                      }
+                    : undefined
+                }
+              >
+                {editor && (
+                  <div className="mb-1 flex items-center justify-between px-1">
+                    <span className="text-[8px] font-black text-blue-600">
+                      ستون {columnIndex + 1}
+                    </span>
+                    <span className="text-[8px] text-muted-foreground">
+                      {Math.round(Number(column.widths?.[editor.device || "desktop"]) || 0)}%
+                    </span>
+                  </div>
+                )}
+
+                {widgets.length === 0 && editor ? (
+                  <div className="flex min-h-20 items-center justify-center rounded-lg border border-dashed border-border/70 text-[9px] font-bold text-muted-foreground">
+                    ویجت را اینجا رها کن
+                  </div>
+                ) : (
+                  widgets.map((widget: PageBlock) => (
+                    <EditableBlockFrame
+                      key={widget.id}
+                      block={widget}
+                      editor={editor}
+                      depth={depth + 1}
+                    />
+                  ))
+                )}
+              </div>
+
+              {editor && columnIndex < columns.length - 1 && (
+                <button
+                  type="button"
+                  className="relative z-40 -mx-2 w-4 cursor-col-resize touch-none self-stretch rounded-full bg-transparent after:absolute after:inset-y-2 after:left-1/2 after:w-1 after:-translate-x-1/2 after:rounded-full after:bg-blue-500/35 hover:after:bg-blue-600"
+                  aria-label="تغییر عرض ستون"
+                  onPointerDown={(event) =>
+                    beginResize(
+                      event,
+                      column.id,
+                      columns[columnIndex + 1].id,
+                    )
+                  }
+                />
+              )}
+            </Fragment>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function BlockRenderer({
+  block,
+  editor,
+  depth = 0,
+}: {
+  block: PageBlock;
+  editor?: BuilderEditorController;
+  depth?: number;
+}) {
   if (!block.enabled) return null;
 
   let content: React.ReactNode = null;
+  if (block.type === "container") {
+    content = <ContainerBlock block={block} editor={editor} depth={depth} />;
+  }
   if (block.type === "hero") content = <HeroBlock props={block.props} />;
   if (block.type === "intentHub") content = <IntentHubBlock props={block.props} />;
   if (block.type === "listings") content = <ListingsBlock props={block.props} />;
@@ -426,6 +669,51 @@ function BlockRenderer({ block }: { block: PageBlock }) {
   );
 }
 
+function EditableBlockFrame({
+  block,
+  editor,
+  depth = 0,
+}: {
+  block: PageBlock;
+  editor?: BuilderEditorController;
+  depth?: number;
+}) {
+  if (!editor) {
+    return <BlockRenderer block={block} depth={depth} />;
+  }
+
+  const selected = editor.selectedBlockId === block.id;
+  return (
+    <div
+      className={
+        "relative cursor-pointer transition-[outline,box-shadow] " +
+        (selected
+          ? "z-20 outline outline-2 outline-offset-[-2px] outline-blue-500"
+          : "hover:outline hover:outline-1 hover:outline-offset-[-1px] hover:outline-blue-300")
+      }
+      draggable
+      onDragStart={(event) => {
+        event.stopPropagation();
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("application/x-divsaz-block", block.id);
+      }}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        editor.onSelectBlock?.(block.id);
+      }}
+    >
+      {selected && (
+        <div className="absolute end-2 top-2 z-[75] flex items-center gap-1 rounded-lg bg-blue-600 px-2 py-1 text-[8px] font-black text-white shadow">
+          <span className="cursor-grab">⋮⋮</span>
+          <span>{block.type === "container" ? "کانتینر" : "در حال ویرایش"}</span>
+        </div>
+      )}
+      <BlockRenderer block={block} editor={editor} depth={depth} />
+    </div>
+  );
+}
+
 export default function SitePageRenderer({
   page,
   hideHeader = false,
@@ -433,10 +721,7 @@ export default function SitePageRenderer({
 }: {
   page: SitePage;
   hideHeader?: boolean;
-  editor?: {
-    selectedBlockId?: string;
-    onSelectBlock?: (id: string) => void;
-  };
+  editor?: BuilderEditorController;
 }) {
   useSeo({
     title: page.seoTitle || page.title,
@@ -480,35 +765,12 @@ export default function SitePageRenderer({
       {!hideHeader && <PublicHeader />}
       {!hideHeader && <PublicStoryStrip />}
       {page.isHomepage && heroIndex < 0 && <BrandStorySection />}
+      <RootDropZone index={0} editor={editor} />
       {blocks.map((block, index) => (
         <Fragment key={block.id}>
-          <div
-            className={
-              editor
-                ? "relative cursor-pointer transition-[outline,box-shadow] " +
-                  (editor.selectedBlockId === block.id
-                    ? "z-20 outline outline-2 outline-offset-[-2px] outline-blue-500"
-                    : "hover:outline hover:outline-1 hover:outline-offset-[-1px] hover:outline-blue-300")
-                : ""
-            }
-            onClick={
-              editor
-                ? (event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    editor.onSelectBlock?.(block.id);
-                  }
-                : undefined
-            }
-          >
-            {editor?.selectedBlockId === block.id && (
-              <span className="pointer-events-none absolute end-2 top-2 z-[70] rounded-lg bg-blue-600 px-2 py-1 text-[9px] font-black text-white shadow">
-                در حال ویرایش
-              </span>
-            )}
-            <BlockRenderer block={block} />
-          </div>
+          <EditableBlockFrame block={block} editor={editor} depth={0} />
           {page.isHomepage && index === heroIndex && <BrandStorySection />}
+          <RootDropZone index={index + 1} editor={editor} />
         </Fragment>
       ))}
     </main>
