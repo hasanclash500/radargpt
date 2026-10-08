@@ -122,7 +122,7 @@ export default function Admin() {
     managerPhone: string;
     shareFooter: string;
     siteTheme: "navy" | "emerald" | "light";
-    homepageVariant: "classic" | "modern";
+    homepageVariant: "classic" | "modern" | "visual";
   } | null>(null);
 
   const draft = sourceDraft ?? {
@@ -142,7 +142,7 @@ export default function Admin() {
       managerPhone: settings.managerPhone ?? "",
       shareFooter: settings.shareFooter ?? "",
       siteTheme: (settings.siteTheme ?? "light") as "navy" | "emerald" | "light",
-      homepageVariant: (settings.homepageVariant ?? "classic") as "classic" | "modern",
+      homepageVariant: (settings.homepageVariant ?? "classic") as "classic" | "modern" | "visual",
     });
   }
 
@@ -501,10 +501,10 @@ export default function Admin() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Label>نسخه صفحه اصلی سایت</Label>
                   <Button asChild type="button" variant="ghost" size="sm" className="h-8 text-xs">
-                    <Link to="/landing-v2" target="_blank">پیش‌نمایش لندینگ جدید</Link>
+                    <span className="flex flex-wrap gap-1"><Link to="/landing-v2" target="_blank">لندینگ ۲</Link><span className="text-muted-foreground">·</span><Link to="/landing-v3" target="_blank">لندینگ ۳</Link></span>
                   </Button>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-2 sm:grid-cols-3">
                   {[
                     {
                       value: "classic" as const,
@@ -515,6 +515,11 @@ export default function Admin() {
                       value: "modern" as const,
                       label: "لندینگ جدید",
                       note: "طراحی روشن، جستجوی برجسته و ویترین مدرن",
+                    },
+                    {
+                      value: "visual" as const,
+                      label: "لندینگ گرافیکی موبایل",
+                      note: "نسخه سوم؛ رادار بصری، کارت‌های موبایل‌محور و CTAهای سریع",
                     },
                   ].map((option) => (
                     <button
