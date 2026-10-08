@@ -1551,19 +1551,20 @@ export default function PageBuilderPro() {
                 color: draft.settings.textColor || "#0f172a",
               }}
             >
-              <SitePageRenderer
-                page={draft as any}
-                hideHeader
-                editor={{
-                  selectedBlockId,
-                  onSelectBlock: (blockId) => {
-                    setSelectedBlockId(blockId);
-                    setInspectorTab("content");
-                  },
-                }}
-              />
-              {!sortedBlocks.length && (
-                <div className="flex min-h-[640px] items-center justify-center bg-white p-6 text-center text-slate-500">
+              {sortedBlocks.length ? (
+                <SitePageRenderer
+                  page={draft as any}
+                  hideHeader
+                  editor={{
+                    selectedBlockId,
+                    onSelectBlock: (blockId) => {
+                      setSelectedBlockId(blockId);
+                      setInspectorTab("content");
+                    },
+                  }}
+                />
+              ) : (
+                <div className="flex min-h-[720px] items-center justify-center bg-white p-6 text-center text-slate-500">
                   <div>
                     <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50">
                       <Plus className="size-6" />
@@ -1572,6 +1573,17 @@ export default function PageBuilderPro() {
                     <p className="mt-2 max-w-xs text-xs leading-6">
                       از «ویجت» یک المان تکی اضافه کن یا از «سکشن» بخش‌های آماده مثل آگهی‌ها و جستجو را وارد کن.
                     </p>
+                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      <Button type="button" size="sm" onClick={() => insertPreset("featured-listings")}>
+                        آگهی‌های منتخب
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("property-search")}>
+                        جستجو و مسیرها
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("complete-landing")}>
+                        لندینگ کامل
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
