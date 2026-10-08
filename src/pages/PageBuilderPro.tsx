@@ -465,6 +465,7 @@ function editableHtmlElements(html: string) {
 
   return nodes.map((node, index) => {
     const tag = node.tagName.toLowerCase();
+    const style = (node as HTMLElement).style;
     return {
       index,
       tag,
@@ -477,6 +478,13 @@ function editableHtmlElements(html: string) {
             : "",
       src: tag === "img" ? node.getAttribute("src") || "" : "",
       alt: tag === "img" ? node.getAttribute("alt") || "" : "",
+      color: style.color || "",
+      backgroundColor: style.backgroundColor || "",
+      fontSize: Number.parseFloat(style.fontSize) || 0,
+      fontWeight: Number.parseInt(style.fontWeight, 10) || 0,
+      padding: Number.parseFloat(style.padding) || 0,
+      borderRadius: Number.parseFloat(style.borderRadius) || 0,
+      textAlign: style.textAlign || "",
     };
   });
 }
@@ -484,7 +492,21 @@ function editableHtmlElements(html: string) {
 function updateHtmlElement(
   html: string,
   elementIndex: number,
-  patch: { text?: string; href?: string; src?: string; alt?: string },
+  patch: {
+    text?: string;
+    href?: string;
+    src?: string;
+    alt?: string;
+    styles?: {
+      color?: string;
+      backgroundColor?: string;
+      fontSize?: number;
+      fontWeight?: number;
+      padding?: number;
+      borderRadius?: number;
+      textAlign?: string;
+    };
+  },
 ) {
   if (typeof window === "undefined") return html;
   const doc = new DOMParser().parseFromString(html || "", "text/html");
@@ -520,6 +542,32 @@ function updateHtmlElement(
   }
   if (patch.alt !== undefined && node.tagName.toLowerCase() === "img") {
     node.setAttribute("alt", patch.alt);
+  }
+  if (patch.styles) {
+    const style = (node as HTMLElement).style;
+    if (patch.styles.color !== undefined) {
+      style.color = patch.styles.color;
+    }
+    if (patch.styles.backgroundColor !== undefined) {
+      style.backgroundColor = patch.styles.backgroundColor;
+    }
+    if (patch.styles.fontSize !== undefined) {
+      style.fontSize = patch.styles.fontSize > 0 ? patch.styles.fontSize + "px" : "";
+    }
+    if (patch.styles.fontWeight !== undefined) {
+      style.fontWeight =
+        patch.styles.fontWeight > 0 ? String(patch.styles.fontWeight) : "";
+    }
+    if (patch.styles.padding !== undefined) {
+      style.padding = patch.styles.padding >= 0 ? patch.styles.padding + "px" : "";
+    }
+    if (patch.styles.borderRadius !== undefined) {
+      style.borderRadius =
+        patch.styles.borderRadius >= 0 ? patch.styles.borderRadius + "px" : "";
+    }
+    if (patch.styles.textAlign !== undefined) {
+      style.textAlign = patch.styles.textAlign;
+    }
   }
 
   return doc.body.innerHTML;
