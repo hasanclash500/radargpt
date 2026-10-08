@@ -1274,6 +1274,7 @@ export default function PageBuilderPro() {
   const [selectedId, setSelectedId] = useState("");
   const [selectedBlockId, setSelectedBlockId] = useState("");
   const [device, setDevice] = useState<Device>("desktop");
+  const [showSiteChrome, setShowSiteChrome] = useState(false);
   const [busy, setBusy] = useState("");
   const [dragId, setDragId] = useState("");
   const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
@@ -1325,6 +1326,31 @@ export default function PageBuilderPro() {
     setSelectedBlockId(block.id);
     setInspectorTab("content");
     toast.success(BLOCK_LABELS[type] + " اضافه شد");
+  };
+
+  const insertPreset = (presetId: string) => {
+    const preset = SECTION_PRESETS.find((item) => item.id === presetId);
+    if (!preset) return;
+
+    const additions = preset.types.map((type) => newBlock(type));
+    setDraft((current) => {
+      let blocks = current.blocks as BuilderBlock[];
+      for (const addition of additions) {
+        blocks = insertIntoRoot(
+          blocks,
+          addition as BuilderBlock,
+          blocks.length,
+        );
+      }
+      return {
+        ...current,
+        blocks: normalizeOrders(blocks) as Block[],
+      };
+    });
+
+    if (additions[0]) setSelectedBlockId(additions[0].id);
+    setInspectorTab("content");
+    toast.success("سکشن «" + preset.title + "» اضافه شد");
   };
 
   const removeBlock = (blockId: string) => {
@@ -1515,6 +1541,7 @@ export default function PageBuilderPro() {
 
   const chooseMedia = (item: SiteMediaItem) => {
     if (!item.url || !mediaTarget) return;
+    if (mediaTarget.type === "browse") return;
     if (mediaTarget.type === "font") {
       setDraft((current) => ({
         ...current,
