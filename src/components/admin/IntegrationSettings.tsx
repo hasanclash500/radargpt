@@ -13,7 +13,7 @@ export default function IntegrationSettings() {
   const status = useQuery(api.integrations.getIntegrationStatus, {});
   const saveSettings = useMutation(api.integrations.saveIntegrationSettings);
   const test = useAction(api.integrations.testIntegrations);
-  const testAi = useAction(api.integrations.testAiConnection);
+  const testAi = useAction(api.integrations.testAi);
 
   const [telegramToken, setTelegramToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
@@ -89,9 +89,9 @@ export default function IntegrationSettings() {
     try {
       const result = await testAi({});
       if (result?.ok) {
-        toast.success(result.message || "اتصال هوش مصنوعی رایگان برقرار است");
+        toast.success(result.answer || "اتصال هوش مصنوعی رایگان برقرار است");
       } else {
-        toast.error(result?.message || "اتصال هوش مصنوعی برقرار نشد");
+        toast.error(result?.error || "اتصال هوش مصنوعی برقرار نشد");
       }
     } catch (error) {
       toast.error(
