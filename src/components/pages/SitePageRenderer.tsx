@@ -612,7 +612,7 @@ export default function SitePageRenderer({
       className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background text-foreground"
     >
       {hasCustomFont && (
-        <style>{`@font-face{font-family:"${customFontFamily.replace(/["{}]/g, "")}";src:url("${customFontUrl}") format("woff2");font-display:swap;}`}</style>
+        <style>{`@font-face{font-family:"${customFontFamily.replace(/["{}]/g, "")}";src:url("${customFontUrl}");font-display:swap;}`}</style>
       )}
       {!hideHeader && pageSettings.showHeader !== false && <PublicHeader />}
       {!hideHeader && pageSettings.showStories !== false && <PublicStoryStrip />}
