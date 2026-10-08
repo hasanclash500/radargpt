@@ -1549,8 +1549,12 @@ export default function PageBuilderPro() {
           ...current.settings,
           customFontUrl: item.url,
           customFontFamily:
-            current.settings.customFontFamily ||
-            item.fileName.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9-_]/g, ""),
+            current.settings.customFontFamily &&
+            current.settings.customFontFamily !== "Vazirmatn"
+              ? current.settings.customFontFamily
+              : item.fileName
+                  .replace(/\.[^.]+$/, "")
+                  .replace(/[^a-zA-Z0-9-_]/g, "") || "DivosazCustom",
         },
       }));
       return;
