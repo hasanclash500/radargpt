@@ -40,7 +40,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 const INTENTS = [
   {
@@ -163,6 +163,7 @@ export default function LandingV2() {
   const settings = useQuery(api.folders.getSettings, {});
   const listings = useQuery(api.listings.listFeaturedPublic);
   const navigate = useNavigate();
+  const location = useLocation();
   const [search, setSearch] = useState("");
 
   useSeo({
@@ -176,6 +177,8 @@ export default function LandingV2() {
       "دفتر اداری شهریار",
       "دیوساز",
     ],
+    canonical: "https://divsaz.ir/",
+    noIndex: location.pathname !== "/",
     type: "website",
   });
 
