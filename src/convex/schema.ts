@@ -450,7 +450,14 @@ const schema = defineSchema(
       ),
       seoTitle: v.optional(v.string()),
       seoDescription: v.optional(v.string()),
+      seoKeywords: v.optional(v.array(v.string())),
+      canonicalUrl: v.optional(v.string()),
+      ogTitle: v.optional(v.string()),
+      ogDescription: v.optional(v.string()),
+      ogImage: v.optional(v.string()),
       noIndex: v.optional(v.boolean()),
+      /** تنظیمات ظاهری کلی صفحه‌ساز حرفه‌ای؛ فونت، عرض محتوا و پس‌زمینه */
+      settings: v.optional(v.any()),
       createdByUserId: v.string(),
       createdAt: v.number(),
       updatedAt: v.number(),
@@ -459,6 +466,29 @@ const schema = defineSchema(
       .index("by_slug", ["slug"])
       .index("by_status_updated", ["status", "updatedAt"])
       .index("by_homepage_status", ["isHomepage", "status"]),
+
+    /**
+     * کتابخانه رسانه صفحه‌ساز؛ فایل‌ها در Convex Storage نگهداری می‌شوند تا
+     * تصاویر و فونت‌ها وابسته به سرویس‌های خارجی نباشند.
+     */
+    siteMedia: defineTable({
+      storageId: v.id("_storage"),
+      kind: v.union(
+        v.literal("image"),
+        v.literal("font"),
+        v.literal("video"),
+        v.literal("file"),
+      ),
+      fileName: v.string(),
+      mimeType: v.string(),
+      size: v.optional(v.number()),
+      title: v.optional(v.string()),
+      alt: v.optional(v.string()),
+      createdByUserId: v.string(),
+      createdAt: v.number(),
+    })
+      .index("by_created", ["createdAt"])
+      .index("by_kind_created", ["kind", "createdAt"]),
 
     /** مقالات وبلاگ و تنظیمات SEO هر مقاله */
     posts: defineTable({
