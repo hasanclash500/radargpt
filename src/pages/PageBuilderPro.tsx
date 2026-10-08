@@ -236,6 +236,7 @@ function defaultDesign() {
     zIndex: 0,
     animation: "none",
     animationDuration: 550,
+    customCss: "",
     desktop: defaultResponsive(),
     tablet: defaultResponsive(),
     mobile: defaultResponsive(),
@@ -464,6 +465,7 @@ function editableHtmlElements(html: string) {
 
   return nodes.map((node, index) => {
     const tag = node.tagName.toLowerCase();
+    const style = (node as HTMLElement).style;
     return {
       index,
       tag,
@@ -476,6 +478,13 @@ function editableHtmlElements(html: string) {
             : "",
       src: tag === "img" ? node.getAttribute("src") || "" : "",
       alt: tag === "img" ? node.getAttribute("alt") || "" : "",
+      color: style.color || "",
+      backgroundColor: style.backgroundColor || "",
+      fontSize: Number.parseFloat(style.fontSize) || 0,
+      fontWeight: Number.parseInt(style.fontWeight, 10) || 0,
+      padding: Number.parseFloat(style.padding) || 0,
+      borderRadius: Number.parseFloat(style.borderRadius) || 0,
+      textAlign: style.textAlign || "",
     };
   });
 }
@@ -483,7 +492,21 @@ function editableHtmlElements(html: string) {
 function updateHtmlElement(
   html: string,
   elementIndex: number,
-  patch: { text?: string; href?: string; src?: string; alt?: string },
+  patch: {
+    text?: string;
+    href?: string;
+    src?: string;
+    alt?: string;
+    styles?: {
+      color?: string;
+      backgroundColor?: string;
+      fontSize?: number;
+      fontWeight?: number;
+      padding?: number;
+      borderRadius?: number;
+      textAlign?: string;
+    };
+  },
 ) {
   if (typeof window === "undefined") return html;
   const doc = new DOMParser().parseFromString(html || "", "text/html");
@@ -519,6 +542,32 @@ function updateHtmlElement(
   }
   if (patch.alt !== undefined && node.tagName.toLowerCase() === "img") {
     node.setAttribute("alt", patch.alt);
+  }
+  if (patch.styles) {
+    const style = (node as HTMLElement).style;
+    if (patch.styles.color !== undefined) {
+      style.color = patch.styles.color;
+    }
+    if (patch.styles.backgroundColor !== undefined) {
+      style.backgroundColor = patch.styles.backgroundColor;
+    }
+    if (patch.styles.fontSize !== undefined) {
+      style.fontSize = patch.styles.fontSize > 0 ? patch.styles.fontSize + "px" : "";
+    }
+    if (patch.styles.fontWeight !== undefined) {
+      style.fontWeight =
+        patch.styles.fontWeight > 0 ? String(patch.styles.fontWeight) : "";
+    }
+    if (patch.styles.padding !== undefined) {
+      style.padding = patch.styles.padding >= 0 ? patch.styles.padding + "px" : "";
+    }
+    if (patch.styles.borderRadius !== undefined) {
+      style.borderRadius =
+        patch.styles.borderRadius >= 0 ? patch.styles.borderRadius + "px" : "";
+    }
+    if (patch.styles.textAlign !== undefined) {
+      style.textAlign = patch.styles.textAlign;
+    }
   }
 
   return doc.body.innerHTML;
@@ -1330,6 +1379,115 @@ function BlockContentEditor({
                       )}
                     </div>
                   )}
+
+                  <details className="mt-2 rounded-lg border border-border/60 bg-background p-2">
+                    <summary className="cursor-pointer text-[10px] font-black text-primary">
+                      ظاهر گرافیکی این عنصر
+                    </summary>
+                    <div className="mt-3 grid gap-2">
+                      <ColorField
+                        label="رنگ"
+                        value={element.color}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, {
+                              styles: { color: value },
+                            }),
+                          )
+                        }
+                      />
+                      <ColorField
+                        label="پس‌زمینه"
+                        value={element.backgroundColor}
+                        onChange={(value) =>
+                          set(
+                            "html",
+                            updateHtmlElement(p.html || "", element.index, {
+                              styles: { backgroundColor: value },
+                            }),
+                          )
+                        }
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <NumberField
+                          label="اندازه فونت"
+                          value={element.fontSize}
+                          min={0}
+                          max={120}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { fontSize: value },
+                              }),
+                            )
+                          }
+                        />
+                        <NumberField
+                          label="وزن فونت"
+                          value={element.fontWeight}
+                          min={0}
+                          max={900}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { fontWeight: value },
+                              }),
+                            )
+                          }
+                        />
+                        <NumberField
+                          label="Padding"
+                          value={element.padding}
+                          min={0}
+                          max={200}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { padding: value },
+                              }),
+                            )
+                          }
+                        />
+                        <NumberField
+                          label="Radius"
+                          value={element.borderRadius}
+                          min={0}
+                          max={160}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { borderRadius: value },
+                              }),
+                            )
+                          }
+                        />
+                      </div>
+                      {element.tag !== "img" && (
+                        <SelectField
+                          label="تراز متن"
+                          value={element.textAlign || ""}
+                          onChange={(value) =>
+                            set(
+                              "html",
+                              updateHtmlElement(p.html || "", element.index, {
+                                styles: { textAlign: value },
+                              }),
+                            )
+                          }
+                        >
+                          <option value="">پیش‌فرض</option>
+                          <option value="right">راست</option>
+                          <option value="center">وسط</option>
+                          <option value="left">چپ</option>
+                        </SelectField>
+                      )}
+                    </div>
+                  </details>
                 </div>
               ))}
             </div>
@@ -1503,6 +1661,23 @@ function AdvancedEditor({
         />
         <span className="text-[10px] text-muted-foreground">{Math.round(Number(design.opacity ?? 1) * 100)}%</span>
       </label>
+
+      <div className="grid gap-2 rounded-2xl border border-border/70 p-3">
+        <div className="flex items-center gap-2">
+          <Code2 className="size-4 text-primary" />
+          <strong className="text-xs">CSS اختصاصی همین ویجت / سکشن</strong>
+        </div>
+        <p className="text-[9px] leading-5 text-muted-foreground">
+          CSS فقط روی همین بلوک Scope می‌شود. برای خود بلوک از :root و برای
+          اجزای داخلی از selector معمولی مثل .card یا h2 استفاده کن.
+        </p>
+        <Area
+          label="Custom CSS"
+          value={design.customCss || ""}
+          onChange={(value) => set("customCss", value)}
+          rows={10}
+        />
+      </div>
     </div>
   );
 }
