@@ -7,6 +7,13 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/convex/_generated/api";
@@ -14,6 +21,8 @@ import { useMutation, useQuery } from "convex/react";
 import {
   ArrowRight,
   Bot,
+  Braces,
+  Code2,
   Copy,
   Eye,
   FilePlus2,
@@ -29,6 +38,7 @@ import {
   Settings2,
   Smartphone,
   Sparkles,
+  SquareDashed,
   Tablet,
   Trash2,
   Type,
@@ -77,6 +87,7 @@ type Draft = {
 type MediaTarget =
   | { type: "blockImage"; blockId: string; key: string }
   | { type: "background"; blockId: string }
+  | { type: "customHtmlImage"; blockId: string; elementIndex: number }
   | { type: "ogImage" }
   | { type: "font" }
   | { type: "browse" }
@@ -96,6 +107,8 @@ const BLOCKS = [
   { type: "button", label: "دکمه", note: "دکمه مستقل با لینک" },
   { type: "spacer", label: "فاصله", note: "فاصله مستقل در هر دستگاه" },
   { type: "divider", label: "جداکننده", note: "خط جداکننده قابل تنظیم" },
+  { type: "container", label: "کانتینر", note: "سکشن تو‌در‌تو با ستون و فرزند" },
+  { type: "customHtml", label: "HTML / CSS", note: "کد آماده قابل ویرایش گرافیکی" },
 ] as const;
 
 const BLOCK_LABELS = Object.fromEntries(
