@@ -291,7 +291,7 @@ export default function LandingV2() {
             <div className="order-1 overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-100 shadow-[0_18px_55px_rgba(15,23,42,.10)] dark:border-border dark:bg-muted lg:order-2">
               <div className="relative aspect-[16/9] sm:aspect-[16/8] lg:aspect-[4/3]">
                 <img
-                  src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=88"
+                  src="/divsaz-hero-building.svg"
                   alt="نمای یک خانه مدرن؛ جستجوی ملک در دیوساز"
                   className="absolute inset-0 h-full w-full object-cover object-center"
                   fetchPriority="high"
