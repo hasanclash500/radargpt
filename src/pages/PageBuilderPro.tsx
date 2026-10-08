@@ -1844,9 +1844,19 @@ export default function PageBuilderPro() {
 
         <section className="min-w-0 overflow-hidden bg-[linear-gradient(45deg,rgba(148,163,184,.08)_25%,transparent_25%,transparent_75%,rgba(148,163,184,.08)_75%),linear-gradient(45deg,rgba(148,163,184,.08)_25%,transparent_25%,transparent_75%,rgba(148,163,184,.08)_75%)] bg-[length:24px_24px] bg-[position:0_0,12px_12px]">
           <div className="flex items-center justify-between border-b border-border/70 bg-background/90 px-3 py-2">
-            <div className="flex items-center gap-2">
-              <strong className="text-xs">{draft.title}</strong>
+            <div className="flex min-w-0 items-center gap-2">
+              <strong className="truncate text-xs">{draft.title}</strong>
               <Badge variant="outline">{draft.status === "published" ? "منتشرشده" : "پیش‌نویس"}</Badge>
+              <Button
+                type="button"
+                size="sm"
+                variant={showSiteChrome ? "default" : "outline"}
+                className="h-7 px-2 text-[9px]"
+                aria-pressed={showSiteChrome}
+                onClick={() => setShowSiteChrome((value) => !value)}
+              >
+                {showSiteChrome ? "پوسته سایت روشن" : "پیش‌نمایش پوسته"}
+              </Button>
             </div>
             <div className="flex items-center gap-1 sm:hidden">
               <Button size="icon" variant={device === "desktop" ? "default" : "outline"} onClick={() => setDevice("desktop")}><Monitor className="size-4" /></Button>
@@ -1857,29 +1867,57 @@ export default function PageBuilderPro() {
 
           <div className="h-[72dvh] overflow-auto p-3 sm:p-5 xl:h-[calc(100dvh-160px)]">
             <div
-              className="mx-auto min-h-full overflow-hidden rounded-2xl border border-border/70 bg-background shadow-2xl transition-[width] duration-300"
+              className="mx-auto min-h-full overflow-hidden rounded-2xl border border-border/70 shadow-2xl transition-[width] duration-300"
               style={{
                 width: "min(100%, " + canvasWidth + "px)",
+                backgroundColor: draft.settings.backgroundColor || "#ffffff",
+                color: draft.settings.textColor || "#0f172a",
               }}
             >
-              <SitePageRenderer
-                page={draft as any}
-                hideHeader
-                editor={{
-                  selectedBlockId,
-                  device,
-                  onSelectBlock: (blockId) => {
-                    setSelectedBlockId(blockId);
-                    setInspectorTab("content");
-                  },
-                  onInsertWidget: insertWidgetAt,
-                  onMoveBlock: moveBlockToTarget,
-                  onResizeColumns: resizeColumns,
-                }}
-              />
-              {!sortedBlocks.length && (
-                <div className="flex min-h-96 items-center justify-center p-6 text-center text-sm text-muted-foreground">
-                  از پنل «ویجت» یک بخش به صفحه اضافه کن.
+              {sortedBlocks.length ? (
+                <SitePageRenderer
+                  page={draft as any}
+                  hideHeader={!showSiteChrome}
+                  editor={{
+                    selectedBlockId,
+                    device,
+                    onSelectBlock: (blockId) => {
+                      setSelectedBlockId(blockId);
+                      setInspectorTab("content");
+                    },
+                    onInsertWidget: insertWidgetAt,
+                    onMoveBlock: moveBlockToTarget,
+                    onResizeColumns: resizeColumns,
+                  }}
+                />
+              ) : (
+                <div className="flex min-h-[720px] items-center justify-center bg-white p-6 text-center text-slate-500">
+                  <div>
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50">
+                      <Plus className="size-6" />
+                    </div>
+                    <strong className="mt-4 block text-sm text-slate-800">
+                      صفحه سفید آماده است
+                    </strong>
+                    <p className="mt-2 max-w-xs text-xs leading-6">
+                      ویجت را بکش و داخل صفحه یا ستون رها کن؛ یا یک سکشن آماده را
+                      با یک کلیک وارد کن.
+                    </p>
+                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      <Button type="button" size="sm" onClick={() => insertPreset("featured-listings")}>
+                        آگهی‌های منتخب
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("property-search")}>
+                        جستجو و مسیرها
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("two-column")}>
+                        دو ستون خالی
+                      </Button>
+                      <Button type="button" size="sm" variant="outline" onClick={() => insertPreset("complete-landing")}>
+                        لندینگ کامل
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
