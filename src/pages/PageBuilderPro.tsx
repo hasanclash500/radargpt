@@ -549,6 +549,47 @@ function collectBlockIds(block: Block | null): Set<string> {
   return ids;
 }
 
+function reorderBlockInTree(
+  blocks: Block[],
+  blockId: string,
+  delta: -1 | 1,
+): { blocks: Block[]; changed: boolean } {
+  const current = [...blocks].sort((a, b) => a.order - b.order);
+  const index = current.findIndex((block) => block.id === blockId);
+
+  if (index >= 0) {
+    const target = index + delta;
+    if (target < 0 || target >= current.length) {
+      return { blocks: current, changed: false };
+    }
+    [current[index], current[target]] = [current[target], current[index]];
+    return {
+      blocks: current.map((block, order) => ({ ...block, order })),
+      changed: true,
+    };
+  }
+
+  for (let i = 0; i < current.length; i += 1) {
+    const block = current[i];
+    if (block.type !== "container" || !Array.isArray(block.props?.children)) {
+      continue;
+    }
+    const nested = reorderBlockInTree(block.props.children, blockId, delta);
+    if (nested.changed) {
+      current[i] = {
+        ...block,
+        props: {
+          ...block.props,
+          children: nested.blocks,
+        },
+      };
+      return { blocks: current, changed: true };
+    }
+  }
+
+  return { blocks: current, changed: false };
+}
+
 function editableHtmlElements(html: string) {
   if (typeof window === "undefined") return [];
   const doc = new DOMParser().parseFromString(html || "", "text/html");
