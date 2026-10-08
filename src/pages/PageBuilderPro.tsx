@@ -1507,6 +1507,9 @@ export default function PageBuilderPro() {
   const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
   const [sidebarTab, setSidebarTab] = useState("widgets");
   const [inspectorTab, setInspectorTab] = useState("content");
+  const [htmlImportOpen, setHtmlImportOpen] = useState(false);
+  const [htmlImportValue, setHtmlImportValue] = useState("");
+  const [cssImportValue, setCssImportValue] = useState("");
 
   useEffect(() => {
     if (!selectedId) return;
@@ -1807,6 +1810,20 @@ export default function PageBuilderPro() {
       });
       return;
     }
+    if (mediaTarget.type === "customHtmlImage") {
+      patchBlockProps(block.id, {
+        ...block.props,
+        html: updateHtmlElement(
+          block.props?.html || "",
+          mediaTarget.elementIndex,
+          {
+            src: item.url,
+            alt: item.alt || item.title || "",
+          },
+        ),
+      });
+      return;
+    }
     patchBlockProps(block.id, {
       ...block.props,
       [mediaTarget.key]: item.url,
@@ -1814,6 +1831,70 @@ export default function PageBuilderPro() {
         ? { imageAlt: item.alt || item.title || "" }
         : {}),
     });
+  };
+
+  const importLandingCode = () => {
+    const imported = importHtmlSections(htmlImportValue, cssImportValue);
+    if (!imported.length) {
+      toast.error("کد HTML قابل وارد کردن پیدا نشد");
+      return;
+    }
+
+    const wrapper = wrapImportedLanding(imported);
+    setDraft((current) => {
+      const selected = findBlock(
+        current.blocks as BuilderBlock[],
+        selectedBlockId,
+      ) as Block | null;
+
+      if (selected?.type === "container") {
+        const firstColumn = childColumns(selected as BuilderBlock)[0];
+        if (firstColumn) {
+          return {
+            ...current,
+            blocks: insertIntoColumn(
+              current.blocks as BuilderBlock[],
+              selected.id,
+              firstColumn.id,
+              wrapper as BuilderBlock,
+            ) as Block[],
+          };
+        }
+      }
+
+      const located = findLocatedBlock(
+        current.blocks as BuilderBlock[],
+        selectedBlockId,
+      );
+      if (located?.location.kind === "column") {
+        return {
+          ...current,
+          blocks: insertIntoColumn(
+            current.blocks as BuilderBlock[],
+            located.location.containerId,
+            located.location.columnId,
+            wrapper as BuilderBlock,
+            located.location.index + 1,
+          ) as Block[],
+        };
+      }
+
+      return {
+        ...current,
+        blocks: insertIntoRoot(
+          current.blocks as BuilderBlock[],
+          wrapper as BuilderBlock,
+          current.blocks.length,
+        ) as Block[],
+      };
+    });
+
+    setSelectedBlockId(wrapper.id);
+    setInspectorTab("content");
+    setHtmlImportOpen(false);
+    setHtmlImportValue("");
+    setCssImportValue("");
+    toast.success(imported.length + " بخش از لندینگ وارد شد");
   };
 
   if (role === undefined) {
