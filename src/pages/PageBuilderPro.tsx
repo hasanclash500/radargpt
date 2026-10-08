@@ -1727,6 +1727,7 @@ export default function PageBuilderPro() {
   const [mediaTarget, setMediaTarget] = useState<MediaTarget>(null);
   const [sidebarTab, setSidebarTab] = useState("widgets");
   const [inspectorTab, setInspectorTab] = useState("content");
+  const [draggedWidgetType, setDraggedWidgetType] = useState("");
   const [htmlImportOpen, setHtmlImportOpen] = useState(false);
   const [htmlImportValue, setHtmlImportValue] = useState("");
   const [cssImportValue, setCssImportValue] = useState("");
@@ -2217,13 +2218,15 @@ export default function PageBuilderPro() {
                     key={item.type}
                     draggable
                     onDragStart={(event) => {
-                      event.dataTransfer.effectAllowed = "copyMove";
+                      setDraggedWidgetType(item.type);
+                      event.dataTransfer.effectAllowed = "copy";
                       event.dataTransfer.setData(
                         "application/x-divsaz-widget",
                         item.type,
                       );
                       event.dataTransfer.setData("text/plain", item.type);
                     }}
+                    onDragEnd={() => setDraggedWidgetType("")}
                     onClick={() => addBlock(item.type)}
                     className="cursor-grab rounded-2xl border border-border/70 bg-background p-3 text-right transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm active:cursor-grabbing"
                   >
@@ -2423,6 +2426,8 @@ export default function PageBuilderPro() {
                   editor={{
                     selectedBlockId,
                     device,
+                    draggedWidgetType,
+                    onDragSessionEnd: () => setDraggedWidgetType(""),
                     onSelectBlock: (blockId) => {
                       setSelectedBlockId(blockId);
                       setInspectorTab("content");
