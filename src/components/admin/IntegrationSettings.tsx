@@ -13,7 +13,7 @@ export default function IntegrationSettings() {
   const status = useQuery(api.integrations.getIntegrationStatus, {});
   const saveSettings = useMutation(api.integrations.saveIntegrationSettings);
   const test = useAction(api.integrations.testIntegrations);
-  const testAi = useAction(api.integrations.testAi);
+  const testAi = useAction(api.integrations.testAiConnection);
 
   const [telegramToken, setTelegramToken] = useState("");
   const [telegramChatId, setTelegramChatId] = useState("");
@@ -89,9 +89,9 @@ export default function IntegrationSettings() {
     try {
       const result = await testAi({});
       if (result?.ok) {
-        toast.success(result.answer || "اتصال هوش مصنوعی برقرار است");
+        toast.success(result.message || "اتصال هوش مصنوعی رایگان برقرار است");
       } else {
-        toast.error(result?.error || "اتصال هوش مصنوعی برقرار نشد");
+        toast.error(result?.message || "اتصال هوش مصنوعی برقرار نشد");
       }
     } catch (error) {
       toast.error(
@@ -145,8 +145,9 @@ export default function IntegrationSettings() {
           </div>
           <p className="mt-2 text-[10px] leading-5 text-muted-foreground">
             مدل پیشنهادی پیش‌فرض: <span dir="ltr">openrouter/free</span>. این Router
-            فقط مدل‌های رایگان OpenRouter را انتخاب می‌کند و برای پاسخ عمومی دستیار
-            استفاده می‌شود.
+            فقط بین مدل‌های رایگان OpenRouter مسیریابی می‌کند. برای ساخت API Key
+            رایگان نیازی به خرید اشتراک نیست؛ بعد از وارد کردن کلید ابتدا «ذخیره
+            تنظیمات اتصال‌ها» و سپس «تست هوش مصنوعی رایگان» را بزن.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Button
