@@ -1,4 +1,5 @@
 import BrandStorySection from "@/components/BrandStorySection";
+import BuilderBlockShell from "@/components/pages/BuilderBlockShell";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import MekaBrand from "@/components/MekaBrand";
 import PublicStoryStrip from "@/components/stories/PublicStoryStrip";
@@ -54,7 +55,13 @@ type SitePage = {
   slug: string;
   seoTitle?: string;
   seoDescription?: string;
+  seoKeywords?: string[];
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
   noIndex?: boolean;
+  settings?: Record<string, any>;
   blocks: PageBlock[];
 };
 
@@ -157,11 +164,16 @@ function PublicHeader() {
 }
 
 function HeroBlock({ props }: { props: Record<string, any> }) {
+  const imageUrl = safeHref(props.imageUrl || "");
+  const hasImage = imageUrl !== "#";
+  const imagePosition = props.imagePosition === "start" ? "start" : "end";
+
   return (
     <section className="relative overflow-hidden border-b border-border/50">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent_38%)]" />
       <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-        <div className="max-w-3xl">
+        <div className={hasImage ? "grid items-center gap-8 md:grid-cols-2" : ""}>
+          <div className={"max-w-3xl " + (hasImage && imagePosition === "start" ? "md:order-2" : "")}>
           {props.eyebrow && (
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-extrabold text-primary">
               <Sparkles className="size-3.5" />{props.eyebrow}
@@ -184,6 +196,23 @@ function HeroBlock({ props }: { props: Record<string, any> }) {
               </Button>
             )}
           </div>
+          </div>
+
+          {hasImage && (
+            <div
+              className={
+                "flex min-h-64 items-center justify-center overflow-hidden rounded-[2rem] bg-muted/50 " +
+                (imagePosition === "start" ? "md:order-1" : "")
+              }
+            >
+              <img
+                src={imageUrl}
+                alt={props.imageAlt || props.title || "تصویر صفحه دیوساز"}
+                className="h-full max-h-[520px] w-full object-contain"
+                loading="eager"
+              />
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -378,15 +407,23 @@ function ContactBlock({ props }: { props: Record<string, any> }) {
 
 function BlockRenderer({ block }: { block: PageBlock }) {
   if (!block.enabled) return null;
-  if (block.type === "hero") return <HeroBlock props={block.props} />;
-  if (block.type === "intentHub") return <IntentHubBlock props={block.props} />;
-  if (block.type === "listings") return <ListingsBlock props={block.props} />;
-  if (block.type === "services") return <ServicesBlock props={block.props} />;
-  if (block.type === "split") return <SplitBlock props={block.props} />;
-  if (block.type === "richText") return <RichTextBlock props={block.props} />;
-  if (block.type === "cta") return <CtaBlock props={block.props} />;
-  if (block.type === "contact") return <ContactBlock props={block.props} />;
-  return null;
+
+  let content: React.ReactNode = null;
+  if (block.type === "hero") content = <HeroBlock props={block.props} />;
+  if (block.type === "intentHub") content = <IntentHubBlock props={block.props} />;
+  if (block.type === "listings") content = <ListingsBlock props={block.props} />;
+  if (block.type === "services") content = <ServicesBlock props={block.props} />;
+  if (block.type === "split") content = <SplitBlock props={block.props} />;
+  if (block.type === "richText") content = <RichTextBlock props={block.props} />;
+  if (block.type === "cta") content = <CtaBlock props={block.props} />;
+  if (block.type === "contact") content = <ContactBlock props={block.props} />;
+  if (!content) return null;
+
+  return (
+    <BuilderBlockShell blockId={block.id} design={block.props?.design}>
+      {content}
+    </BuilderBlockShell>
+  );
 }
 
 export default function SitePageRenderer({
@@ -399,6 +436,11 @@ export default function SitePageRenderer({
   useSeo({
     title: page.seoTitle || page.title,
     description: page.seoDescription || page.title,
+    keywords: page.seoKeywords || [],
+    canonical: page.canonicalUrl || undefined,
+    image: page.ogImage || undefined,
+    ogTitle: page.ogTitle || page.seoTitle || page.title,
+    ogDescription: page.ogDescription || page.seoDescription || page.title,
     type: "website",
     noIndex: page.noIndex,
   } as any);
@@ -408,8 +450,28 @@ export default function SitePageRenderer({
     (block) => block.enabled && block.type === "hero",
   );
 
+  const pageSettings = page.settings || {};
+  const customFontUrl = safeHref(pageSettings.customFontUrl || "");
+  const customFontFamily =
+    String(pageSettings.customFontFamily || "").trim() || "DivosazCustom";
+  const pageStyle = {
+    backgroundColor: pageSettings.backgroundColor || undefined,
+    color: pageSettings.textColor || undefined,
+    fontFamily: customFontUrl !== "#" ? `"${customFontFamily}", Vazirmatn, sans-serif` : undefined,
+    fontSize: pageSettings.baseFontSize
+      ? Math.min(24, Math.max(11, Number(pageSettings.baseFontSize))) + "px"
+      : undefined,
+  } as React.CSSProperties;
+
   return (
-    <main dir="rtl" className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background text-foreground">
+    <main
+      dir="rtl"
+      style={pageStyle}
+      className="responsive-page min-h-screen w-full max-w-[100dvw] overflow-x-clip bg-background text-foreground"
+    >
+      {customFontUrl !== "#" && (
+        <style>{`@font-face{font-family:"${customFontFamily.replace(/["{}]/g, "")}";src:url("${customFontUrl}") format("woff2");font-display:swap;}`}</style>
+      )}
       {!hideHeader && <PublicHeader />}
       {!hideHeader && <PublicStoryStrip />}
       {page.isHomepage && heroIndex < 0 && <BrandStorySection />}
