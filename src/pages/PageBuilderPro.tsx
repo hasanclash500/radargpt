@@ -1598,6 +1598,47 @@ export default function PageBuilderPro() {
     });
   };
 
+  const moveBlockToContainer = (blockId: string, containerId: string) => {
+    setDraft((current) => {
+      const currentBlock = findBlockInTree(current.blocks, blockId);
+      if (!currentBlock) return current;
+      const forbidden = collectBlockIds(currentBlock);
+      if (containerId && forbidden.has(containerId)) {
+        toast.error("نمی‌توان یک کانتینر را داخل خودش یا فرزند خودش قرار داد");
+        return current;
+      }
+
+      const extracted = extractBlockFromTree(current.blocks, blockId);
+      if (!extracted.removed) return current;
+
+      if (!containerId) {
+        return {
+          ...current,
+          blocks: [
+            ...extracted.blocks,
+            { ...extracted.removed, order: extracted.blocks.length },
+          ],
+        };
+      }
+
+      const target = findBlockInTree(extracted.blocks, containerId);
+      if (!target || target.type !== "container") {
+        toast.error("کانتینر مقصد پیدا نشد");
+        return current;
+      }
+
+      return {
+        ...current,
+        blocks: appendBlockToContainer(
+          extracted.blocks,
+          containerId,
+          extracted.removed,
+        ),
+      };
+    });
+    toast.success(containerId ? "بلوک داخل کانتینر منتقل شد" : "بلوک به سطح اصلی صفحه منتقل شد");
+  };
+
   const save = async () => {
     setBusy("save");
     try {
