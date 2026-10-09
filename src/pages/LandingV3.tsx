@@ -348,6 +348,12 @@ export default function LandingV3() {
     if (city !== "همه") params.set("city", city);
     if (propertyType !== "همه") params.set("property", propertyType);
     if (dealType) params.set("deal", dealType);
+    const advancedValues: Record<string, string> = {
+      areaMin, areaMax, priceMin, priceMax, depositMax, rentMax,
+    };
+    for (const [key, value] of Object.entries(advancedValues)) {
+      if (value.trim()) params.set(key, value.trim());
+    }
     navigate("/listings?" + params.toString());
   };
 
