@@ -24,6 +24,7 @@ export default function MapSettings() {
   const [provider, setProvider] = useState<"neshan" | "osm">("neshan");
   const [neshanEnabled, setNeshanEnabled] = useState(true);
   const [osmEnabled, setOsmEnabled] = useState(true);
+  const [showMapCountBadge, setShowMapCountBadge] = useState(false);
   const [keyDraft, setKeyDraft] = useState("");
   const [saving, setSaving] = useState(false);
   const [clearKey, setClearKey] = useState(false);
@@ -33,11 +34,13 @@ export default function MapSettings() {
     setProvider(status.provider === "osm" ? "osm" : "neshan");
     setNeshanEnabled(status.neshanMapEnabled ?? true);
     setOsmEnabled(status.osmMapEnabled ?? true);
+    setShowMapCountBadge(status.showMapCountBadge ?? false);
   }, [
     status?.allowed,
     status?.provider,
     status?.neshanMapEnabled,
     status?.osmMapEnabled,
+    status?.showMapCountBadge,
   ]);
 
   if (!status?.allowed) return null;
@@ -69,6 +72,7 @@ export default function MapSettings() {
         clearNeshanMapKey: clearKey,
         neshanMapEnabled: neshanEnabled,
         osmMapEnabled: osmEnabled,
+        showMapCountBadge,
       });
       setKeyDraft("");
       setClearKey(false);
@@ -263,6 +267,26 @@ export default function MapSettings() {
                 {clearKey ? "حذف کلید هنگام ذخیره" : "حذف کلید"}
               </Button>
             )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border/70 bg-muted/20 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <Label htmlFor="show-map-count-badge" className="text-sm font-extrabold">
+                نمایش تعداد آگهی‌های نقشه
+              </Label>
+              <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                شمارنده آگهی‌ها در بالای لندینگ نقشه‌محور و روی نقشه عمومی نمایش داده شود یا مخفی بماند.
+                این گزینه فقط نمایش عدد را تغییر می‌دهد و آگهی‌ها و فیلترها همچنان فعال هستند.
+              </p>
+            </div>
+            <Switch
+              id="show-map-count-badge"
+              checked={showMapCountBadge}
+              onCheckedChange={setShowMapCountBadge}
+              aria-label="نمایش یا پنهان کردن تعداد آگهی‌های نقشه"
+            />
           </div>
         </div>
 
