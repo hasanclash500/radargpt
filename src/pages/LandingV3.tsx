@@ -12,11 +12,12 @@ import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
 import { formatArea, formatPrice } from "@/lib/format";
 import { usePaginatedQuery, useQuery } from "convex/react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
   Bot,
   Building2,
+  ChevronDown,
   Factory,
   FilePlus2,
   Filter,
@@ -246,6 +247,7 @@ export default function LandingV3() {
   const [depositMax, setDepositMax] = useState("");
   const [rentMax, setRentMax] = useState("");
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const dealType =
     activeIntent === "buy"
@@ -373,6 +375,7 @@ export default function LandingV3() {
   const chooseIntent = (key: IntentKey) => {
     if (key === "buy") {
       setActiveIntent("buy");
+      setFiltersOpen(true);
       window.setTimeout(() => {
         document
           .getElementById("map-filters")
@@ -382,6 +385,7 @@ export default function LandingV3() {
     }
     if (key === "rent") {
       setActiveIntent("rent");
+      setFiltersOpen(true);
       window.setTimeout(() => {
         document
           .getElementById("map-filters")
@@ -489,9 +493,9 @@ export default function LandingV3() {
         <header className="relative z-[1200] mx-auto flex h-16 max-w-[1500px] items-center justify-between gap-2 px-4 sm:px-6">
           <Link
             to="/"
-            className="rounded-2xl border border-white/10 bg-white px-3 py-2 text-slate-950 shadow-xl"
+            className="rounded-2xl border border-border/80 bg-card px-3 py-2 text-foreground shadow-xl ring-1 ring-white/10 transition-colors"
           >
-            <MekaBrand compact />
+            <MekaBrand compact link={false} />
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild size="sm" variant="ghost" className="rounded-xl px-2 text-sm font-bold text-white hover:bg-white/15 hover:text-white">
@@ -545,6 +549,7 @@ export default function LandingV3() {
                   در شهریار و غرب تهران؛ با جستجوی زنده روی نقشه و امکان ارتباط مستقیم.
                 </p>
               </div>
+              {(settings?.showMapCountBadge ?? false) && (
               <div className="flex w-fit items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2">
                 <MapPinned className="size-5 text-sky-300" />
                 <div>
@@ -556,6 +561,7 @@ export default function LandingV3() {
                   </span>
                 </div>
               </div>
+              )}
             </div>
           </motion.div>
 
@@ -567,33 +573,49 @@ export default function LandingV3() {
               transition={{ duration: 0.48 }}
               className="overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white text-slate-950 shadow-[0_20px_60px_rgba(15,23,42,.08)] sm:rounded-[2rem] dark:border-slate-200 dark:bg-white dark:text-slate-950"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-3 py-2.5 sm:px-4">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-3 py-2 sm:px-4">
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen((open) => !open)}
+                  aria-expanded={filtersOpen}
+                  aria-controls="landing-map-filters-panel"
+                  className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-xl p-1 text-right text-slate-950 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-600"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                     <Filter className="size-5" />
                   </span>
-                  <div>
-                    <h2 className="text-lg font-black">فیلترهای زنده نقشه</h2>
-                    <p className="mt-0.5 text-xs text-slate-600">
-                      هر تغییر، مستقیم روی نقاط نقشه اعمال می‌شود.
-                    </p>
-                  </div>
-                </div>
-    
+                  <span className="min-w-0 flex-1">
+                    <strong className="block text-base font-black sm:text-lg">فیلترهای زنده نقشه</strong>
+                    <span className="mt-0.5 block text-xs leading-5 text-slate-600">
+                      {filtersOpen ? "برای بستن فیلترها لمس کنید" : hasFilters ? "فیلتر فعال است · برای تغییر لمس کنید" : "برای باز کردن فیلترها لمس کنید"}
+                    </span>
+                  </span>
+                  <ChevronDown className={"size-5 shrink-0 text-blue-700 transition-transform duration-200 " + (filtersOpen ? "rotate-180" : "")} />
+                </button>
                 {hasFilters && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     onClick={resetFilters}
-                    className="gap-2 rounded-xl text-slate-900 hover:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-100"
+                    className="h-10 shrink-0 gap-1 rounded-xl px-2 text-xs font-extrabold text-slate-900 hover:bg-slate-100 dark:text-slate-900"
                   >
                     <RotateCcw className="size-4" />
-                    پاک کردن فیلترها
+                    پاک کردن
                   </Button>
                 )}
               </div>
-    
+
+              <AnimatePresence initial={false}>
+                {filtersOpen && (
+                  <motion.div
+                    id="landing-map-filters-panel"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
               <form onSubmit={submitSearch} className="p-3 sm:p-4">
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-[1.4fr_.8fr_.8fr_auto]">
                   <label className="relative col-span-2 lg:col-span-1">
@@ -721,6 +743,7 @@ export default function LandingV3() {
                 )}
     
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-100 px-3 py-3 text-slate-950">
+                  {(settings?.showMapCountBadge ?? false) && (
                   <div className="flex items-center gap-2 text-xs">
                     <Layers3 className="size-4 text-blue-600" />
                     <strong>{visiblePoints.length.toLocaleString("fa-IR")}</strong>
@@ -728,12 +751,16 @@ export default function LandingV3() {
                       فایل روی نقشه با فیلتر فعلی
                     </span>
                   </div>
+                  )}
                   <Button type="submit" className="gap-2 rounded-xl bg-[#082f54] text-white hover:bg-[#0b416f] dark:bg-[#082f54] dark:text-white">
                     مشاهده همین فیلتر در صفحه آگهی‌ها
                     <ArrowLeft className="size-4" />
                   </Button>
                 </div>
               </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </section>
 
@@ -985,7 +1012,7 @@ export default function LandingV3() {
         <div className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 sm:pb-12 sm:pt-12">
           <div className="grid gap-9 sm:grid-cols-2 lg:grid-cols-4">
             <div className="sm:col-span-2 lg:col-span-1">
-              <div className="inline-flex items-center rounded-2xl bg-white px-3 py-2 text-slate-900">
+              <div className="inline-flex items-center rounded-2xl border border-border/70 bg-card px-3 py-2 text-foreground shadow-sm">
                 <MekaBrand compact />
               </div>
               <h2 className="mt-4 text-base font-black text-white">{settings?.officeName || "دیوساز"}</h2>
