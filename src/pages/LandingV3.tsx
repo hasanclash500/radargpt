@@ -3,6 +3,7 @@ import ListingMapExplorer, {
   type ListingMapBounds,
   type ListingMapItem,
 } from "@/components/listings/ListingMapExplorer";
+import ResizableMapPanel from "@/components/listings/ResizableMapPanel";
 import MekaBrand from "@/components/MekaBrand";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -497,14 +498,193 @@ export default function LandingV3() {
             </div>
           </motion.div>
 
+          <section id="map-filters" className="mx-auto max-w-7xl px-3 pb-3 sm:px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.48 }}
+              className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,.08)] dark:border-white/10 dark:bg-white/[.045]"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 px-3 py-2.5 sm:px-4 dark:border-white/10">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
+                    <Filter className="size-5" />
+                  </span>
+                  <div>
+                    <h2 className="text-lg font-black">فیلترهای زنده نقشه</h2>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      هر تغییر، مستقیم روی نقاط نقشه اعمال می‌شود.
+                    </p>
+                  </div>
+                </div>
+    
+                {hasFilters && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetFilters}
+                    className="gap-2 rounded-xl"
+                  >
+                    <RotateCcw className="size-4" />
+                    پاک کردن فیلترها
+                  </Button>
+                )}
+              </div>
+    
+              <form onSubmit={submitSearch} className="p-3 sm:p-4">
+                <div className="grid gap-3 lg:grid-cols-[1.4fr_.8fr_.8fr_auto]">
+                  <label className="relative">
+                    <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                      placeholder="مثلاً سوله ۱۰۰۰ متر یا نام منطقه"
+                      className="h-12 rounded-xl border-slate-300 bg-background pe-3 ps-10 text-sm font-bold shadow-none dark:border-white/10"
+                    />
+                  </label>
+    
+                  <select
+                    value={city}
+                    onChange={(event) => setCity(event.target.value)}
+                    className="h-12 rounded-xl border border-slate-300 bg-background px-3 text-sm font-bold dark:border-white/10"
+                  >
+                    <option value="همه">همه شهرها</option>
+                    {cities.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+    
+                  <select
+                    value={propertyType}
+                    onChange={(event) => setPropertyType(event.target.value)}
+                    className="h-12 rounded-xl border border-slate-300 bg-background px-3 text-sm font-bold dark:border-white/10"
+                  >
+                    <option value="همه">همه نوع ملک‌ها</option>
+                    {propertyTypes.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+    
+                  <Button
+                    type="button"
+                    variant={advancedOpen ? "default" : "outline"}
+                    className="h-12 gap-2 rounded-2xl"
+                    onClick={() => setAdvancedOpen((value) => !value)}
+                  >
+                    <SlidersHorizontal className="size-4" />
+                    فیلتر بیشتر
+                  </Button>
+                </div>
+    
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[
+                    ["all", "همه فایل‌ها"],
+                    ["buy", "فروش"],
+                    ["rent", "رهن و اجاره"],
+                  ].map(([value, label]) => (
+                    <button
+                      type="button"
+                      key={value}
+                      onClick={() => setActiveIntent(value as "all" | "buy" | "rent")}
+                      className={
+                        "rounded-full border px-4 py-2 text-xs font-black transition-all " +
+                        (activeIntent === value
+                          ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
+                          : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300")
+                      }
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+    
+                {advancedOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="mt-4 grid gap-3 border-t border-slate-200/70 pt-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-white/10"
+                  >
+                    <Input
+                      value={areaMin}
+                      onChange={(event) => setAreaMin(event.target.value)}
+                      placeholder="حداقل متراژ"
+                      inputMode="numeric"
+                      className="h-11 rounded-xl"
+                    />
+                    <Input
+                      value={areaMax}
+                      onChange={(event) => setAreaMax(event.target.value)}
+                      placeholder="حداکثر متراژ"
+                      inputMode="numeric"
+                      className="h-11 rounded-xl"
+                    />
+    
+                    {activeIntent === "rent" ? (
+                      <>
+                        <Input
+                          value={depositMax}
+                          onChange={(event) => setDepositMax(event.target.value)}
+                          placeholder="حداکثر ودیعه (میلیون)"
+                          className="h-11 rounded-xl"
+                        />
+                        <Input
+                          value={rentMax}
+                          onChange={(event) => setRentMax(event.target.value)}
+                          placeholder="حداکثر اجاره (میلیون)"
+                          className="h-11 rounded-xl"
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Input
+                          value={priceMin}
+                          onChange={(event) => setPriceMin(event.target.value)}
+                          placeholder="حداقل قیمت (میلیون)"
+                          className="h-11 rounded-xl"
+                        />
+                        <Input
+                          value={priceMax}
+                          onChange={(event) => setPriceMax(event.target.value)}
+                          placeholder="حداکثر قیمت (میلیون)"
+                          className="h-11 rounded-xl"
+                        />
+                      </>
+                    )}
+                  </motion.div>
+                )}
+    
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+                  <div className="flex items-center gap-2 text-xs">
+                    <Layers3 className="size-4 text-blue-600" />
+                    <strong>{visiblePoints.length.toLocaleString("fa-IR")}</strong>
+                    <span className="text-slate-500 dark:text-slate-400">
+                      فایل روی نقشه با فیلتر فعلی
+                    </span>
+                  </div>
+                  <Button type="submit" className="gap-2 rounded-xl">
+                    مشاهده همین فیلتر در صفحه آگهی‌ها
+                    <ArrowLeft className="size-4" />
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </section>
+
           <motion.div
             initial={{ opacity: 0, scale: 0.985 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.08 }}
             className="relative sm:overflow-hidden sm:rounded-[2rem] sm:border sm:border-white/10 sm:bg-white/5 sm:p-2 sm:shadow-[0_35px_90px_rgba(0,0,0,.35)]"
           >
-            <ListingMapExplorer
-              points={visiblePoints}
+            <ResizableMapPanel className="border-white/20">
+              <ListingMapExplorer
+                points={visiblePoints}
               loading={publicMapListings === undefined}
               truncated={Boolean(publicMapListings?.truncated)}
               mode="public"
@@ -512,7 +692,8 @@ export default function LandingV3() {
               onOpenListing={(point) => {
                 if (point.slug) navigate("/listings/" + point.slug);
               }}
-            />
+              />
+            </ResizableMapPanel>
           </motion.div>
         </div>
       </section>
@@ -587,183 +768,7 @@ export default function LandingV3() {
         </div>
       </section>
 
-      <section id="map-filters" className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.48 }}
-          className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,.08)] dark:border-white/10 dark:bg-white/[.045]"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 px-4 py-4 sm:px-6 dark:border-white/10">
-            <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-                <Filter className="size-5" />
-              </span>
-              <div>
-                <h2 className="text-lg font-black">فیلترهای زنده نقشه</h2>
-                <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
-                  هر تغییر، مستقیم روی نقاط نقشه اعمال می‌شود.
-                </p>
-              </div>
-            </div>
 
-            {hasFilters && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={resetFilters}
-                className="gap-2 rounded-xl"
-              >
-                <RotateCcw className="size-4" />
-                پاک کردن فیلترها
-              </Button>
-            )}
-          </div>
-
-          <form onSubmit={submitSearch} className="p-4 sm:p-6">
-            <div className="grid gap-3 lg:grid-cols-[1.4fr_.8fr_.8fr_auto]">
-              <label className="relative">
-                <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="مثلاً سوله ۱۰۰۰ متر یا نام منطقه"
-                  className="h-12 rounded-2xl border-slate-200 pe-3 ps-10 shadow-none dark:border-white/10"
-                />
-              </label>
-
-              <select
-                value={city}
-                onChange={(event) => setCity(event.target.value)}
-                className="h-12 rounded-2xl border border-slate-200 bg-background px-3 text-xs font-bold dark:border-white/10"
-              >
-                <option value="همه">همه شهرها</option>
-                {cities.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={propertyType}
-                onChange={(event) => setPropertyType(event.target.value)}
-                className="h-12 rounded-2xl border border-slate-200 bg-background px-3 text-xs font-bold dark:border-white/10"
-              >
-                <option value="همه">همه نوع ملک‌ها</option>
-                {propertyTypes.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-
-              <Button
-                type="button"
-                variant={advancedOpen ? "default" : "outline"}
-                className="h-12 gap-2 rounded-2xl"
-                onClick={() => setAdvancedOpen((value) => !value)}
-              >
-                <SlidersHorizontal className="size-4" />
-                فیلتر بیشتر
-              </Button>
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              {[
-                ["all", "همه فایل‌ها"],
-                ["buy", "فروش"],
-                ["rent", "رهن و اجاره"],
-              ].map(([value, label]) => (
-                <button
-                  type="button"
-                  key={value}
-                  onClick={() => setActiveIntent(value as "all" | "buy" | "rent")}
-                  className={
-                    "rounded-full border px-4 py-2 text-[10px] font-black transition-all " +
-                    (activeIntent === value
-                      ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
-                      : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300")
-                  }
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {advancedOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="mt-4 grid gap-3 border-t border-slate-200/70 pt-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-white/10"
-              >
-                <Input
-                  value={areaMin}
-                  onChange={(event) => setAreaMin(event.target.value)}
-                  placeholder="حداقل متراژ"
-                  inputMode="numeric"
-                  className="h-11 rounded-xl"
-                />
-                <Input
-                  value={areaMax}
-                  onChange={(event) => setAreaMax(event.target.value)}
-                  placeholder="حداکثر متراژ"
-                  inputMode="numeric"
-                  className="h-11 rounded-xl"
-                />
-
-                {activeIntent === "rent" ? (
-                  <>
-                    <Input
-                      value={depositMax}
-                      onChange={(event) => setDepositMax(event.target.value)}
-                      placeholder="حداکثر ودیعه (میلیون)"
-                      className="h-11 rounded-xl"
-                    />
-                    <Input
-                      value={rentMax}
-                      onChange={(event) => setRentMax(event.target.value)}
-                      placeholder="حداکثر اجاره (میلیون)"
-                      className="h-11 rounded-xl"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Input
-                      value={priceMin}
-                      onChange={(event) => setPriceMin(event.target.value)}
-                      placeholder="حداقل قیمت (میلیون)"
-                      className="h-11 rounded-xl"
-                    />
-                    <Input
-                      value={priceMax}
-                      onChange={(event) => setPriceMax(event.target.value)}
-                      placeholder="حداکثر قیمت (میلیون)"
-                      className="h-11 rounded-xl"
-                    />
-                  </>
-                )}
-              </motion.div>
-            )}
-
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-white/5">
-              <div className="flex items-center gap-2 text-xs">
-                <Layers3 className="size-4 text-blue-600" />
-                <strong>{visiblePoints.length.toLocaleString("fa-IR")}</strong>
-                <span className="text-slate-500 dark:text-slate-400">
-                  فایل روی نقشه با فیلتر فعلی
-                </span>
-              </div>
-              <Button type="submit" className="gap-2 rounded-xl">
-                مشاهده همین فیلتر در صفحه آگهی‌ها
-                <ArrowLeft className="size-4" />
-              </Button>
-            </div>
-          </form>
-        </motion.div>
-      </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
         <div className="grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
