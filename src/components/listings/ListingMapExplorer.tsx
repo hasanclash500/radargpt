@@ -594,7 +594,7 @@ export default function ListingMapExplorer({
               type="button"
               size="sm"
               variant="outline"
-              className="h-11 shrink-0 gap-2 rounded-2xl border-2 border-primary/70 bg-background/95 px-4 text-xs font-black shadow-lg backdrop-blur"
+              className="h-11 shrink-0 gap-2 rounded-2xl border-2 border-white bg-[#082f54] px-3 text-xs font-black text-white shadow-lg hover:bg-[#0b416f] hover:text-white sm:px-4"
               onClick={fitAllPoints}
             >
               <Focus className="size-4" />
@@ -603,7 +603,7 @@ export default function ListingMapExplorer({
             <Button
               type="button"
               size="sm"
-              className="h-11 shrink-0 gap-2 rounded-2xl px-4 text-xs font-black shadow-lg"
+              className="h-11 shrink-0 gap-2 rounded-2xl bg-white px-3 text-xs font-black text-[#082f54] shadow-lg hover:bg-slate-100 sm:px-4"
               onClick={useMyLocation}
             >
               <LocateFixed className="size-4" />
@@ -616,7 +616,7 @@ export default function ListingMapExplorer({
           <button
             type="button"
             onClick={() => setMobileMapInteractive((enabled) => !enabled)}
-            className="absolute bottom-3 end-3 z-[1000] inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-background/95 px-3 py-2 text-xs font-black text-foreground shadow-lg sm:hidden"
+            className="absolute bottom-14 end-3 z-[1000] inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/80 bg-[#082f54] px-3 py-2 text-xs font-black text-white shadow-lg sm:hidden"
             aria-pressed={mobileMapInteractive}
           >
             <Hand className="size-4" />
@@ -628,7 +628,7 @@ export default function ListingMapExplorer({
           <div
             className={
               "pointer-events-none absolute inset-x-0 mx-auto w-fit rounded-full border border-border/70 bg-background/95 px-3 py-1.5 text-[11px] font-bold shadow-sm backdrop-blur " +
-              (mode === "public" ? "top-16 z-[1000]" : "top-3")
+              (mode === "public" ? "top-16 z-[1000] text-foreground" : "top-3")
             }
           >
             در حال دریافت آگهی‌های این محدوده…
@@ -639,7 +639,7 @@ export default function ListingMapExplorer({
           <div
             className={
               "pointer-events-none absolute inset-x-4 mx-auto max-w-sm rounded-2xl border border-border/70 bg-background/95 px-4 py-3 text-center text-xs leading-6 shadow-lg backdrop-blur " +
-              (mode === "public" ? "top-16 z-[1000]" : "top-4")
+              (mode === "public" ? "top-16 z-[1000] text-foreground" : "top-4")
             }
           >
             در این محدوده آگهی دارای لوکیشن پیدا نشد. نقشه را جابه‌جا یا کوچک
@@ -650,7 +650,7 @@ export default function ListingMapExplorer({
         {truncated && (
           <div
             className={
-              "absolute start-3 end-3 rounded-xl border border-amber-500/30 bg-background/95 px-3 py-2 text-[10px] leading-5 text-amber-700 shadow-sm backdrop-blur dark:text-amber-300 sm:end-auto sm:max-w-sm " +
+              "absolute start-3 end-3 rounded-xl border border-amber-500/40 bg-white px-3 py-2 text-xs font-bold leading-5 text-amber-900 shadow-lg sm:end-auto sm:max-w-sm " +
               (mode === "public" ? "top-28 z-[1000]" : "bottom-3")
             }
           >
@@ -673,9 +673,9 @@ export default function ListingMapExplorer({
         {mode === "public" && activePoint && (
           <article
             aria-live="polite"
-            className="absolute inset-x-2 bottom-2 z-[1100] mx-auto max-w-xl overflow-hidden rounded-[1.6rem] border border-border/80 bg-background shadow-[0_18px_48px_rgba(15,23,42,0.32)] sm:inset-x-4 sm:bottom-4"
+            className="absolute inset-x-2 bottom-2 z-[1100] mx-auto max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-[0_18px_48px_rgba(15,23,42,0.32)] sm:inset-x-4 sm:bottom-4 sm:rounded-[1.6rem]"
           >
-            <div className="relative flex h-[225px] items-center justify-center overflow-hidden bg-muted/70 sm:h-[250px]">
+            <div className="relative flex h-[100px] items-center justify-center overflow-hidden bg-slate-100 sm:h-[250px]">
               {selectedPublicImage?.url ? (
                 <img
                   src={selectedPublicImage.url}
@@ -730,11 +730,11 @@ export default function ListingMapExplorer({
             <button
               type="button"
               onClick={() => onOpenListing(activePoint)}
-              className="block w-full p-4 text-right sm:p-5"
+              className="block w-full p-3 text-right sm:p-5"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <strong className="block text-2xl font-black leading-8">
+                  <strong className="block text-lg font-black leading-7 text-slate-950 sm:text-2xl sm:leading-8">
                     {activePoint.rentMillion != null && activePoint.rentMillion > 0
                       ? `اجاره ${formatPrice(activePoint.rentMillion)}`
                       : activePoint.priceMillion != null && activePoint.priceMillion > 0
@@ -757,7 +757,7 @@ export default function ListingMapExplorer({
                 </span>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-slate-700 sm:mt-3 sm:text-sm">
                 {selectedPublicListing?.rooms != null && (
                   <span>
                     {selectedPublicListing.rooms === 0
@@ -777,11 +777,11 @@ export default function ListingMapExplorer({
                 )}
               </div>
 
-              <h3 className="mt-2 line-clamp-1 text-sm font-black leading-6">
+              <h3 className="mt-1 line-clamp-2 text-sm font-black leading-6 text-slate-900">
                 {activePoint.title}
               </h3>
 
-              <p className="mt-1 flex items-start gap-1.5 text-xs leading-6 text-muted-foreground">
+              <p className="mt-1 flex items-start gap-1.5 text-xs leading-6 text-slate-600">
                 <MapPin className="mt-1 size-3.5 shrink-0 text-primary" />
                 {[activePoint.city, activePoint.neighborhood]
                   .filter(Boolean)
@@ -792,7 +792,7 @@ export default function ListingMapExplorer({
         )}
 
         {mode === "public" && !activePoint && !loading && points.length > 0 && (
-          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[1000] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-border/70 bg-background/95 px-4 py-2 text-center text-[11px] font-bold shadow-lg backdrop-blur">
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[1000] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-white/80 bg-[#082f54] px-3 py-2 text-center text-xs font-extrabold text-white shadow-lg sm:px-4">
             {faNum(points.length)} آگهی در این محدوده · یکی از نشانگرها را لمس کنید
           </div>
         )}
