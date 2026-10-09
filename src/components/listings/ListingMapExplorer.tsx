@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Focus,
   ImageOff,
+  Hand,
   LocateFixed,
   Map as MapIcon,
   MapPin,
@@ -214,6 +215,7 @@ export default function ListingMapExplorer({
   const fittedRef = useRef(false);
   const [readyVersion, setReadyVersion] = useState(0);
   const [loadError, setLoadError] = useState("");
+  const [mobileMapInteractive, setMobileMapInteractive] = useState(false);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<ListingMapItem | null>(null);
 
@@ -294,6 +296,15 @@ export default function ListingMapExplorer({
           });
         };
 
+        // A public map must not hijack wheel-scroll or one-finger page scrolling.
+        if (mode === "public") {
+          map.scrollWheelZoom?.disable?.();
+          if (window.matchMedia("(pointer: coarse)").matches) {
+            map.dragging?.disable?.();
+            map.touchZoom?.disable?.();
+          }
+        }
+
         map.on("moveend", emitBounds);
         mapRef.current = map;
         setReadyVersion((value) => value + 1);
@@ -319,6 +330,38 @@ export default function ListingMapExplorer({
       layerRef.current = null;
     };
   }, [effectiveProvider, configuredKey, mapAvailable, mode]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || mode !== "public") return;
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    if (!coarse) return;
+    if (mobileMapInteractive) {
+      map.dragging?.enable?.();
+      map.touchZoom?.enable?.();
+    } else {
+      map.dragging?.disable?.();
+      map.touchZoom?.disable?.();
+    }
+  }, [mobileMapInteractive, readyVersion, mode]);
+
+  // Leaflet does not automatically track its container's height changes.
+  // Keep the tiles, viewport bounds and markers in sync with curtain dragging.
+  useEffect(() => {
+    if (mode !== "public" || !containerRef.current) return;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() =>
+        mapRef.current?.invalidateSize({ pan: false, debounceMoveend: true }),
+      );
+    });
+    observer.observe(containerRef.current);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [mode, readyVersion]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -470,7 +513,7 @@ export default function ListingMapExplorer({
       className={
         "overflow-hidden bg-card shadow-sm " +
         (mode === "public"
-          ? "rounded-none border-y border-border/70 sm:rounded-3xl sm:border"
+          ? "h-full rounded-none border-0"
           : "rounded-3xl border border-border/70")
       }
     >
@@ -534,12 +577,13 @@ export default function ListingMapExplorer({
         </div>
       )}
 
-      <div className="relative">
+      <div className={mode === "public" ? "relative h-full" : "relative"}>
         <div
           ref={containerRef}
+          style={mode === "public" && !mobileMapInteractive ? { touchAction: "pan-y" } : undefined}
           className={
             mode === "public"
-              ? "h-[calc(100dvh-8.75rem)] min-h-[610px] w-full bg-muted sm:h-[72vh] lg:h-[76vh] [&_.leaflet-control-attribution]:!text-[8px] [&_.leaflet-control-attribution]:!leading-3"
+              ? "h-full min-h-0 w-full bg-muted [&_.leaflet-control-attribution]:!text-[8px] [&_.leaflet-control-attribution]:!leading-3"
               : "h-[56dvh] min-h-[360px] w-full bg-muted sm:h-[62vh] lg:h-[66vh]"
           }
         />
@@ -566,6 +610,18 @@ export default function ListingMapExplorer({
               مرکز من
             </Button>
           </div>
+        )}
+
+        {mode === "public" && (
+          <button
+            type="button"
+            onClick={() => setMobileMapInteractive((enabled) => !enabled)}
+            className="absolute bottom-3 end-3 z-[1000] inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-background/95 px-3 py-2 text-xs font-black text-foreground shadow-lg sm:hidden"
+            aria-pressed={mobileMapInteractive}
+          >
+            <Hand className="size-4" />
+            {mobileMapInteractive ? "پایان حرکت نقشه" : "فعال‌کردن حرکت نقشه"}
+          </button>
         )}
 
         {loading && (
