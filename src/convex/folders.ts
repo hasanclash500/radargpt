@@ -96,6 +96,7 @@ export const getSettings = query({
       shareFooter: settings?.shareFooter ?? "",
       siteTheme: settings?.siteTheme ?? "light",
       homepageVariant: settings?.homepageVariant ?? "classic",
+      showMapCountBadge: settings?.showMapCountBadge ?? false,
       enabledModules: settings?.enabledModules ?? [],
       customCities: settings?.customCities ?? [],
       customDeals: settings?.customDeals ?? [],
@@ -154,6 +155,7 @@ export const getMapSettings = query({
       neshanConfigured: Boolean(settings?.neshanMapKey?.trim()),
       neshanMapEnabled: settings?.neshanMapEnabled ?? true,
       osmMapEnabled: settings?.osmMapEnabled ?? true,
+      showMapCountBadge: settings?.showMapCountBadge ?? false,
     };
   },
 });
@@ -170,6 +172,7 @@ export const getMapAdminSettings = query({
         neshanConfigured: false,
         neshanMapEnabled: true,
         osmMapEnabled: true,
+        showMapCountBadge: false,
         keyHint: "",
       };
     }
@@ -186,6 +189,7 @@ export const getMapAdminSettings = query({
       neshanConfigured: Boolean(key),
       neshanMapEnabled: settings?.neshanMapEnabled ?? true,
       osmMapEnabled: settings?.osmMapEnabled ?? true,
+      showMapCountBadge: settings?.showMapCountBadge ?? false,
       keyHint: key ? `${key.slice(0, 7)}••••${key.slice(-4)}` : "",
     };
   },
@@ -199,6 +203,7 @@ export const updateMapSettings = mutation({
     clearNeshanMapKey: v.boolean(),
     neshanMapEnabled: v.boolean(),
     osmMapEnabled: v.boolean(),
+    showMapCountBadge: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const current = await currentRole(ctx);
@@ -235,6 +240,9 @@ export const updateMapSettings = mutation({
       neshanMapKey,
       neshanMapEnabled: args.neshanMapEnabled,
       osmMapEnabled: args.osmMapEnabled,
+      ...(args.showMapCountBadge !== undefined
+        ? { showMapCountBadge: args.showMapCountBadge }
+        : {}),
       updatedAt: Date.now(),
     };
 
