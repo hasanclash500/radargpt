@@ -554,14 +554,14 @@ export default function LandingV3() {
               transition={{ duration: 0.48 }}
               className="overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white text-slate-950 shadow-[0_20px_60px_rgba(15,23,42,.08)] sm:rounded-[2rem] dark:border-slate-200 dark:bg-white dark:text-slate-950"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 px-3 py-2.5 sm:px-4 dark:border-white/10">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-3 py-2.5 sm:px-4">
                 <div className="flex items-center gap-3">
                   <span className="flex size-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
                     <Filter className="size-5" />
                   </span>
                   <div>
                     <h2 className="text-lg font-black">فیلترهای زنده نقشه</h2>
-                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="mt-0.5 text-xs text-slate-600">
                       هر تغییر، مستقیم روی نقاط نقشه اعمال می‌شود.
                     </p>
                   </div>
@@ -573,7 +573,7 @@ export default function LandingV3() {
                     variant="ghost"
                     size="sm"
                     onClick={resetFilters}
-                    className="gap-2 rounded-xl"
+                    className="gap-2 rounded-xl text-slate-900 hover:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-100"
                   >
                     <RotateCcw className="size-4" />
                     پاک کردن فیلترها
@@ -622,7 +622,7 @@ export default function LandingV3() {
                   <Button
                     type="button"
                     variant={advancedOpen ? "default" : "outline"}
-                    className="col-span-2 h-12 gap-2 rounded-xl font-extrabold lg:col-span-1"
+                    className={"col-span-2 h-12 gap-2 rounded-xl font-extrabold lg:col-span-1 " + (advancedOpen ? "bg-blue-700 text-white hover:bg-blue-800 dark:bg-blue-700 dark:text-white" : "bg-slate-100 text-slate-950 hover:bg-slate-200 dark:bg-slate-100 dark:text-slate-950")}
                     onClick={() => setAdvancedOpen((value) => !value)}
                   >
                     <SlidersHorizontal className="size-4" />
@@ -643,8 +643,8 @@ export default function LandingV3() {
                       className={
                         "rounded-full border px-4 py-2 text-xs font-black transition-all " +
                         (activeIntent === value
-                          ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
-                          : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300")
+                          ? "border-slate-950 bg-slate-950 text-white dark:border-slate-950 dark:bg-slate-950 dark:text-white"
+                          : "border-slate-300 bg-slate-50 text-slate-700 hover:border-blue-300 dark:border-slate-300 dark:bg-slate-50 dark:text-slate-700")
                       }
                     >
                       {label}
@@ -656,21 +656,21 @@ export default function LandingV3() {
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
-                    className="mt-4 grid gap-3 border-t border-slate-200/70 pt-4 sm:grid-cols-2 lg:grid-cols-4 dark:border-white/10"
+                    className="mt-4 grid grid-cols-2 gap-3 border-t border-slate-200 pt-4 lg:grid-cols-4"
                   >
                     <Input
                       value={areaMin}
                       onChange={(event) => setAreaMin(event.target.value)}
                       placeholder="حداقل متراژ"
                       inputMode="numeric"
-                      className="h-11 rounded-xl"
+                      className="h-11 min-w-0 rounded-xl border-slate-300 bg-white text-sm text-slate-950 placeholder:text-slate-500 dark:bg-white dark:text-slate-950 dark:placeholder:text-slate-500"
                     />
                     <Input
                       value={areaMax}
                       onChange={(event) => setAreaMax(event.target.value)}
                       placeholder="حداکثر متراژ"
                       inputMode="numeric"
-                      className="h-11 rounded-xl"
+                      className="h-11 min-w-0 rounded-xl border-slate-300 bg-white text-sm text-slate-950 placeholder:text-slate-500 dark:bg-white dark:text-slate-950 dark:placeholder:text-slate-500"
                     />
     
                     {activeIntent === "rent" ? (
@@ -679,13 +679,13 @@ export default function LandingV3() {
                           value={depositMax}
                           onChange={(event) => setDepositMax(event.target.value)}
                           placeholder="حداکثر ودیعه (میلیون)"
-                          className="h-11 rounded-xl"
+                          className="h-11 min-w-0 rounded-xl border-slate-300 bg-white text-sm text-slate-950 placeholder:text-slate-500 dark:bg-white dark:text-slate-950 dark:placeholder:text-slate-500"
                         />
                         <Input
                           value={rentMax}
                           onChange={(event) => setRentMax(event.target.value)}
                           placeholder="حداکثر اجاره (میلیون)"
-                          className="h-11 rounded-xl"
+                          className="h-11 min-w-0 rounded-xl border-slate-300 bg-white text-sm text-slate-950 placeholder:text-slate-500 dark:bg-white dark:text-slate-950 dark:placeholder:text-slate-500"
                         />
                       </>
                     ) : (
@@ -694,13 +694,13 @@ export default function LandingV3() {
                           value={priceMin}
                           onChange={(event) => setPriceMin(event.target.value)}
                           placeholder="حداقل قیمت (میلیون)"
-                          className="h-11 rounded-xl"
+                          className="h-11 min-w-0 rounded-xl border-slate-300 bg-white text-sm text-slate-950 placeholder:text-slate-500 dark:bg-white dark:text-slate-950 dark:placeholder:text-slate-500"
                         />
                         <Input
                           value={priceMax}
                           onChange={(event) => setPriceMax(event.target.value)}
                           placeholder="حداکثر قیمت (میلیون)"
-                          className="h-11 rounded-xl"
+                          className="h-11 min-w-0 rounded-xl border-slate-300 bg-white text-sm text-slate-950 placeholder:text-slate-500 dark:bg-white dark:text-slate-950 dark:placeholder:text-slate-500"
                         />
                       </>
                     )}
@@ -711,11 +711,11 @@ export default function LandingV3() {
                   <div className="flex items-center gap-2 text-xs">
                     <Layers3 className="size-4 text-blue-600" />
                     <strong>{visiblePoints.length.toLocaleString("fa-IR")}</strong>
-                    <span className="text-slate-500 dark:text-slate-400">
+                    <span className="text-slate-600">
                       فایل روی نقشه با فیلتر فعلی
                     </span>
                   </div>
-                  <Button type="submit" className="gap-2 rounded-xl">
+                  <Button type="submit" className="gap-2 rounded-xl bg-[#082f54] text-white hover:bg-[#0b416f] dark:bg-[#082f54] dark:text-white">
                     مشاهده همین فیلتر در صفحه آگهی‌ها
                     <ArrowLeft className="size-4" />
                   </Button>
