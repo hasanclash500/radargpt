@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
 import { formatArea, formatPrice } from "@/lib/format";
-import { useQuery } from "convex/react";
+import { usePaginatedQuery, useQuery } from "convex/react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -214,6 +214,19 @@ function MobileNav() {
 export default function LandingV3() {
   const settings = useQuery(api.folders.getSettings, {});
   const featured = useQuery(api.listings.listFeaturedPublic);
+  const { results: newestPublic } = usePaginatedQuery(
+    api.listings.listPublicPaged,
+    {},
+    { initialNumItems: 9 },
+  );
+  const visibleListingCards = useMemo(() => {
+    const unique = new Map<string, any>();
+    for (const item of [...(featured ?? []), ...newestPublic]) {
+      if (item.slug && !unique.has(item.slug)) unique.set(item.slug, item);
+      if (unique.size >= 6) break;
+    }
+    return Array.from(unique.values());
+  }, [featured, newestPublic]);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -895,7 +908,7 @@ export default function LandingV3() {
             <span className="text-[10px] font-black uppercase tracking-[.22em] text-blue-600">
               فایل‌های منتخب
             </span>
-            <h2 className="mt-1 text-2xl font-black">چند پیشنهاد از دیوساز</h2>
+            <h2 className="mt-1 text-2xl font-black">آگهی‌های منتخب و تازه دیوساز</h2>
           </div>
           <Button asChild variant="ghost" size="sm" className="gap-1">
             <Link to="/listings">
@@ -905,15 +918,15 @@ export default function LandingV3() {
           </Button>
         </div>
 
-        {featured?.length ? (
+        {visibleListingCards.length ? (
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.slice(0, 6).map((item: any) => (
+            {visibleListingCards.map((item: any) => (
               <MiniListingCard key={item.slug} item={item} />
             ))}
           </div>
         ) : (
           <div className="mt-5 rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-8 text-center text-xs text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
-            هنوز آگهی ویژه‌ای برای این بخش انتخاب نشده است.
+            هنوز آگهی عمومی برای نمایش در این بخش وجود ندارد.
           </div>
         )}
       </section>
