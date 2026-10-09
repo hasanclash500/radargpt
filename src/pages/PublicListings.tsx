@@ -1,6 +1,7 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
 import FavoriteButton from "@/components/listings/FavoriteButton";
 import ListingPlaceholder from "@/components/listings/ListingPlaceholder";
+import ResizableMapPanel from "@/components/listings/ResizableMapPanel";
 import ListingMapExplorer, {
   DEFAULT_LISTING_MAP_BOUNDS,
   type ListingMapBounds,
@@ -425,7 +426,7 @@ export default function PublicListings() {
             <button
               type="button"
               onClick={() => setAdvancedOpen((value) => !value)}
-              className={"inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border px-4 text-xs font-extrabold transition-colors " + (
+              className={"inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-extrabold transition-colors " + (
                 advancedOpen || activeCount > 0
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border bg-card text-foreground"
@@ -540,7 +541,8 @@ export default function PublicListings() {
 
         {displayMode === "map" ? (
           <div>
-            <ListingMapExplorer
+            <ResizableMapPanel>
+              <ListingMapExplorer
               mode="public"
               points={visibleMapPoints}
               loading={publicMapListings === undefined}
@@ -549,7 +551,60 @@ export default function PublicListings() {
               onOpenListing={(point) => {
                 if (point.slug) navigate("/listings/" + point.slug);
               }}
-            />
+              />
+            </ResizableMapPanel>
+
+            <div className="px-3 pb-7 pt-5 sm:px-0">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-lg font-black text-foreground">آگهی‌ها و نتایج همین فیلتر</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {filtered.length.toLocaleString("fa-IR")} آگهی در فهرست · برای دیدن آگهی‌ها نقشه را جمع کنید.
+                  </p>
+                </div>
+                <Button type="button" variant="outline" className="rounded-xl text-xs font-black" onClick={() => setDisplayMode("list")}>
+                  فهرست کامل آگهی‌ها <ArrowLeft className="size-4" />
+                </Button>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {filtered.slice(0, 12).map((item) => {
+                  const photo = item.images?.find((image: any) => image.featured) ?? item.images?.[0];
+                  return (
+                    <Link key={item.slug} to={"/listings/" + item.slug}
+                      className="flex min-w-0 items-center gap-3 overflow-hidden rounded-2xl border border-border/70 bg-card p-2.5 shadow-sm transition-colors hover:border-primary/40">
+                      <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted sm:size-28">
+                        {photo?.url ? (
+                          <img src={photo.url} alt={photo.alt || item.title} loading="lazy" className="h-full w-full object-contain" />
+                        ) : (
+                          <Building2 className="size-8 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <strong className="line-clamp-2 text-sm font-black leading-6">{item.title}</strong>
+                        <p className="mt-1 text-xs text-muted-foreground">{item.city} · {item.propertyType}</p>
+                        <p className="mt-2 text-sm font-extrabold text-primary">
+                          {item.rentMillion != null && item.rentMillion > 0
+                            ? "اجاره " + formatPrice(item.rentMillion)
+                            : item.priceMillion != null && item.priceMillion > 0
+                              ? formatPrice(item.priceMillion)
+                              : item.depositMillion != null && item.depositMillion > 0
+                                ? "ودیعه " + formatPrice(item.depositMillion)
+                                : "قیمت توافقی"}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+              {status === "LoadingFirstPage" && (
+                <p className="py-8 text-center text-xs text-muted-foreground">در حال دریافت آگهی‌ها…</p>
+              )}
+              {status !== "LoadingFirstPage" && filtered.length === 0 && (
+                <p className="rounded-2xl border border-dashed border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+                  آگهی مطابق فیلتر پیدا نشد.
+                </p>
+              )}
+            </div>
           </div>
         ) : status === "LoadingFirstPage" ? (
           <div className="py-24 text-center text-sm text-muted-foreground">در حال دریافت آگهی‌ها…</div>
@@ -669,13 +724,13 @@ function FilterSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className={"relative inline-flex h-10 shrink-0 items-center rounded-full border px-3 " + (
+    <label className={"relative inline-flex h-11 shrink-0 items-center rounded-full border px-3 " + (
       value !== "همه" ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"
     )}>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="appearance-none bg-transparent pe-5 text-xs font-extrabold outline-none"
+        className="appearance-none bg-transparent pe-5 text-sm font-extrabold outline-none"
         aria-label={label}
       >
         <option value="همه">{label}</option>
