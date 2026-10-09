@@ -8,6 +8,15 @@ import MekaBrand from "@/components/MekaBrand";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { api } from "@/convex/_generated/api";
 import { useSeo } from "@/hooks/use-seo";
 import { formatArea, formatPrice } from "@/lib/format";
@@ -23,9 +32,14 @@ import {
   Filter,
   Heart,
   Home,
+  Info,
   KeyRound,
+  LayoutDashboard,
+  LogIn,
   Layers3,
   MapPinned,
+  Menu,
+  BookOpen,
   PhoneCall,
   Radar,
   RotateCcw,
@@ -39,6 +53,22 @@ import { FormEvent, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 
 const SITE_URL = "https://divsaz.ir";
+
+const LANDING_MENU_ITEMS = [
+  { label: "صفحه اصلی", to: "/", icon: Home },
+  { label: "همه آگهی‌ها", to: "/listings", icon: Search },
+  { label: "جستجو روی نقشه", to: "/listings?mode=map", icon: MapPinned },
+  { label: "خرید ملک", to: "/listings?deal=" + encodeURIComponent("فروش"), icon: Building2 },
+  { label: "رهن و اجاره", to: "/listings?deal=" + encodeURIComponent("رهن و اجاره"), icon: KeyRound },
+  { label: "ثبت آگهی ملک", to: "/submit-listing", icon: FilePlus2 },
+  { label: "ثبت درخواست ملک", to: "/request", icon: Tag },
+  { label: "ذخیره‌شده‌ها", to: "/saved", icon: Heart },
+  { label: "دستیار هوشمند", to: "/assistant", icon: Bot },
+  { label: "مجله و راهنما", to: "/blog", icon: BookOpen },
+  { label: "درباره دیوساز", to: "/about", icon: Info },
+  { label: "پنل کاربری", to: "/dashboard", icon: LayoutDashboard },
+  { label: "ورود / عضویت", to: "/auth", icon: LogIn },
+] as const;
 
 type IntentKey = "buy" | "rent" | "sell" | "lease";
 
@@ -497,15 +527,15 @@ export default function LandingV3() {
           >
             <MekaBrand compact link={false} />
           </Link>
-          <div className="flex items-center gap-2">
-            <Button asChild size="sm" variant="ghost" className="rounded-xl px-2 text-sm font-bold text-white hover:bg-white/15 hover:text-white">
+          <div className="flex shrink-0 items-center gap-2">
+            <Button asChild size="sm" variant="ghost" className="hidden rounded-xl px-2 text-sm font-bold text-white hover:bg-white/15 hover:text-white sm:inline-flex">
               <Link to="/listings">آگهی‌ها</Link>
             </Button>
             <Button
               asChild
               variant="ghost"
               size="sm"
-              className="hidden rounded-xl text-white hover:bg-white/10 hover:text-white sm:inline-flex"
+              className="hidden rounded-xl text-white hover:bg-white/10 hover:text-white lg:inline-flex"
             >
               <Link to="/assistant" className="gap-2">
                 <Bot className="size-4" />
@@ -515,6 +545,52 @@ export default function LandingV3() {
             <div className="rounded-xl border border-white/10 bg-white/10 backdrop-blur">
               <ThemeToggle />
             </div>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="size-11 shrink-0 rounded-xl border-white/30 bg-white/10 text-white shadow-sm hover:bg-white/20 hover:text-white"
+                  aria-label="باز کردن منوی اصلی دیوساز"
+                >
+                  <Menu className="size-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                dir="rtl"
+                overlayClassName="z-[2000]"
+                className="z-[2001] h-[100dvh] w-[86vw] max-w-[360px] gap-0 overflow-hidden border-border bg-background p-0 text-foreground"
+              >
+                <SheetHeader className="shrink-0 border-b border-border/70 px-4 pb-4 pt-5 pe-12 text-right">
+                  <SheetTitle className="text-base font-black">منوی دیوساز</SheetTitle>
+                  <SheetDescription className="text-xs leading-6">
+                    دسترسی سریع به آگهی‌ها، نقشه و خدمات ملکی
+                  </SheetDescription>
+                </SheetHeader>
+                <nav aria-label="منوی اصلی سایت" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin]">
+                  <div className="grid gap-1">
+                    {LANDING_MENU_ITEMS.map(({ to, label, icon: Icon }) => (
+                      <SheetClose asChild key={to}>
+                        <Link
+                          to={to}
+                          className="flex min-h-12 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-extrabold text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary"
+                        >
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <Icon className="size-4" />
+                          </span>
+                          <span>{label}</span>
+                        </Link>
+                      </SheetClose>
+                    ))}
+                  </div>
+                </nav>
+                <div className="shrink-0 border-t border-border/70 bg-muted/50 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 text-xs leading-6 text-muted-foreground">
+                  {settings?.officeName || "دیوساز"} · املاک صنعتی و اداری شهریار
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </header>
 
