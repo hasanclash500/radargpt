@@ -791,7 +791,7 @@ export default function ListingMapExplorer({
           </article>
         )}
 
-        {mode === "public" && !activePoint && !loading && points.length > 0 && (
+        {mode === "public" && (mapSettings?.showMapCountBadge ?? false) && !activePoint && !loading && points.length > 0 && (
           <div className="pointer-events-none absolute inset-x-3 bottom-3 z-[1000] mx-auto w-fit max-w-[calc(100%-1.5rem)] rounded-full border border-white/80 bg-[#082f54] px-3 py-2 text-center text-xs font-extrabold text-white shadow-lg sm:px-4">
             {faNum(points.length)} آگهی در این محدوده · یکی از نشانگرها را لمس کنید
           </div>
