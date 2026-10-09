@@ -583,7 +583,7 @@ export default function ListingMapExplorer({
           style={mode === "public" && !mobileMapInteractive ? { touchAction: "pan-y" } : undefined}
           className={
             mode === "public"
-              ? "h-full min-h-0 w-full bg-muted [&_.leaflet-control-attribution]:!text-[8px] [&_.leaflet-control-attribution]:!leading-3"
+              ? "h-full min-h-0 w-full bg-muted [&_.leaflet-control-attribution]:!text-[10px] [&_.leaflet-control-attribution]:!leading-3"
               : "h-[56dvh] min-h-[360px] w-full bg-muted sm:h-[62vh] lg:h-[66vh]"
           }
         />
@@ -594,7 +594,7 @@ export default function ListingMapExplorer({
               type="button"
               size="sm"
               variant="outline"
-              className="h-11 shrink-0 gap-2 rounded-2xl border-2 border-white bg-[#082f54] px-3 text-xs font-black text-white shadow-lg hover:bg-[#0b416f] hover:text-white sm:px-4"
+              className="h-11 shrink-0 gap-2 rounded-2xl border-2 border-white bg-[#082f54] px-3 text-xs font-black text-white shadow-lg hover:bg-[#0b416f] hover:text-white dark:bg-[#082f54] dark:text-white sm:px-4"
               onClick={fitAllPoints}
             >
               <Focus className="size-4" />
@@ -603,7 +603,7 @@ export default function ListingMapExplorer({
             <Button
               type="button"
               size="sm"
-              className="h-11 shrink-0 gap-2 rounded-2xl bg-white px-3 text-xs font-black text-[#082f54] shadow-lg hover:bg-slate-100 sm:px-4"
+              className="h-11 shrink-0 gap-2 rounded-2xl bg-white px-3 text-xs font-black text-[#082f54] shadow-lg hover:bg-slate-100 dark:bg-white dark:text-[#082f54] sm:px-4"
               onClick={useMyLocation}
             >
               <LocateFixed className="size-4" />
@@ -616,7 +616,7 @@ export default function ListingMapExplorer({
           <button
             type="button"
             onClick={() => setMobileMapInteractive((enabled) => !enabled)}
-            className="absolute bottom-14 end-3 z-[1000] inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/80 bg-[#082f54] px-3 py-2 text-xs font-black text-white shadow-lg sm:hidden"
+            className="absolute bottom-14 end-3 z-[1000] inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/80 bg-[#082f54] px-3 py-2 text-xs font-black text-white shadow-lg dark:bg-[#082f54] dark:text-white sm:hidden"
             aria-pressed={mobileMapInteractive}
           >
             <Hand className="size-4" />
