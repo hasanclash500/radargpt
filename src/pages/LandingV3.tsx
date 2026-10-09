@@ -25,6 +25,7 @@ import {
   KeyRound,
   Layers3,
   MapPinned,
+  PhoneCall,
   Radar,
   RotateCcw,
   Search,
@@ -76,6 +77,25 @@ const INTENTS: Array<{
     accent: "from-emerald-500 to-teal-700",
   },
 ];
+
+const LANDING_FAQS = [
+  {
+    question: "چطور ملک‌های شهریار را روی نقشه پیدا کنم؟",
+    answer: "از فیلترهای بالای نقشه، شهر، نوع ملک، نوع معامله و در صورت نیاز متراژ یا قیمت را انتخاب کنید. فقط آگهی‌هایی که موقعیت جغرافیایی دارند روی نقشه دیده می‌شوند.",
+  },
+  {
+    question: "چه ملک‌هایی در دیوساز قابل جستجو هستند؟",
+    answer: "آگهی‌های سوله، کارخانه، کارگاه، انبار، زمین صنعتی، دفتر اداری و سایر ملک‌های ثبت‌شده را می‌توانید در بخش آگهی‌ها بررسی کنید.",
+  },
+  {
+    question: "آیا می‌توانم ملک خود را برای فروش یا اجاره ثبت کنم؟",
+    answer: "بله؛ از بخش ثبت آگهی، مشخصات، قیمت و تصاویر ملک را وارد کنید. آگهی‌های عمومی پس از بررسی و تأیید مدیر منتشر می‌شوند.",
+  },
+  {
+    question: "چطور درباره یک آگهی سؤال بپرسم؟",
+    answer: "کارت ملک را باز کنید تا جزئیات و راه‌های ارتباطی موجود در آن را ببینید. همچنین از بخش تماس یا گفتگوی سایت می‌توانید ارتباط بگیرید.",
+  },
+] as const;
 
 const COMMON_PROPERTY_TYPES = [
   "سوله",
@@ -376,13 +396,39 @@ export default function LandingV3() {
           },
         },
         {
-          "@type": "WebPage",
-          "@id": SITE_URL + "/#map-home",
+          "@type": "WebSite",
+          "@id": SITE_URL + "/#website",
+          name: "دیوساز",
           url: SITE_URL + "/",
-          name: "دیوساز | جستجوی ملک روی نقشه",
           inLanguage: "fa-IR",
+          potentialAction: {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: SITE_URL + "/listings?q={search_term_string}",
+            },
+            "query-input": "required name=search_term_string",
+          },
+        },
+        {
+          "@type": "WebPage",
+          "@id": SITE_URL + "/#homepage",
+          url: SITE_URL + "/",
+          name: "دیوساز | خرید، فروش و اجاره املاک صنعتی و اداری شهریار",
+          inLanguage: "fa-IR",
+          isPartOf: { "@id": SITE_URL + "/#website" },
+          about: { "@id": SITE_URL + "/#business" },
           description:
-            "جستجوی نقشه‌محور املاک صنعتی و اداری شهریار و غرب تهران با فیلتر زنده.",
+            "آگهی‌های خرید و فروش، رهن و اجاره سوله، کارخانه، کارگاه، انبار، زمین صنعتی و دفتر اداری در شهریار و غرب تهران.",
+        },
+        {
+          "@type": "FAQPage",
+          "@id": SITE_URL + "/#faq",
+          mainEntity: LANDING_FAQS.map(({ question, answer }) => ({
+            "@type": "Question",
+            name: question,
+            acceptedAnswer: { "@type": "Answer", text: answer },
+          })),
         },
       ],
     }),
@@ -390,19 +436,23 @@ export default function LandingV3() {
   );
 
   useSeo({
-    title: "دیوساز | جستجوی ملک روی نقشه در شهریار و غرب تهران",
+    title: "دیوساز | خرید، فروش و اجاره سوله و املاک صنعتی شهریار",
     description:
-      "خرید، فروش، رهن و اجاره سوله، کارخانه، کارگاه، انبار، زمین صنعتی و دفتر اداری با نقشه زنده و فیلترهای دقیق در دیوساز.",
+      "آگهی‌های واقعی سوله، کارخانه، کارگاه، انبار، زمین صنعتی و دفتر اداری در شهریار و غرب تهران؛ خرید، فروش، رهن و اجاره با نقشه، فیلتر و جزئیات هر ملک.",
     keywords: [
-      "نقشه املاک شهریار",
+      "املاک صنعتی شهریار",
       "خرید سوله شهریار",
       "اجاره سوله شهریار",
-      "املاک صنعتی غرب تهران",
+      "فروش کارخانه شهریار",
+      "رهن و اجاره انبار غرب تهران",
+      "دفتر اداری شهریار",
+      "نقشه آگهی املاک صنعتی",
       "دیوساز",
     ],
     canonical: SITE_URL + "/",
     noIndex: location.pathname !== "/",
     image: SITE_URL + "/divsaz-hero-building.svg",
+    imageAlt: "دیوساز، مرجع املاک صنعتی و اداری شهریار",
     type: "website",
     jsonLd,
   });
@@ -862,28 +912,122 @@ export default function LandingV3() {
         )}
       </section>
 
-      <footer className="border-t border-slate-200/80 bg-white dark:border-white/10 dark:bg-[#07111f]">
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 md:grid-cols-[1fr_auto] md:items-center">
-          <div>
-            <MekaBrand />
-            <p className="mt-3 max-w-xl text-xs leading-6 text-slate-500 dark:text-slate-400">
-              دیوساز؛ جستجوی نقشه‌محور املاک صنعتی و اداری شهریار و غرب تهران.
-              خرید، فروش، رهن و اجاره با فایل‌های واقعی و ارتباط مستقیم.
-            </p>
+      <section aria-labelledby="service-heading" className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-slate-900">
+          <h2 id="service-heading" className="text-xl font-black leading-9 text-slate-950 sm:text-2xl dark:text-white">
+            جستجوی ملک صنعتی و اداری در شهریار و غرب تهران
+          </h2>
+          <p className="mt-3 max-w-4xl text-sm leading-8 text-slate-700 dark:text-slate-200">
+            دیوساز برای بررسی آگهی‌های فروش و اجاره املاک کسب‌وکار طراحی شده است.
+            موقعیت فایل‌های دارای لوکیشن را روی نقشه ببینید و بر اساس شهر، نوع ملک، متراژ و
+            قیمت جستجو کنید. جزئیات، عکس‌ها و اطلاعات تماس درج‌شده در صفحه هر آگهی در دسترس شماست.
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { title: "خرید سوله و کارخانه", to: "/listings?deal=" + encodeURIComponent("فروش"), description: "فایل‌های فروش املاک صنعتی و کارگاهی" },
+              { title: "رهن و اجاره انبار", to: "/listings?deal=" + encodeURIComponent("رهن و اجاره"), description: "گزینه‌های اجاره مناسب کسب‌وکار" },
+              { title: "مشاهده ملک روی نقشه", to: "/listings?mode=map", description: "مقایسه موقعیت فایل‌های دارای لوکیشن" },
+              { title: "سپردن یا ثبت ملک", to: "/submit-listing", description: "ثبت فایل فروش یا اجاره برای بررسی" },
+            ].map((item) => (
+              <Link key={item.title} to={item.to}
+                className="flex min-h-28 flex-col justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-colors hover:border-blue-400 hover:bg-blue-50 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
+                <strong className="text-sm font-black text-slate-950 dark:text-white">{item.title}</strong>
+                <p className="text-xs leading-6 text-slate-600 dark:text-slate-300">{item.description}</p>
+                <ArrowLeft className="size-4 text-blue-700 dark:text-sky-300" />
+              </Link>
+            ))}
           </div>
-          <div className="flex flex-wrap gap-2 text-xs font-bold">
-            <Link to="/listings" className="rounded-xl px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/5">
-              آگهی‌ها
-            </Link>
-            <Link to="/request" className="rounded-xl px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/5">
-              ثبت تقاضا
-            </Link>
-            <Link to="/submit-listing" className="rounded-xl px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/5">
-              ثبت آگهی
-            </Link>
-            <Link to="/blog" className="rounded-xl px-3 py-2 hover:bg-slate-100 dark:hover:bg-white/5">
-              مجله
-            </Link>
+        </div>
+      </section>
+
+      <section aria-labelledby="faq-heading" className="mx-auto max-w-7xl px-4 pb-12 sm:px-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8 dark:border-white/10 dark:bg-slate-900">
+          <div className="mb-4">
+            <span className="text-xs font-bold text-blue-700 dark:text-sky-300">راهنمای استفاده</span>
+            <h2 id="faq-heading" className="mt-1 text-xl font-black text-slate-950 sm:text-2xl dark:text-white">
+              پرسش‌های متداول خرید، فروش و اجاره ملک
+            </h2>
+          </div>
+          <div className="divide-y divide-slate-200 dark:divide-white/10">
+            {LANDING_FAQS.map(({ question, answer }) => (
+              <details key={question} className="group py-3">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-extrabold leading-7 text-slate-900 [&::-webkit-details-marker]:hidden sm:text-base dark:text-white">
+                  {question}
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-lg leading-6 text-slate-700 group-open:rotate-45 dark:bg-white/10 dark:text-white">+</span>
+                </summary>
+                <p className="pb-2 pe-1 pt-2 text-sm leading-8 text-slate-700 dark:text-slate-200">{answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/10 bg-[#071a2f] text-slate-100">
+        <div className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 sm:pb-12 sm:pt-12">
+          <div className="grid gap-9 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="sm:col-span-2 lg:col-span-1">
+              <div className="inline-flex items-center rounded-2xl bg-white px-3 py-2 text-slate-900">
+                <MekaBrand compact />
+              </div>
+              <h2 className="mt-4 text-base font-black text-white">{settings?.officeName || "دیوساز"}</h2>
+              <p className="mt-2 text-sm leading-8 text-slate-200">
+                جستجوی آگهی‌های فروش، رهن و اجاره سوله، کارخانه، کارگاه، انبار،
+                زمین صنعتی و املاک اداری در شهریار و غرب تهران.
+              </p>
+              {(settings?.managerPhone || "09120858095") && (
+                <a href={"tel:" + (settings?.managerPhone || "09120858095")} dir="ltr"
+                  className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-bold text-white hover:bg-white/20">
+                  <PhoneCall className="size-4" /> {settings?.managerPhone || "09120858095"}
+                </a>
+              )}
+            </div>
+            <div>
+              <h2 className="text-base font-black text-white">دسترسی سریع</h2>
+              <nav aria-label="دسترسی سریع" className="mt-4 grid gap-3 text-sm text-slate-200">
+                <Link to="/" className="hover:text-sky-300">صفحه اصلی</Link>
+                <Link to="/listings" className="hover:text-sky-300">همه آگهی‌ها</Link>
+                <Link to="/listings?mode=map" className="hover:text-sky-300">جستجوی ملک روی نقشه</Link>
+                <Link to="/saved" className="hover:text-sky-300">آگهی‌های ذخیره‌شده</Link>
+                <Link to="/blog" className="hover:text-sky-300">مجله و راهنمای املاک</Link>
+                <Link to="/about" className="hover:text-sky-300">درباره دیوساز</Link>
+              </nav>
+            </div>
+            <div>
+              <h2 className="text-base font-black text-white">خدمات ملکی</h2>
+              <nav aria-label="خدمات ملکی" className="mt-4 grid gap-3 text-sm text-slate-200">
+                <Link to={"/listings?deal=" + encodeURIComponent("فروش")} className="hover:text-sky-300">خرید ملک صنعتی</Link>
+                <Link to={"/listings?deal=" + encodeURIComponent("رهن و اجاره")} className="hover:text-sky-300">رهن و اجاره ملک</Link>
+                <Link to={"/submit-listing?deal=" + encodeURIComponent("فروش")} className="hover:text-sky-300">ثبت آگهی فروش</Link>
+                <Link to={"/submit-listing?deal=" + encodeURIComponent("رهن و اجاره")} className="hover:text-sky-300">ثبت آگهی اجاره</Link>
+                <Link to="/request" className="hover:text-sky-300">ثبت درخواست ملک</Link>
+                <Link to="/assistant" className="hover:text-sky-300">دستیار هوشمند</Link>
+              </nav>
+            </div>
+            <div>
+              <h2 className="text-base font-black text-white">مناطق و نوع فعالیت</h2>
+              <p className="mt-4 text-sm leading-8 text-slate-200">
+                شهریار، غرب تهران و شهرک‌های صنعتی اطراف؛ سوله، کارگاه، کارخانه،
+                انبار، زمین صنعتی و دفتر اداری.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {["سوله شهریار", "کارخانه", "انبار صنعتی", "دفتر اداری"].map((label) => (
+                  <span key={label} className="rounded-full border border-white/20 px-3 py-1.5 text-xs text-slate-200">
+                    {label}
+                  </span>
+                ))}
+              </div>
+              <Link to="/request" className="mt-5 inline-flex items-center gap-1 text-sm font-extrabold text-sky-300 hover:text-white">
+                مشاوره و ثبت درخواست <ArrowLeft className="size-4" />
+              </Link>
+            </div>
+          </div>
+          <div className="mt-10 flex flex-col gap-3 border-t border-white/20 pt-5 text-xs leading-7 text-slate-300 sm:flex-row sm:items-center sm:justify-between">
+            <p>© {new Date().getFullYear()} {settings?.officeName || "دیوساز"} · املاک صنعتی و اداری شهریار</p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2">
+              <Link to="/about" className="hover:text-white">درباره ما</Link>
+              <Link to="/submit-listing" className="hover:text-white">ثبت آگهی</Link>
+              <Link to="/request" className="hover:text-white">ارتباط و درخواست ملک</Link>
+            </div>
           </div>
         </div>
       </footer>
