@@ -545,6 +545,8 @@ const schema = defineSchema(
       homepageVariant: v.optional(
         v.union(v.literal("classic"), v.literal("modern"), v.literal("visual")),
       ),
+      /** نمایش شمارنده تعداد آگهی‌ها در نقشه عمومی و لندینگ نقشه‌محور. */
+      showMapCountBadge: v.optional(v.boolean()),
       /** شناسه ماژول‌های اختیاری فعال؛ کد هر ماژول مستقل از هسته نگه داشته می‌شود. */
       enabledModules: v.optional(v.array(v.string())),
       /** شهر/دسته/نوع ملک‌های افزوده‌شده توسط مدیر */
