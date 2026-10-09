@@ -124,51 +124,41 @@ function moneyMillion(value: string) {
 }
 
 function MiniListingCard({ item }: { item: any }) {
-  const image =
-    item.images?.find((entry: any) => entry.featured) ?? item.images?.[0];
-  const price =
-    item.rentMillion != null && item.rentMillion > 0
-      ? `اجاره ${formatPrice(item.rentMillion)}`
-      : item.priceMillion != null && item.priceMillion > 0
-        ? formatPrice(item.priceMillion)
-        : item.depositMillion != null && item.depositMillion > 0
-          ? `ودیعه ${formatPrice(item.depositMillion)}`
-          : "قیمت توافقی";
+  const image = item.images?.find((entry: any) => entry.featured) ?? item.images?.[0];
+  const price = item.rentMillion != null && item.rentMillion > 0
+    ? `اجاره ${formatPrice(item.rentMillion)}`
+    : item.priceMillion != null && item.priceMillion > 0 ? formatPrice(item.priceMillion)
+      : item.depositMillion != null && item.depositMillion > 0
+        ? `ودیعه ${formatPrice(item.depositMillion)}` : "قیمت توافقی";
 
   return (
-    <Link
-      to={"/listings/" + item.slug}
-      className="group min-w-[78vw] snap-start overflow-hidden rounded-[1.75rem] border border-slate-200/70 bg-white shadow-[0_14px_40px_rgba(15,23,42,.07)] transition-all hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(15,23,42,.12)] sm:min-w-0 dark:border-white/10 dark:bg-slate-950/50"
-    >
-      <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-900">
+    <Link to={"/listings/" + item.slug} aria-label={"مشاهده آگهی " + item.title}
+      className="group grid min-w-0 grid-cols-[40%_minmax(0,1fr)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_10px_35px_rgba(15,23,42,.07)] transition-all hover:border-blue-300 hover:shadow-lg sm:block dark:border-white/15 dark:bg-slate-900">
+      <div className="relative min-h-[156px] overflow-hidden bg-slate-50 sm:aspect-[4/3] sm:min-h-0 dark:bg-slate-800">
         {image?.url ? (
-          <img
-            src={image.url}
-            alt={image.alt || item.title}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
-            loading="lazy"
-          />
+          <img src={image.url} alt={image.alt || item.title}
+            className="absolute inset-0 h-full w-full object-contain p-1.5 transition-transform duration-300 group-hover:scale-[1.025] sm:p-3"
+            loading="lazy" decoding="async" />
         ) : (
-          <div className="flex h-full items-center justify-center">
-            <Building2 className="size-10 text-slate-300" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Building2 className="size-9 text-slate-400" />
           </div>
         )}
-        <span className="absolute start-3 top-3 rounded-full bg-slate-950/80 px-3 py-1.5 text-[10px] font-black text-white backdrop-blur">
+        <span className="absolute start-2 top-2 rounded-full bg-[#071a2f] px-2.5 py-1 text-[11px] font-bold text-white">
           {item.dealType || "آگهی"}
         </span>
       </div>
-      <div className="p-4">
-        <strong className="line-clamp-1 block text-sm font-black text-slate-950 dark:text-white">
-          {item.title}
-        </strong>
-        <span className="mt-2 block text-sm font-black text-blue-700 dark:text-sky-300">
-          {price}
-        </span>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
+      <div className="flex min-w-0 flex-col justify-center p-3 sm:p-4">
+        <strong className="line-clamp-2 block text-sm font-black leading-6 text-slate-950 sm:text-base dark:text-white">{item.title}</strong>
+        <span className="mt-2 block text-sm font-black text-blue-700 sm:text-base dark:text-sky-300">{price}</span>
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
           {item.area != null && <span>{formatArea(item.area)}</span>}
           {item.propertyType && <span>• {item.propertyType}</span>}
           {item.city && <span>• {item.city}</span>}
         </div>
+        <span className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-blue-700 dark:text-sky-300">
+          جزئیات ملک <ArrowLeft className="size-3.5" />
+        </span>
       </div>
     </Link>
   );
@@ -190,7 +180,7 @@ function MobileNav() {
           <Link
             key={to}
             to={to}
-            className="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[9px] font-bold text-slate-500 transition-colors hover:text-blue-700 dark:text-slate-400"
+            className="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-bold text-slate-600 transition-colors hover:text-blue-700 dark:text-slate-300"
           >
             <Icon className="size-5" />
             <span className="truncate">{label}</span>
@@ -427,7 +417,7 @@ export default function LandingV3() {
         <div className="pointer-events-none absolute -start-24 -top-24 size-72 rounded-full bg-sky-400/20 blur-3xl" />
         <div className="pointer-events-none absolute -end-24 top-20 size-80 rounded-full bg-amber-300/10 blur-3xl" />
 
-        <header className="relative z-[1200] mx-auto flex h-16 max-w-[1500px] items-center justify-between px-4 sm:px-6">
+        <header className="relative z-[1200] mx-auto flex h-16 max-w-[1500px] items-center justify-between gap-2 px-4 sm:px-6">
           <Link
             to="/"
             className="rounded-2xl border border-white/10 bg-white px-3 py-2 text-slate-950 shadow-xl"
@@ -435,6 +425,9 @@ export default function LandingV3() {
             <MekaBrand compact />
           </Link>
           <div className="flex items-center gap-2">
+            <Button asChild size="sm" variant="ghost" className="rounded-xl px-2 text-sm font-bold text-white hover:bg-white/15 hover:text-white">
+              <Link to="/listings">آگهی‌ها</Link>
+            </Button>
             <Button
               asChild
               variant="ghost"
@@ -457,12 +450,12 @@ export default function LandingV3() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55 }}
-            className="px-4 pb-5 pt-5 sm:px-0 sm:pb-6"
+            className="px-4 pb-3 pt-3 sm:px-0 sm:pb-6 sm:pt-6"
           >
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-sky-300/20 bg-sky-300/10 px-3 py-1.5 text-[10px] font-black text-sky-100 backdrop-blur">
+              <span className="inline-flex items-center gap-2 rounded-full border border-sky-300/25 bg-sky-300/10 px-3 py-1.5 text-xs font-bold text-sky-100">
                 <Radar className="size-4 text-sky-300" />
-                LANDING 03 · MAP FIRST
+                املاک صنعتی و اداری شهریار
               </span>
               {hasFilters && (
                 <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-[10px] font-black text-amber-200">
@@ -471,20 +464,19 @@ export default function LandingV3() {
               )}
             </div>
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
-                <h1 className="max-w-4xl text-[2.35rem] font-black leading-[1.25] tracking-[-.035em] sm:text-5xl lg:text-6xl">
-                  اول <span className="text-sky-300">موقعیت</span> را ببین،
-                  <span className="block bg-gradient-to-l from-white via-sky-200 to-amber-200 bg-clip-text text-transparent">
-                    بعد ملک را انتخاب کن.
-                  </span>
+                <h1 className="max-w-4xl text-[1.95rem] font-black leading-[1.55] tracking-normal sm:text-5xl lg:text-6xl">
+                  به سنگ و به گچ،
+                  <span className="block text-sky-300">دیو دیوار کرد</span>
                 </h1>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
-                  تمام فایل‌های دارای لوکیشن، مستقیم روی نقشه. فیلترها همان لحظه
-                  نقاط نقشه را تغییر می‌دهند.
+                <p className="mt-1 text-xs font-medium text-sky-100/80">فردوسی · شاهنامه</p>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-100 sm:text-base">
+                  خرید، فروش، رهن و اجاره سوله، کارخانه، کارگاه، انبار، زمین صنعتی و دفتر اداری
+                  در شهریار و غرب تهران؛ با جستجوی زنده روی نقشه و امکان ارتباط مستقیم.
                 </p>
               </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur">
+              <div className="flex w-fit items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2">
                 <MapPinned className="size-5 text-sky-300" />
                 <div>
                   <strong className="block text-xl font-black">
@@ -858,7 +850,7 @@ export default function LandingV3() {
         </div>
 
         {featured?.length ? (
-          <div className="mt-5 flex snap-x gap-3 overflow-x-auto pb-3 [scrollbar-width:none] sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {featured.slice(0, 6).map((item: any) => (
               <MiniListingCard key={item.slug} item={item} />
             ))}
