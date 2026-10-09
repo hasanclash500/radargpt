@@ -496,7 +496,7 @@ export default function LandingV3() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.48 }}
-              className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white shadow-[0_20px_60px_rgba(15,23,42,.08)] dark:border-white/10 dark:bg-white/[.045]"
+              className="overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white text-slate-950 shadow-[0_20px_60px_rgba(15,23,42,.08)] sm:rounded-[2rem] dark:border-slate-200 dark:bg-white dark:text-slate-950"
             >
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/70 px-3 py-2.5 sm:px-4 dark:border-white/10">
                 <div className="flex items-center gap-3">
@@ -526,21 +526,21 @@ export default function LandingV3() {
               </div>
     
               <form onSubmit={submitSearch} className="p-3 sm:p-4">
-                <div className="grid gap-3 lg:grid-cols-[1.4fr_.8fr_.8fr_auto]">
-                  <label className="relative">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-[1.4fr_.8fr_.8fr_auto]">
+                  <label className="relative col-span-2 lg:col-span-1">
                     <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                     <Input
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="مثلاً سوله ۱۰۰۰ متر یا نام منطقه"
-                      className="h-12 rounded-xl border-slate-300 bg-background pe-3 ps-10 text-sm font-bold shadow-none dark:border-white/10"
+                      className="h-12 rounded-xl border-slate-300 bg-white pe-3 ps-10 text-sm font-bold text-slate-950 shadow-none placeholder:text-slate-500"
                     />
                   </label>
     
                   <select
                     value={city}
                     onChange={(event) => setCity(event.target.value)}
-                    className="h-12 rounded-xl border border-slate-300 bg-background px-3 text-sm font-bold dark:border-white/10"
+                    className="h-12 min-w-0 w-full rounded-xl border border-slate-300 bg-white px-2 text-sm font-bold text-slate-950 sm:px-3"
                   >
                     <option value="همه">همه شهرها</option>
                     {cities.map((value) => (
@@ -553,7 +553,7 @@ export default function LandingV3() {
                   <select
                     value={propertyType}
                     onChange={(event) => setPropertyType(event.target.value)}
-                    className="h-12 rounded-xl border border-slate-300 bg-background px-3 text-sm font-bold dark:border-white/10"
+                    className="h-12 min-w-0 w-full rounded-xl border border-slate-300 bg-white px-2 text-sm font-bold text-slate-950 sm:px-3"
                   >
                     <option value="همه">همه نوع ملک‌ها</option>
                     {propertyTypes.map((value) => (
@@ -566,7 +566,7 @@ export default function LandingV3() {
                   <Button
                     type="button"
                     variant={advancedOpen ? "default" : "outline"}
-                    className="h-12 gap-2 rounded-2xl"
+                    className="col-span-2 h-12 gap-2 rounded-xl font-extrabold lg:col-span-1"
                     onClick={() => setAdvancedOpen((value) => !value)}
                   >
                     <SlidersHorizontal className="size-4" />
@@ -651,7 +651,7 @@ export default function LandingV3() {
                   </motion.div>
                 )}
     
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-100 px-3 py-3 text-slate-950">
                   <div className="flex items-center gap-2 text-xs">
                     <Layers3 className="size-4 text-blue-600" />
                     <strong>{visiblePoints.length.toLocaleString("fa-IR")}</strong>
