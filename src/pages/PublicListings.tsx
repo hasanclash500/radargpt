@@ -120,17 +120,17 @@ export default function PublicListings() {
   const [dealType, setDealType] = useState(() => searchParams.get("deal") || "همه");
   const [city, setCity] = useState(() => searchParams.get("city") || "همه");
   const [rooms, setRooms] = useState("همه");
-  const [areaMin, setAreaMin] = useState("");
-  const [areaMax, setAreaMax] = useState("");
+  const [areaMin, setAreaMin] = useState(() => searchParams.get("areaMin") || "");
+  const [areaMax, setAreaMax] = useState(() => searchParams.get("areaMax") || "");
   const [depositMin, setDepositMin] = useState("");
-  const [depositMax, setDepositMax] = useState("");
+  const [depositMax, setDepositMax] = useState(() => searchParams.get("depositMax") || "");
   const [rentMin, setRentMin] = useState("");
-  const [rentMax, setRentMax] = useState("");
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
+  const [rentMax, setRentMax] = useState(() => searchParams.get("rentMax") || "");
+  const [priceMin, setPriceMin] = useState(() => searchParams.get("priceMin") || "");
+  const [priceMax, setPriceMax] = useState(() => searchParams.get("priceMax") || "");
   const [sort, setSort] = useState<SortKey>("newest");
   const [advancedOpen, setAdvancedOpen] = useState(
-    () => searchParams.get("advanced") === "1",
+    () => searchParams.get("advanced") === "1" || ["areaMin", "areaMax", "priceMin", "priceMax", "depositMax", "rentMax"].some((key) => Boolean(searchParams.get(key))),
   );
   const [sortOpen, setSortOpen] = useState(false);
   const [displayMode, setDisplayMode] = useState<"list" | "map">(
