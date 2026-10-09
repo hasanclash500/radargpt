@@ -46,6 +46,7 @@ export default function ResizableMapPanel({
 
   const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) return;
+    suppressClickRef.current = false;
     dragRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
