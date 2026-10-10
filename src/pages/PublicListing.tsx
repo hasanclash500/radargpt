@@ -72,10 +72,7 @@ export default function PublicListing() {
   const { slug = "" } = useParams();
   const listing = useQuery(api.listings.getPublicBySlug, { slug });
 
-  const canonical =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/listings/${slug}`
-      : undefined;
+  const canonical = `https://divsaz.ir/listings/${encodeURIComponent(slug)}`;
 
   const schemaPrice = listing ? priceForSchema(listing) : undefined;
   const isLease =
@@ -87,7 +84,7 @@ export default function PublicListing() {
     keywords: listing?.seoKeywords || [],
     canonical,
     image: listing?.ogImage || undefined,
-    noIndex: listing?.noIndex ?? false,
+    noIndex: !listing || Boolean(listing.noIndex),
     type: "website",
     jsonLd: listing
       ? {
