@@ -36,8 +36,10 @@ export default function AdvisorProfile() {
   useSeo({
     title: profile ? profile.displayName + " | مشاور دیوساز" : "مشاور دیوساز",
     description: profile?.bio || profile?.headline || "پروفایل مشاور دیوساز",
-    type: "profile",
-  } as any);
+    type: "website",
+    canonical: `https://divsaz.ir/consultants/${encodeURIComponent(slug)}`,
+    noIndex: !profile,
+  });
 
   if (profile === undefined) {
     return (
