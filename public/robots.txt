@@ -1,15 +1,16 @@
+# Divosaz / دیوساز — https://divsaz.ir/
+# Public listings, articles and published pages may be crawled.
+# robots.txt controls crawling; noindex/canonical controls indexing.
 User-agent: *
 Allow: /
-Disallow: /dashboard
-Disallow: /dashboard/
 Disallow: /admin
+Disallow: /dashboard
 Disallow: /auth
+Disallow: /saved
 Disallow: /api/
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /_internal/
 
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: ChatGPT-User
-Allow: /
-
+# Absolute sitemap URL on the preferred HTTPS host.
 Sitemap: https://divsaz.ir/sitemap.xml
