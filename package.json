@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "preview": "vite preview",
-    "seo:indexnow": "node scripts/submit-indexnow.mjs"
+    "seo:indexnow": "node scripts/submit-indexnow.mjs",
+    "seo:test": "node --test tests/sitemap.test.mjs"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.90",
