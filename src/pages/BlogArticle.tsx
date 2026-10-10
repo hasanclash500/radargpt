@@ -51,7 +51,7 @@ export default function BlogArticle() {
     image,
     ogTitle: post?.ogTitle || undefined,
     ogDescription: post?.ogDescription || undefined,
-    noIndex: post?.noIndex ?? false,
+    noIndex: !post || Boolean(post.noIndex),
     type: "article",
     jsonLd: post
       ? {
