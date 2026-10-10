@@ -1,10 +1,16 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSeo } from "@/hooks/use-seo";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";
 import { Link } from "react-router";
 
 export default function NotFound() {
+  useSeo({
+    title: "صفحه پیدا نشد | دیوساز",
+    description: "این صفحه در دیوساز پیدا نشد.",
+    noIndex: true,
+  });
   return (
     <motion.main
       initial={{ opacity: 0 }}
