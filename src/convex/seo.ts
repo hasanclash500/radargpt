@@ -53,6 +53,7 @@ export const sitemapPage = query({
       return {
         isDone: batch.isDone,
         continueCursor: batch.continueCursor,
+        includeSeedFallback: batch.page.length === 0 && batch.isDone && paginationOpts.cursor === null,
         entries: batch.page
           .filter((row) => Boolean(row.slug) && !row.noIndex &&
             (!row.canonicalUrl ||
