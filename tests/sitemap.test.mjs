@@ -30,6 +30,7 @@ test("sitemap iterates pages, includes seed blog and canonical slug URLs", async
     async query(_ref, { kind, paginationOpts }) {
       if (kind !== "listings") return {
         isDone: true, continueCursor: "", entries: [],
+        includeSeedFallback: kind === "posts",
       };
       listingPages++;
       if (paginationOpts.cursor === null) return {
