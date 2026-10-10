@@ -192,6 +192,8 @@ export default function PublicListings() {
       "اجاره دفتر شهریار",
       "دیوساز",
     ],
+    canonical: "https://divsaz.ir/listings",
+    noIndex: Array.from(searchParams.keys()).some((key) => key !== "mode" || searchParams.get(key) === "map"),
     type: "website",
   });
 
