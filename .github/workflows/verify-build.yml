@@ -21,5 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: SEO sitemap tests
+        run: npm run seo:test
+
       - name: Typecheck and build
         run: npm run build
