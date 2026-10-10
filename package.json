@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "preview": "vite preview",
     "seo:indexnow": "node scripts/submit-indexnow.mjs",
-    "seo:test": "node --test tests/sitemap.test.mjs"
+    "seo:test": "node --test tests/sitemap.test.mjs && node --check scripts/seo-audit.mjs",
+    "seo:audit": "node scripts/seo-audit.mjs"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.90",
