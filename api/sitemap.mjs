@@ -68,6 +68,7 @@ export function renderXml(entries) {
 export async function collectSitemapEntries(client, queryReference = api.seo.sitemapPage) {
   const entries = new Map();
   for (const path of CORE_PAGES) entries.set(canonicalUrl(path), undefined);
+  let useSeedArticles = false;
 
   for (const [kind, prefix] of KINDS) {
     let cursor = null;
@@ -80,6 +81,9 @@ export async function collectSitemapEntries(client, queryReference = api.seo.sit
       });
       if (!Array.isArray(data?.entries) || typeof data?.isDone !== "boolean") {
         throw new Error("Invalid sitemap result from backend.");
+      }
+      if (kind === "posts" && data.includeSeedFallback === true) {
+        useSeedArticles = true;
       }
       for (const { slug, updatedAt } of data.entries) {
         if (typeof slug !== "string" || !slug.trim()) continue;
@@ -95,10 +99,13 @@ export async function collectSitemapEntries(client, queryReference = api.seo.sit
     }
   }
 
-  // These two real articles can be served by the blog even before DB seeding.
-  for (const path of SEED_ARTICLES) {
-    const loc = canonicalUrl(path);
-    if (!entries.has(loc)) entries.set(loc, undefined);
+  // Only include seed articles while there are no persisted published posts.
+  // Do not force noIndex posts into the sitemap if a manager disabled indexing.
+  if (useSeedArticles) {
+    for (const path of SEED_ARTICLES) {
+      const loc = canonicalUrl(path);
+      if (!entries.has(loc)) entries.set(loc, undefined);
+    }
   }
   return entries;
 }
